@@ -157,21 +157,21 @@ if(ENABLE_WALLET)
   add_subdirectory(wallet)
 
   if(BUILD_WALLET_TOOL)
-    add_executable(bitcoin-wallet
-      bitcoin-wallet.cpp
-      init/bitcoin-wallet.cpp
+    add_executable(satoxcoin-wallet
+      satoxcoin-wallet.cpp
+      init/satoxcoin-wallet.cpp
       wallet/wallettool.cpp
     )
-    add_windows_resources(bitcoin-wallet bitcoin-wallet-res.rc)
-    add_windows_application_manifest(bitcoin-wallet)
-    target_link_libraries(bitcoin-wallet
+    add_windows_resources(satoxcoin-wallet satoxcoin-wallet-res.rc)
+    add_windows_application_manifest(satoxcoin-wallet)
+    target_link_libraries(satoxcoin-wallet
       core_interface
       bitcoin_wallet
       bitcoin_common
       bitcoin_util
       Boost::headers
     )
-    install_binary_component(bitcoin-wallet HAS_MANPAGE)
+    install_binary_component(satoxcoin-wallet HAS_MANPAGE)
   endif()
 endif()
 
@@ -300,40 +300,40 @@ endif()
 
 # Bitcoin wrapper executable that can call other executables.
 if(BUILD_BITCOIN_BIN)
-  add_executable(bitcoin bitcoin.cpp)
-  add_windows_resources(bitcoin bitcoin-res.rc)
-  add_windows_application_manifest(bitcoin)
-  target_link_libraries(bitcoin core_interface bitcoin_common bitcoin_util)
-  install_binary_component(bitcoin HAS_MANPAGE)
+  add_executable(satoxcoin satoxcoin.cpp)
+  add_windows_resources(satoxcoin satoxcoin-res.rc)
+  add_windows_application_manifest(satoxcoin)
+  target_link_libraries(satoxcoin core_interface bitcoin_common bitcoin_util)
+  install_binary_component(satoxcoin HAS_MANPAGE)
 endif()
 
-# Bitcoin Core bitcoind.
+# Satoxcoin daemon.
 if(BUILD_DAEMON)
-  add_executable(bitcoind
-    bitcoind.cpp
-    init/bitcoind.cpp
+  add_executable(satoxcoind
+    satoxcoind.cpp
+    init/satoxcoind.cpp
   )
-  add_windows_resources(bitcoind bitcoind-res.rc)
-  add_windows_application_manifest(bitcoind)
-  target_link_libraries(bitcoind
+  add_windows_resources(satoxcoind satoxcoind-res.rc)
+  add_windows_application_manifest(satoxcoind)
+  target_link_libraries(satoxcoind
     core_interface
     bitcoin_node
     $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
-  install_binary_component(bitcoind HAS_MANPAGE)
+  install_binary_component(satoxcoind HAS_MANPAGE)
 endif()
 if(ENABLE_IPC AND BUILD_DAEMON)
-  add_executable(bitcoin-node
-    bitcoind.cpp
-    init/bitcoin-node.cpp
+  add_executable(satoxcoin-node
+    satoxcoind.cpp
+    init/satoxcoin-node.cpp
   )
-  target_link_libraries(bitcoin-node
+  target_link_libraries(satoxcoin-node
     core_interface
     bitcoin_node
     bitcoin_ipc
     $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
-  install_binary_component(bitcoin-node INTERNAL)
+  install_binary_component(satoxcoin-node INTERNAL)
 endif()
 
 
@@ -348,12 +348,12 @@ target_link_libraries(bitcoin_cli
 )
 
 
-# Bitcoin Core RPC client
+# Satoxcoin RPC client
 if(BUILD_CLI)
-  add_executable(bitcoin-cli bitcoin-cli.cpp)
-  add_windows_resources(bitcoin-cli bitcoin-cli-res.rc)
-  add_windows_application_manifest(bitcoin-cli)
-  target_link_libraries(bitcoin-cli
+  add_executable(satoxcoin-cli satoxcoin-cli.cpp)
+  add_windows_resources(satoxcoin-cli satoxcoin-cli-res.rc)
+  add_windows_application_manifest(satoxcoin-cli)
+  target_link_libraries(satoxcoin-cli
     core_interface
     bitcoin_cli
     bitcoin_common
@@ -361,34 +361,34 @@ if(BUILD_CLI)
     libevent::core
     libevent::extra
   )
-  install_binary_component(bitcoin-cli HAS_MANPAGE)
+  install_binary_component(satoxcoin-cli HAS_MANPAGE)
 endif()
 
 
 if(BUILD_TX)
-  add_executable(bitcoin-tx bitcoin-tx.cpp)
-  add_windows_resources(bitcoin-tx bitcoin-tx-res.rc)
-  add_windows_application_manifest(bitcoin-tx)
-  target_link_libraries(bitcoin-tx
+  add_executable(satoxcoin-tx satoxcoin-tx.cpp)
+  add_windows_resources(satoxcoin-tx satoxcoin-tx-res.rc)
+  add_windows_application_manifest(satoxcoin-tx)
+  target_link_libraries(satoxcoin-tx
     core_interface
     bitcoin_common
     bitcoin_util
     univalue
   )
-  install_binary_component(bitcoin-tx HAS_MANPAGE)
+  install_binary_component(satoxcoin-tx HAS_MANPAGE)
 endif()
 
 
 if(BUILD_UTIL)
-  add_executable(bitcoin-util bitcoin-util.cpp)
-  add_windows_resources(bitcoin-util bitcoin-util-res.rc)
-  add_windows_application_manifest(bitcoin-util)
-  target_link_libraries(bitcoin-util
+  add_executable(satoxcoin-util satoxcoin-util.cpp)
+  add_windows_resources(satoxcoin-util satoxcoin-util-res.rc)
+  add_windows_application_manifest(satoxcoin-util)
+  target_link_libraries(satoxcoin-util
     core_interface
     bitcoin_common
     bitcoin_util
   )
-  install_binary_component(bitcoin-util HAS_MANPAGE)
+  install_binary_component(satoxcoin-util HAS_MANPAGE)
 endif()
 
 
@@ -403,16 +403,16 @@ if(BUILD_KERNEL_LIB)
     add_subdirectory(test/kernel)
   endif()
   if(BUILD_UTIL_CHAINSTATE)
-    add_executable(bitcoin-chainstate
-      bitcoin-chainstate.cpp
+    add_executable(satoxcoin-chainstate
+      satoxcoin-chainstate.cpp
     )
-    add_windows_application_manifest(bitcoin-chainstate)
-    target_link_libraries(bitcoin-chainstate
+    add_windows_application_manifest(satoxcoin-chainstate)
+    target_link_libraries(satoxcoin-chainstate
       PRIVATE
         core_interface
         bitcoinkernel
     )
-    install_binary_component(bitcoin-chainstate INTERNAL)
+    install_binary_component(satoxcoin-chainstate INTERNAL)
   endif()
 endif()
 

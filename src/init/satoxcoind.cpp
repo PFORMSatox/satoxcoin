@@ -14,14 +14,16 @@
 
 #include <memory>
 
+using node::NodeContext;
+
 namespace init {
 namespace {
-const char* EXE_NAME = "bitcoin-qt";
+const char* EXE_NAME = "satoxcoind";
 
-class BitcoinQtInit : public interfaces::Init
+class BitcoindInit : public interfaces::Init
 {
 public:
-    BitcoinQtInit()
+    BitcoindInit(NodeContext& node) : m_node(node)
     {
         InitContext(m_node);
         m_node.init = this;
@@ -35,14 +37,14 @@ public:
     }
     std::unique_ptr<interfaces::Echo> makeEcho() override { return interfaces::MakeEcho(); }
     const char* exeName() override { return EXE_NAME; }
-    node::NodeContext m_node;
+    NodeContext& m_node;
 };
 } // namespace
 } // namespace init
 
 namespace interfaces {
-std::unique_ptr<Init> MakeGuiInit(int argc, char* argv[])
+std::unique_ptr<Init> MakeNodeInit(NodeContext& node, int argc, char* argv[], int& exit_status)
 {
-    return std::make_unique<init::BitcoinQtInit>();
+    return std::make_unique<init::BitcoindInit>(node);
 }
 } // namespace interfaces

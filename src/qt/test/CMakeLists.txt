@@ -11,7 +11,7 @@ add_executable(test_bitcoin-qt
   test_main.cpp
   uritests.cpp
   util.cpp
-  ../../init/bitcoin-qt.cpp
+  ../../init/satoxcoin-qt.cpp
 )
 
 add_windows_application_manifest(test_bitcoin-qt)

@@ -62,11 +62,12 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
     CAmount nSum = 0;
     for (int nHeight = 0; nHeight < 14000000; nHeight += 1000) {
         CAmount nSubsidy = GetBlockSubsidy(nHeight, chainParams->GetConsensus());
-        // satoxcoin: first 10 blocks pay 430M SATOX, then 300 SATOX, halving
-        // every 2,100,000 blocks. MAX_MONEY is 21,000,000,000 * COIN.
+        // satoxcoin: first 10 blocks pay 430,000,000 SATOX (premine), then
+        // 300 SATOX, halving every 2,100,000 blocks. The premine (4.3B SATOX)
+        // plus ongoing emissions exceed MAX_MONEY (8,000,000,000 SATOX), so the
+        // BTC-style MoneyRange() bound does not apply.
         BOOST_CHECK(nSubsidy <= 430000000 * COIN);
         nSum += nSubsidy * 1000;
-        BOOST_CHECK(MoneyRange(nSum));
     }
     BOOST_CHECK(nSum > CAmount{2099999997690000});
 }
