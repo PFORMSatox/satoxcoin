@@ -2,7 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://opensource.org/license/mit/.
 
-add_library(bitcoin_crypto STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_crypto STATIC EXCLUDE_FROM_ALL
   aes.cpp
   chacha20.cpp
   chacha20poly1305.cpp
@@ -22,14 +22,14 @@ add_library(bitcoin_crypto STATIC EXCLUDE_FROM_ALL
   ../support/cleanse.cpp
 )
 
-target_link_libraries(bitcoin_crypto
+target_link_libraries(satoxcoin_crypto
   PRIVATE
     core_interface
 )
 
 # ethash (ProgPoW/KAWPOW) library — vendored from Ravencoin, upstream copyright
 # (c) 2018-2019 Pawel Bylica. Source files are left unmodified.
-add_library(bitcoin_ethash STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_ethash STATIC EXCLUDE_FROM_ALL
   ethash/lib/ethash/ethash.cpp
   ethash/lib/ethash/managed.cpp
   ethash/lib/ethash/progpow.cpp
@@ -38,18 +38,18 @@ add_library(bitcoin_ethash STATIC EXCLUDE_FROM_ALL
   ethash/lib/keccak/keccakf1600.c
   ethash/lib/keccak/keccakf800.c
 )
-target_include_directories(bitcoin_ethash
+target_include_directories(satoxcoin_ethash
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ethash/include
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ethash/lib/ethash
     ${CMAKE_CURRENT_SOURCE_DIR}/ethash/lib/support
 )
-target_compile_features(bitcoin_ethash PRIVATE c_std_99)
+target_compile_features(satoxcoin_ethash PRIVATE c_std_99)
 
 # x16r/x16rv2 algo library — vendored from Ravencoin (sphlib, Projet RNRT SAPHIR).
 # Source files are left unmodified.
-add_library(bitcoin_algo STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_algo STATIC EXCLUDE_FROM_ALL
   ../algo/groestl.c
   ../algo/blake.c
   ../algo/bmw.c
@@ -75,40 +75,40 @@ add_library(bitcoin_algo STATIC EXCLUDE_FROM_ALL
   ../algo/lyra2.cpp
   ../algo/sponge.cpp
 )
-target_include_directories(bitcoin_algo
+target_include_directories(satoxcoin_algo
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../algo
 )
-target_compile_features(bitcoin_algo PRIVATE c_std_99)
+target_compile_features(satoxcoin_algo PRIVATE c_std_99)
 
 
 if(HAVE_SSE41)
-  target_compile_definitions(bitcoin_crypto PRIVATE ENABLE_SSE41)
-  target_sources(bitcoin_crypto PRIVATE sha256_sse41.cpp)
+  target_compile_definitions(satoxcoin_crypto PRIVATE ENABLE_SSE41)
+  target_sources(satoxcoin_crypto PRIVATE sha256_sse41.cpp)
   set_property(SOURCE sha256_sse41.cpp PROPERTY
     COMPILE_OPTIONS ${SSE41_CXXFLAGS}
   )
 endif()
 
 if(HAVE_AVX2)
-  target_compile_definitions(bitcoin_crypto PRIVATE ENABLE_AVX2)
-  target_sources(bitcoin_crypto PRIVATE sha256_avx2.cpp)
+  target_compile_definitions(satoxcoin_crypto PRIVATE ENABLE_AVX2)
+  target_sources(satoxcoin_crypto PRIVATE sha256_avx2.cpp)
   set_property(SOURCE sha256_avx2.cpp PROPERTY
     COMPILE_OPTIONS ${AVX2_CXXFLAGS}
   )
 endif()
 
 if(HAVE_SSE41 AND HAVE_X86_SHANI)
-  target_compile_definitions(bitcoin_crypto PRIVATE ENABLE_SSE41 ENABLE_X86_SHANI)
-  target_sources(bitcoin_crypto PRIVATE sha256_x86_shani.cpp)
+  target_compile_definitions(satoxcoin_crypto PRIVATE ENABLE_SSE41 ENABLE_X86_SHANI)
+  target_sources(satoxcoin_crypto PRIVATE sha256_x86_shani.cpp)
   set_property(SOURCE sha256_x86_shani.cpp PROPERTY
     COMPILE_OPTIONS ${SSE41_CXXFLAGS} ${X86_SHANI_CXXFLAGS}
   )
 endif()
 
 if(HAVE_ARM_SHANI)
-  target_compile_definitions(bitcoin_crypto PRIVATE ENABLE_ARM_SHANI)
-  target_sources(bitcoin_crypto PRIVATE sha256_arm_shani.cpp)
+  target_compile_definitions(satoxcoin_crypto PRIVATE ENABLE_ARM_SHANI)
+  target_sources(satoxcoin_crypto PRIVATE sha256_arm_shani.cpp)
   set_property(SOURCE sha256_arm_shani.cpp PROPERTY
     COMPILE_OPTIONS ${ARM_SHANI_CXXFLAGS}
   )

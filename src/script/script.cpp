@@ -5,9 +5,11 @@
 
 #include <script/script.h>
 
+#include <assets/assettypes.h>
 #include <crypto/common.h>
 #include <crypto/hex_base.h>
 #include <hash.h>
+#include <streams.h>
 #include <uint256.h>
 #include <util/hash_type.h>
 
@@ -148,6 +150,8 @@ std::string GetOpName(opcodetype opcode)
 
     // Opcode added by BIP 342 (Tapscript)
     case OP_CHECKSIGADD            : return "OP_CHECKSIGADD";
+
+    case OP_SATOX_ASSET              : return "OP_SATOX_ASSET";
 
     case OP_INVALIDOPCODE          : return "OP_INVALIDOPCODE";
 
@@ -310,6 +314,131 @@ bool CScript::HasValidOps() const
     return true;
 }
 
+/** SATOXCOIN START */
+bool CScript::IsAssetScript() const
+{
+    int nType = 0;
+    bool isOwner = false;
+    int start = 0;
+    return IsAssetScript(nType, isOwner, start);
+}
+
+bool CScript::IsAssetScript(int& nType, bool& isOwner) const
+{
+    int start = 0;
+    return IsAssetScript(nType, isOwner, start);
+}
+
+bool CScript::IsAssetScript(int& nType, bool& fIsOwner, int& nStartingIndex) const
+{
+    if (this->size() > 31) {
+        if ((*this)[25] == OP_SATOX_ASSET) { // OP_SATOX_ASSET is always in the 25 index of the script if it exists
+            int index = -1;
+            if ((*this)[27] == SATOX_N) { // Check to see if SATOX starts at 27 ( this->size() < 105)
+                if ((*this)[28] == SATOX_E)
+                    if ((*this)[29] == SATOX_X)
+                        index = 30;
+            } else {
+                if ((*this)[28] == SATOX_N) // Check to see if SATOX starts at 28 ( this->size() >= 105)
+                    if ((*this)[29] == SATOX_E)
+                        if ((*this)[30] == SATOX_X)
+                            index = 31;
+            }
+
+            if (index > 0) {
+                nStartingIndex = index + 1; // Set the index where the asset data begins. Use to serialize the asset data into asset objects
+                if ((*this)[index] == SATOX_T) { // Transfer first anticipating more transfers than other assets operations
+                    nType = TX_TRANSFER_ASSET;
+                    return true;
+                } else if ((*this)[index] == SATOX_Q && this->size() > 39) {
+                    nType = TX_NEW_ASSET;
+                    fIsOwner = false;
+                    return true;
+                } else if ((*this)[index] == SATOX_O) {
+                    nType = TX_NEW_ASSET;
+                    fIsOwner = true;
+                    return true;
+                } else if ((*this)[index] == SATOX_N) {
+                    nType = TX_REISSUE_ASSET;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool CScript::IsNewAsset() const
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (IsAssetScript(nType, fIsOwner))
+        return !fIsOwner && nType == TX_NEW_ASSET;
+
+    return false;
+}
+
+bool CScript::IsOwnerAsset() const
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (IsAssetScript(nType, fIsOwner))
+        return fIsOwner && nType == TX_NEW_ASSET;
+
+    return false;
+}
+
+bool CScript::IsReissueAsset() const
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (IsAssetScript(nType, fIsOwner))
+        return nType == TX_REISSUE_ASSET;
+
+    return false;
+}
+
+bool CScript::IsTransferAsset() const
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (IsAssetScript(nType, fIsOwner))
+        return nType == TX_TRANSFER_ASSET;
+
+    return false;
+}
+
+bool CScript::IsNullAsset() const
+{
+    return IsNullAssetTxDataScript() || IsNullGlobalRestrictionAssetTxDataScript() || IsNullAssetVerifierTxDataScript();
+}
+
+bool CScript::IsNullAssetTxDataScript() const
+{
+    return (this->size() > 23 &&
+            (*this)[0] == OP_SATOX_ASSET &&
+            (*this)[1] == 0x14);
+}
+
+bool CScript::IsNullGlobalRestrictionAssetTxDataScript() const
+{
+    // 1 OP_SATOX_ASSET followed by two OP_RESERVED + atleast 4 characters for the restricted name $ABC
+    return (this->size() > 6 &&
+            (*this)[0] == OP_SATOX_ASSET &&
+            (*this)[1] == OP_RESERVED &&
+            (*this)[2] == OP_RESERVED);
+}
+
+bool CScript::IsNullAssetVerifierTxDataScript() const
+{
+    // 1 OP_SATOX_ASSET followed by one OP_RESERVED
+    return (this->size() > 3 &&
+            (*this)[0] == OP_SATOX_ASSET &&
+            (*this)[1] == OP_RESERVED &&
+            (*this)[2] != OP_RESERVED);
+}
+/** SATOXCOIN END */
+
 bool GetScriptOp(CScriptBase::const_iterator& pc, CScriptBase::const_iterator end, opcodetype& opcodeRet, std::vector<unsigned char>* pvchRet)
 {
     opcodeRet = OP_INVALIDOPCODE;
@@ -358,6 +487,15 @@ bool GetScriptOp(CScriptBase::const_iterator& pc, CScriptBase::const_iterator en
         pc += nSize;
     }
 
+    // If we see an op rvn asset, we consider all data after it has data, and not op codes
+    // Move the pc to the end of the script
+    if (opcode == OP_SATOX_ASSET) {
+        unsigned int nSize = end - pc;
+        if (pvchRet)
+            pvchRet->assign(pc, pc + nSize);
+        pc += nSize;
+    }
+
     opcodeRet = static_cast<opcodetype>(opcode);
     return true;
 }
@@ -394,3 +532,139 @@ bool CheckMinimalPush(const std::vector<unsigned char>& data, opcodetype opcode)
     }
     return true;
 }
+
+/** SATOXCOIN START */
+bool CScript::IsUnspendable() const
+{
+    CAmount nAmount;
+    return (size() > 0 && *begin() == OP_RETURN) || (size() > 0 && *begin() == OP_SATOX_ASSET) || (size() > MAX_SCRIPT_SIZE) || (GetAssetAmountFromScript(*this, nAmount) && nAmount == 0);
+}
+
+//! These are needed because script.h and script.cpp do not have access to asset.h and asset.cpp functions.
+
+//! Used to check if an asset script contains zero assets. If so, it should be unspendable
+bool GetAssetAmountFromScript(const CScript& script, CAmount& nAmount)
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (!script.IsAssetScript(nType, fIsOwner)) {
+        return false;
+    }
+
+    // Get the New Asset or Transfer Asset from the scriptPubKey
+    if (nType == TX_NEW_ASSET && !fIsOwner) {
+        if (AmountFromNewAssetScript(script, nAmount)) {
+            return true;
+        }
+    } else if (nType == TX_TRANSFER_ASSET) {
+        if (AmountFromTransferScript(script, nAmount)) {
+            return true;
+        }
+    } else if (nType == TX_NEW_ASSET && fIsOwner) {
+            nAmount = OWNER_ASSET_AMOUNT;
+            return true;
+    } else if (nType == TX_REISSUE_ASSET) {
+        if (AmountFromReissueScript(script, nAmount)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool ScriptNewAsset(const CScript& scriptPubKey, int& nStartingIndex)
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (scriptPubKey.IsAssetScript(nType, fIsOwner, nStartingIndex)) {
+        return nType == TX_NEW_ASSET && !fIsOwner;
+    }
+
+    return false;
+}
+
+bool ScriptTransferAsset(const CScript& scriptPubKey, int& nStartingIndex)
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (scriptPubKey.IsAssetScript(nType, fIsOwner, nStartingIndex)) {
+        return nType == TX_TRANSFER_ASSET;
+    }
+
+    return false;
+}
+
+bool ScriptReissueAsset(const CScript& scriptPubKey, int& nStartingIndex)
+{
+    int nType = 0;
+    bool fIsOwner = false;
+    if (scriptPubKey.IsAssetScript(nType, fIsOwner, nStartingIndex)) {
+        return nType == TX_REISSUE_ASSET;
+    }
+
+    return false;
+}
+
+bool AmountFromNewAssetScript(const CScript& scriptPubKey, CAmount& nAmount)
+{
+    int nStartingIndex = 0;
+    if (!ScriptNewAsset(scriptPubKey, nStartingIndex))
+        return false;
+
+    std::vector<unsigned char> vchNewAsset;
+    vchNewAsset.insert(vchNewAsset.end(), scriptPubKey.begin() + nStartingIndex, scriptPubKey.end());
+    DataStream ssAsset{std::span{vchNewAsset}};
+
+    CNewAsset assetNew;
+    try {
+        ssAsset >> assetNew;
+    } catch(std::exception&) {
+        return false;
+    }
+
+    nAmount = assetNew.nAmount;
+    return true;
+}
+
+bool AmountFromTransferScript(const CScript& scriptPubKey, CAmount& nAmount)
+{
+    int nStartingIndex = 0;
+    if (!ScriptTransferAsset(scriptPubKey, nStartingIndex))
+        return false;
+
+    std::vector<unsigned char> vchAsset;
+    vchAsset.insert(vchAsset.end(), scriptPubKey.begin() + nStartingIndex, scriptPubKey.end());
+    DataStream ssAsset{std::span{vchAsset}};
+
+    CAssetTransfer asset;
+    try {
+        ssAsset >> asset;
+    } catch(std::exception&) {
+        return false;
+    }
+
+    nAmount = asset.nAmount;
+    return true;
+}
+
+bool AmountFromReissueScript(const CScript& scriptPubKey, CAmount& nAmount)
+{
+    int nStartingIndex = 0;
+    if (!ScriptReissueAsset(scriptPubKey, nStartingIndex))
+        return false;
+
+    std::vector<unsigned char> vchNewAsset;
+    vchNewAsset.insert(vchNewAsset.end(), scriptPubKey.begin() + nStartingIndex, scriptPubKey.end());
+    DataStream ssAsset{std::span{vchNewAsset}};
+
+    CReissueAsset asset;
+    try {
+        ssAsset >> asset;
+    } catch(std::exception&) {
+        return false;
+    }
+
+    nAmount = asset.nAmount;
+    return true;
+}
+/** SATOXCOIN END */

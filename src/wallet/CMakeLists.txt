@@ -3,7 +3,7 @@
 # file COPYING or https://opensource.org/license/mit/.
 
 # Wallet functionality used by bitcoind and bitcoin-wallet executables.
-add_library(bitcoin_wallet STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_wallet STATIC EXCLUDE_FROM_ALL
   coincontrol.cpp
   coinselection.cpp
   context.cpp
@@ -17,10 +17,13 @@ add_library(bitcoin_wallet STATIC EXCLUDE_FROM_ALL
   load.cpp
   migrate.cpp
   receive.cpp
+  asset_tx.cpp
   rpc/addresses.cpp
+  rpc/assets.cpp
   rpc/backup.cpp
   rpc/coins.cpp
   rpc/encrypt.cpp
+  rpc/rewards.cpp
   rpc/signmessage.cpp
   rpc/spend.cpp
   rpc/transactions.cpp
@@ -34,10 +37,11 @@ add_library(bitcoin_wallet STATIC EXCLUDE_FROM_ALL
   walletdb.cpp
   walletutil.cpp
 )
-target_link_libraries(bitcoin_wallet
+target_link_libraries(satoxcoin_wallet
   PRIVATE
     core_interface
-    bitcoin_common
+    satoxcoin_common
+    satoxcoin_assets
     SQLite3::SQLite3
     univalue
     Boost::headers

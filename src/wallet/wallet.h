@@ -7,6 +7,7 @@
 #define BITCOIN_WALLET_WALLET_H
 
 #include <addresstype.h>
+#include <assets/assettypes.h>
 #include <consensus/amount.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
@@ -31,6 +32,8 @@
 #include <util/ui_change_type.h>
 #include <wallet/crypter.h>
 #include <wallet/db.h>
+#include <wallet/coincontrol.h>
+#include <wallet/coinselection.h>
 #include <wallet/scriptpubkeyman.h>
 #include <wallet/transaction.h>
 #include <wallet/types.h>
@@ -58,6 +61,7 @@ class CKeyID;
 class CPubKey;
 class Coin;
 class SigningProvider;
+struct CAssetOutputEntry;
 enum class MemPoolRemovalReason;
 enum class SigningResult;
 namespace common {
@@ -300,6 +304,7 @@ struct CRecipient
     CTxDestination dest;
     CAmount nAmount;
     bool fSubtractFeeFromAmount;
+    CScript scriptOverride;
 };
 
 class WalletRescanReserver; //forward declarations for ScanForWalletTransactions/RescanFromTime
@@ -793,6 +798,57 @@ public:
     /** should probably be renamed to IsRelevantToMe */
     bool IsFromMe(const CTransaction& tx) const;
     CAmount GetDebit(const CTransaction& tx) const;
+
+    /** SATOXCOIN START */
+    void AvailableAssets(std::map<std::string, std::vector<COutput> > &mapAssetCoins, bool fOnlySafe = true,
+                         const CCoinControl *coinControl = nullptr, const CAmount &nMinimumAmount = 1,
+                         const CAmount &nMaximumAmount = MAX_MONEY, const CAmount &nMinimumSumAmount = MAX_MONEY,
+                         const uint64_t &nMaximumCount = 0, const int &nMinDepth = 0, const int &nMaxDepth = 9999999) const;
+    void AvailableCoinsWithAssets(std::vector<COutput> &vCoins, std::map<std::string, std::vector<COutput> > &mapAssetCoins,
+                                  bool fOnlySafe = true, const CCoinControl *coinControl = nullptr,
+                                  const CAmount &nMinimumAmount = 1, const CAmount &nMaximumAmount = MAX_MONEY,
+                                  const CAmount &nMinimumSumAmount = MAX_MONEY, const uint64_t &nMaximumCount = 0,
+                                  const int &nMinDepth = 0, const int &nMaxDepth = 9999999) const;
+    void AvailableCoinsAll(std::vector<COutput>& vCoins, std::map<std::string, std::vector<COutput> >& mapAssetCoins,
+                           bool fGetRVN, bool fGetAssets, bool fOnlySafe, const CCoinControl *coinControl,
+                           const CAmount& nMinimumAmount, const CAmount& nMaximumAmount, const CAmount& nMinimumSumAmount,
+                           const uint64_t& nMaximumCount, const int& nMinDepth, const int& nMaxDepth) const;
+    bool SelectAssetsMinConf(const CAmount& nTargetValue, const int nConfMine, const int nConfTheirs,
+                             const uint64_t nMaxAncestors, const std::string& strAssetName, std::vector<COutput> vCoins,
+                             std::vector<COutput>& setCoinsRet, CAmount& nValueRet) const;
+    bool SelectAssets(const std::map<std::string, std::vector<COutput> >& mapAvailableAssets,
+                      const std::map<std::string, CAmount>& mapAssetTargetValue,
+                      std::vector<COutput>& setCoinsRet, std::map<std::string, CAmount>& nValueRet) const;
+    bool CreateTransactionWithAssets(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, ReserveDestination& reservekey,
+                                     CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason,
+                                     const CCoinControl& coin_control, const std::vector<CNewAsset> assets,
+                                     const CTxDestination destination, const AssetType& assetType, bool sign = true);
+    bool CreateTransactionWithTransferAsset(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, ReserveDestination& reservekey,
+                                            CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason,
+                                            const CCoinControl& coin_control, bool sign = true);
+    bool CreateTransactionWithReissueAsset(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, ReserveDestination& reservekey,
+                                           CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason,
+                                           const CCoinControl& coin_control, const CReissueAsset& reissueAsset,
+                                           const CTxDestination destination, bool sign = true);
+    bool CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, ReserveDestination& reservekey,
+                           CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason,
+                           const CCoinControl& coin_control, bool sign = true);
+    bool CreateTransactionAll(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, ReserveDestination& reservekey,
+                              CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason,
+                              const CCoinControl& coin_control, bool fNewAsset, const CNewAsset& asset,
+                              const CTxDestination dest, bool fTransferAsset, bool fReissueAsset,
+                              const CReissueAsset& reissueAsset, const AssetType& assetType, bool sign = true);
+    bool CreateTransactionAll(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, ReserveDestination& reservekey,
+                              CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason,
+                              const CCoinControl& coin_control, bool fNewAsset, const std::vector<CNewAsset> assets,
+                              const CTxDestination destination, bool fTransferAsset, bool fReissueAsset,
+                              const CReissueAsset& reissueAsset, const AssetType& assetType, bool sign);
+    bool CreateNewChangeAddress(ReserveDestination& reservekey, CKeyID& keyID, std::string& strFailReason);
+    CAmount GetDebit(const CTxIn& txin, CAssetOutputEntry& assetData) const;
+    CAmount HasMyAssets(const CTransaction& tx) const;
+    std::map<CTxDestination, std::vector<COutput>> ListAssets() const;
+    void UpdateMyRestrictedAssets(std::string& address, std::string& asset_name, int type, uint32_t date);
+    /** SATOXCOIN END */
 
     DBErrors PopulateWalletFromDB(bilingual_str& error, std::vector<bilingual_str>& warnings);
 

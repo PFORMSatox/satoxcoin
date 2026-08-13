@@ -23,6 +23,9 @@ std::unique_ptr<const CChainParams> CreateChainParams(const ArgsManager& args, C
  */
 const CChainParams &Params();
 
+/** Alias for Params(), matching the satoxcoin API used by the asset code. */
+inline const CChainParams &GetParams() { return Params(); }
+
 /**
  * Sets the params returned by Params() to those for the given chain type.
  */

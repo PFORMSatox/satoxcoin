@@ -54,13 +54,13 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS forms)
 
 set(CMAKE_AUTORCC OFF)
-configure_file(bitcoin_locale.qrc bitcoin_locale.qrc USE_SOURCE_PERMISSIONS COPYONLY)
-qt6_add_resources(BITCOIN_QRC bitcoin.qrc)
-qt6_add_resources(BITCOIN_LOCALE_QRC ${CMAKE_CURRENT_BINARY_DIR}/bitcoin_locale.qrc)
+configure_file(satoxcoin_locale.qrc satoxcoin_locale.qrc USE_SOURCE_PERMISSIONS COPYONLY)
+qt6_add_resources(SATOXCOIN_QRC satoxcoin.qrc)
+qt6_add_resources(SATOXCOIN_LOCALE_QRC ${CMAKE_CURRENT_BINARY_DIR}/satoxcoin_locale.qrc)
 # See: https://bugreports.qt.io/browse/QTBUG-141858.
 get_target_property(warn_flags warn_interface INTERFACE_COMPILE_OPTIONS)
 if("-Wtrailing-whitespace=any" IN_LIST warn_flags)
-  set_source_files_properties(${BITCOIN_QRC} ${BITCOIN_LOCALE_QRC} PROPERTIES COMPILE_OPTIONS -Wno-trailing-whitespace)
+  set_source_files_properties(${SATOXCOIN_QRC} ${SATOXCOIN_LOCALE_QRC} PROPERTIES COMPILE_OPTIONS -Wno-trailing-whitespace)
 endif()
 unset(warn_flags)
 
@@ -127,8 +127,8 @@ add_library(bitcoinqt STATIC EXCLUDE_FROM_ALL
   utilitydialog.h
   $<$<PLATFORM_ID:Windows>:winshutdownmonitor.cpp>
   $<$<PLATFORM_ID:Windows>:winshutdownmonitor.h>
-  ${BITCOIN_QRC}
-  ${BITCOIN_LOCALE_QRC}
+  ${SATOXCOIN_QRC}
+  ${SATOXCOIN_LOCALE_QRC}
 )
 target_compile_definitions(bitcoinqt
   PUBLIC
@@ -148,7 +148,7 @@ target_link_libraries(bitcoinqt
     Qt6::Widgets
   PRIVATE
     core_interface
-    bitcoin_cli
+    satoxcoin_cli
     leveldb
     Boost::headers
     $<TARGET_NAME_IF_EXISTS:QRencode::QRencode>
@@ -222,7 +222,7 @@ if(ENABLE_WALLET)
   )
   target_link_libraries(bitcoinqt
     PRIVATE
-      bitcoin_wallet
+      satoxcoin_wallet
       Qt6::Network
   )
 endif()
@@ -266,7 +266,7 @@ add_windows_application_manifest(satoxcoin-qt)
 target_link_libraries(satoxcoin-qt
   core_interface
   bitcoinqt
-  bitcoin_node
+  satoxcoin_node
 )
 
 import_plugins(satoxcoin-qt)
@@ -283,8 +283,8 @@ if(ENABLE_IPC)
   target_link_libraries(satoxcoin-gui
     core_interface
     bitcoinqt
-    bitcoin_node
-    bitcoin_ipc
+    satoxcoin_node
+    satoxcoin_ipc
   )
   import_plugins(satoxcoin-gui)
   install_binary_component(satoxcoin-gui INTERNAL)

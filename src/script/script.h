@@ -7,6 +7,7 @@
 #define BITCOIN_SCRIPT_SCRIPT_H
 
 #include <attributes.h>
+#include <consensus/amount.h>
 #include <crypto/common.h>
 #include <prevector.h> // IWYU pragma: export
 #include <serialize.h>
@@ -208,6 +209,10 @@ enum opcodetype
 
     // Opcode added by BIP 342 (Tapscript)
     OP_CHECKSIGADD = 0xba,
+
+    /** RVN START */
+    OP_SATOX_ASSET = 0xc0,
+    /** RVN END */
 
     OP_INVALIDOPCODE = 0xff,
 };
@@ -546,6 +551,20 @@ public:
     bool IsPayToWitnessScriptHash() const;
     bool IsWitnessProgram(int& version, std::vector<unsigned char>& program) const;
 
+    /** SATOXCOIN START */
+    bool IsAssetScript(int& nType, bool& fIsOwner, int& nStartingIndex) const;
+    bool IsAssetScript(int& nType, bool& fIsOwner) const;
+    bool IsAssetScript() const;
+    bool IsNewAsset() const;
+    bool IsOwnerAsset() const;
+    bool IsReissueAsset() const;
+    bool IsTransferAsset() const;
+    bool IsNullAsset() const; // Checks all three of the NULL Asset Tx types
+    bool IsNullAssetTxDataScript() const;
+    bool IsNullAssetVerifierTxDataScript() const;
+    bool IsNullGlobalRestrictionAssetTxDataScript() const;
+    /** SATOXCOIN END */
+
     bool IsPayToTaproot() const;
 
     /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it consensus-critical). */
@@ -560,10 +579,7 @@ public:
      * regardless of the initial stack. This allows outputs to be pruned
      * instantly when entering the UTXO set.
      */
-    bool IsUnspendable() const
-    {
-        return (size() > 0 && *begin() == OP_RETURN) || (size() > MAX_SCRIPT_SIZE);
-    }
+    bool IsUnspendable() const;
 
     void clear()
     {
@@ -627,5 +643,14 @@ CScript BuildScript(Ts&&... inputs)
 
     return ret;
 }
+
+//! These are needed because script.h and script.cpp do not have access to asset.h and asset.cpp functions.
+bool GetAssetAmountFromScript(const CScript& script, CAmount& nAmount);
+bool AmountFromNewAssetScript(const CScript& scriptPubKey, CAmount& nAmount);
+bool AmountFromTransferScript(const CScript& scriptPubKey, CAmount& nAmount);
+bool AmountFromReissueScript(const CScript& scriptPubKey, CAmount& nAmount);
+bool ScriptNewAsset(const CScript& scriptPubKey, int& nStartingIndex);
+bool ScriptTransferAsset(const CScript& scriptPubKey, int& nStartingIndex);
+bool ScriptReissueAsset(const CScript& scriptPubKey, int& nStartingIndex);
 
 #endif // BITCOIN_SCRIPT_SCRIPT_H

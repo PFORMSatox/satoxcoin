@@ -353,11 +353,11 @@ public:
         /** SATOXCOIN Start **/
         // Burn Amounts
         nIssueAssetBurnAmount = 500 * COIN;
-        nReissueAssetBurnAmount = 500 * COIN;
-        nIssueSubAssetBurnAmount = 500 * COIN;
+        nReissueAssetBurnAmount = 100 * COIN;
+        nIssueSubAssetBurnAmount = 100 * COIN;
         nIssueUniqueAssetBurnAmount = 5 * COIN;
-        nIssueMsgChannelAssetBurnAmount = 500 * COIN;
-        nIssueQualifierAssetBurnAmount = 500 * COIN;
+        nIssueMsgChannelAssetBurnAmount = 100 * COIN;
+        nIssueQualifierAssetBurnAmount = 1000 * COIN;
         nIssueSubQualifierAssetBurnAmount = 100 * COIN;
         nIssueRestrictedAssetBurnAmount = 1500 * COIN;
         nAddNullQualifierTagBurnAmount = .1 * COIN;
@@ -795,7 +795,7 @@ public:
         /** SATOXCOIN Start **/
         // Burn Amounts
         nIssueAssetBurnAmount = 500 * COIN;
-        nReissueAssetBurnAmount = 500 * COIN;
+        nReissueAssetBurnAmount = 100 * COIN;
         nIssueSubAssetBurnAmount = 100 * COIN;
         nIssueUniqueAssetBurnAmount = 5 * COIN;
         nIssueMsgChannelAssetBurnAmount = 100 * COIN;
@@ -806,18 +806,18 @@ public:
 
         nCommunityAutonomousAmount = 10;
 
-        strIssueAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strReissueAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strIssueSubAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strIssueUniqueAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strIssueMsgChannelAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strIssueQualifierAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strIssueSubQualifierAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strIssueRestrictedAssetBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strAddNullQualifierTagBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
+        strIssueAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strReissueAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strIssueSubAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strIssueUniqueAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strIssueMsgChannelAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strIssueQualifierAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strIssueSubQualifierAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strIssueRestrictedAssetBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strAddNullQualifierTagBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
 
-        strGlobalBurnAddress = "Hv4zYjBoybzTAD7USrKEJQQ9CA8vB71Cet";
-        strCommunityAutonomousAddress = "Hwz3j5civmz9N3B2x95bYEubfMfTpmeWPk";
+        strGlobalBurnAddress = "Hx3ktVQY3hiWNHVKhTVPF8JtKTZXmUaeFG";
+        strCommunityAutonomousAddress = "Hz1NNqgsGrEkhCCHWPbagdfVYmRczcLtur";
 
         nDGWActivationBlock = 200;
         nAssetActivationHeight = 0; // Asset activated block height

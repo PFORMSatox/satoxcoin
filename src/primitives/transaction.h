@@ -24,6 +24,8 @@
 #include <utility>
 #include <vector>
 
+class CNullAssetTxVerifierString;
+
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
 class COutPoint
 {
@@ -330,6 +332,26 @@ public:
 
     // Return sum of txouts.
     CAmount GetValueOut() const;
+
+    /** SATOXCOIN START */
+    bool IsNewAsset() const;
+    bool VerifyNewAsset(std::string& strError) const;
+    bool IsNewUniqueAsset() const;
+    bool VerifyNewUniqueAsset(std::string& strError) const;
+    bool IsReissueAsset() const;
+    bool VerifyReissueAsset(std::string& strError) const;
+    bool IsNewMsgChannelAsset() const;
+    bool VerifyNewMsgChannelAsset(std::string& strError) const;
+    bool IsNewQualifierAsset() const;
+    bool VerifyNewQualfierAsset(std::string &strError) const;
+    bool IsNewRestrictedAsset() const;
+    bool VerifyNewRestrictedAsset(std::string& strError) const;
+
+    bool CheckAddingTagBurnFee(const int& count) const;
+
+    bool GetVerifierStringFromTx(CNullAssetTxVerifierString& verifier, std::string& strError) const;
+    bool GetVerifierStringFromTx(CNullAssetTxVerifierString& verifier, std::string& strError, bool& fNotFound) const;
+    /** SATOXCOIN END */
 
     /**
      * Calculate the total transaction size in bytes, including witness data.

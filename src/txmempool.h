@@ -296,6 +296,39 @@ public:
     indirectmap<COutPoint, txiter> mapNextTx GUARDED_BY(cs);
     std::map<Txid, CAmount> mapDeltas GUARDED_BY(cs);
 
+    /** SATOXCOIN START */
+    //!< map of pending asset issuance names to the txid that creates them (asset protocol)
+    std::map<std::string, Txid> mapAssetToHash GUARDED_BY(cs);
+
+    //!< Helper maps for when addresses are marked as frozen (restricted assets)
+    std::map<std::pair<std::string, std::string>, std::set<Txid>> mapAddressesMarkedFrozen GUARDED_BY(cs);
+    std::map<Txid, std::set<std::pair<std::string, std::string>>> mapHashToAddressMarkedFrozen GUARDED_BY(cs);
+
+    //!< Helper maps for when restricted assets are globally frozen
+    std::map<std::string, std::set<Txid>> mapAssetMarkedGlobalFrozen GUARDED_BY(cs);
+    std::map<Txid, std::set<std::string>> mapHashMarkedGlobalFrozen GUARDED_BY(cs);
+
+    //!< Helper maps for when qualifiers are added or removed from addresses
+    std::map<std::string, std::set<Txid>> mapAddressesQualifiersChanged GUARDED_BY(cs);
+    std::map<Txid, std::set<std::string>> mapHashQualifiersChanged GUARDED_BY(cs);
+
+    //!< Helper maps for when verifier strings are changed
+    std::map<std::string, std::set<Txid>> mapAssetVerifierChanged GUARDED_BY(cs);
+    std::map<Txid, std::set<std::string>> mapHashVerifierChanged GUARDED_BY(cs);
+
+    //!< Helper maps for when restricted assets are globally frozen/unfrozen
+    std::map<std::string, std::set<Txid>> mapGlobalFreezingAssetTransactions GUARDED_BY(cs);
+    std::map<Txid, std::set<std::string>> mapHashGlobalFreezingAssetTransactions GUARDED_BY(cs);
+    std::map<std::string, std::set<Txid>> mapGlobalUnFreezingAssetTransactions GUARDED_BY(cs);
+    std::map<Txid, std::set<std::string>> mapHashGlobalUnFreezingAssetTransactions GUARDED_BY(cs);
+
+    //!< Helper maps for when tags are added/removed from addresses
+    std::map<std::pair<std::string, std::string>, std::set<Txid>> mapAddressAddedTag GUARDED_BY(cs);
+    std::map<Txid, std::set<std::pair<std::string, std::string>>> mapHashToAddressAddedTag GUARDED_BY(cs);
+    std::map<std::pair<std::string, std::string>, std::set<Txid>> mapAddressRemoveTag GUARDED_BY(cs);
+    std::map<Txid, std::set<std::pair<std::string, std::string>>> mapHashToAddressRemoveTag GUARDED_BY(cs);
+    /** SATOXCOIN END */
+
     using Options = kernel::MemPoolOptions;
 
     const Options m_opts;

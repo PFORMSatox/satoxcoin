@@ -43,22 +43,23 @@ add_custom_target(generate_build_info
   COMMENT "Generating bitcoin-build-info.h"
   VERBATIM
 )
-add_library(bitcoin_clientversion STATIC
+add_library(satoxcoin_clientversion STATIC
   clientversion.cpp
 )
-target_link_libraries(bitcoin_clientversion
+target_link_libraries(satoxcoin_clientversion
   PRIVATE
     core_interface
 )
-add_dependencies(bitcoin_clientversion generate_build_info)
+add_dependencies(satoxcoin_clientversion generate_build_info)
 
 add_subdirectory(crypto)
 add_subdirectory(util)
+add_subdirectory(assets)
 if(ENABLE_IPC)
   add_subdirectory(ipc)
 endif()
 
-add_library(bitcoin_consensus STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_consensus STATIC EXCLUDE_FROM_ALL
   arith_uint256.cpp
   consensus/merkle.cpp
   consensus/tx_check.cpp
@@ -71,11 +72,11 @@ add_library(bitcoin_consensus STATIC EXCLUDE_FROM_ALL
   script/script_error.cpp
   uint256.cpp
 )
-target_link_libraries(bitcoin_consensus
+target_link_libraries(satoxcoin_consensus
   PUBLIC
-    bitcoin_crypto
-    bitcoin_ethash
-    bitcoin_algo
+    satoxcoin_crypto
+    satoxcoin_ethash
+    satoxcoin_algo
   PRIVATE
     core_interface
     secp256k1
@@ -86,9 +87,10 @@ if(WITH_ZMQ)
 endif()
 
 # Home for common functionality shared by different executables and libraries.
-# Similar to `bitcoin_util` library, but higher-level.
-add_library(bitcoin_common STATIC EXCLUDE_FROM_ALL
+# Similar to `satoxcoin_util` library, but higher-level.
+add_library(satoxcoin_common STATIC EXCLUDE_FROM_ALL
   addresstype.cpp
+  assets/assettypes.cpp
   base58.cpp
   bech32.cpp
   chain.cpp
@@ -139,11 +141,11 @@ add_library(bitcoin_common STATIC EXCLUDE_FROM_ALL
   script/signingprovider.cpp
   script/solver.cpp
 )
-target_link_libraries(bitcoin_common
+target_link_libraries(satoxcoin_common
   PRIVATE
     core_interface
-    bitcoin_consensus
-    bitcoin_util
+    satoxcoin_consensus
+    satoxcoin_util
     univalue
     secp256k1
     Boost::headers
@@ -166,9 +168,12 @@ if(ENABLE_WALLET)
     add_windows_application_manifest(satoxcoin-wallet)
     target_link_libraries(satoxcoin-wallet
       core_interface
-      bitcoin_wallet
-      bitcoin_common
-      bitcoin_util
+      satoxcoin_wallet
+      satoxcoin_common
+      satoxcoin_util
+      satoxcoin_node
+      satoxcoin_assets
+      satoxcoin_node
       Boost::headers
     )
     install_binary_component(satoxcoin-wallet HAS_MANPAGE)
@@ -177,7 +182,7 @@ endif()
 
 
 # P2P and RPC server functionality used by `bitcoind` and `bitcoin-qt` executables.
-add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_node STATIC EXCLUDE_FROM_ALL
   addrdb.cpp
   addrman.cpp
   banman.cpp
@@ -249,6 +254,7 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   policy/truc_policy.cpp
   private_broadcast.cpp
   rest.cpp
+  rpc/assets.cpp
   rpc/blockchain.cpp
   rpc/external_signer.cpp
   rpc/fees.cpp
@@ -266,21 +272,23 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   signet.cpp
   torcontrol.cpp
   txdb.cpp
-  txgraph.cpp
-  txmempool.cpp
-  txrequest.cpp
-  validation.cpp
+   txgraph.cpp
+   mempool_asset.cpp
+   txmempool.cpp
+   txrequest.cpp
+   validation.cpp
   validationinterface.cpp
   versionbits.cpp
-  $<$<TARGET_EXISTS:bitcoin_wallet>:wallet/init.cpp>
-  $<$<NOT:$<TARGET_EXISTS:bitcoin_wallet>>:dummywallet.cpp>
+  $<$<TARGET_EXISTS:satoxcoin_wallet>:wallet/init.cpp>
+  $<$<NOT:$<TARGET_EXISTS:satoxcoin_wallet>>:dummywallet.cpp>
 )
-target_link_libraries(bitcoin_node
+target_link_libraries(satoxcoin_node
   PRIVATE
     core_interface
-    bitcoin_common
-    bitcoin_util
-    $<TARGET_NAME_IF_EXISTS:bitcoin_zmq>
+    satoxcoin_common
+    satoxcoin_util
+    satoxcoin_assets
+    $<TARGET_NAME_IF_EXISTS:satoxcoin_zmq>
     leveldb
     minisketch
     univalue
@@ -291,9 +299,9 @@ target_link_libraries(bitcoin_node
     $<TARGET_NAME_IF_EXISTS:USDT::headers>
 )
 if(WITH_EMBEDDED_ASMAP)
-  target_compile_definitions(bitcoin_node PRIVATE ENABLE_EMBEDDED_ASMAP=1)
+  target_compile_definitions(satoxcoin_node PRIVATE ENABLE_EMBEDDED_ASMAP=1)
   include(TargetDataSources)
-  target_raw_data_sources(bitcoin_node NAMESPACE node::data
+  target_raw_data_sources(satoxcoin_node NAMESPACE node::data
     node/data/ip_asn.dat
   )
 endif()
@@ -303,7 +311,7 @@ if(BUILD_BITCOIN_BIN)
   add_executable(satoxcoin satoxcoin.cpp)
   add_windows_resources(satoxcoin satoxcoin-res.rc)
   add_windows_application_manifest(satoxcoin)
-  target_link_libraries(satoxcoin core_interface bitcoin_common bitcoin_util)
+  target_link_libraries(satoxcoin core_interface satoxcoin_common satoxcoin_util)
   install_binary_component(satoxcoin HAS_MANPAGE)
 endif()
 
@@ -317,8 +325,8 @@ if(BUILD_DAEMON)
   add_windows_application_manifest(satoxcoind)
   target_link_libraries(satoxcoind
     core_interface
-    bitcoin_node
-    $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
+    satoxcoin_node
+    $<TARGET_NAME_IF_EXISTS:satoxcoin_wallet>
   )
   install_binary_component(satoxcoind HAS_MANPAGE)
 endif()
@@ -329,19 +337,19 @@ if(ENABLE_IPC AND BUILD_DAEMON)
   )
   target_link_libraries(satoxcoin-node
     core_interface
-    bitcoin_node
-    bitcoin_ipc
-    $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
+    satoxcoin_node
+    satoxcoin_ipc
+    $<TARGET_NAME_IF_EXISTS:satoxcoin_wallet>
   )
   install_binary_component(satoxcoin-node INTERNAL)
 endif()
 
 
-add_library(bitcoin_cli STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoin_cli STATIC EXCLUDE_FROM_ALL
   compat/stdin.cpp
   rpc/client.cpp
 )
-target_link_libraries(bitcoin_cli
+target_link_libraries(satoxcoin_cli
   PUBLIC
     core_interface
     univalue
@@ -355,9 +363,9 @@ if(BUILD_CLI)
   add_windows_application_manifest(satoxcoin-cli)
   target_link_libraries(satoxcoin-cli
     core_interface
-    bitcoin_cli
-    bitcoin_common
-    bitcoin_util
+    satoxcoin_cli
+    satoxcoin_common
+    satoxcoin_util
     libevent::core
     libevent::extra
   )
@@ -371,8 +379,8 @@ if(BUILD_TX)
   add_windows_application_manifest(satoxcoin-tx)
   target_link_libraries(satoxcoin-tx
     core_interface
-    bitcoin_common
-    bitcoin_util
+    satoxcoin_common
+    satoxcoin_util
     univalue
   )
   install_binary_component(satoxcoin-tx HAS_MANPAGE)
@@ -385,8 +393,8 @@ if(BUILD_UTIL)
   add_windows_application_manifest(satoxcoin-util)
   target_link_libraries(satoxcoin-util
     core_interface
-    bitcoin_common
-    bitcoin_util
+    satoxcoin_common
+    satoxcoin_util
   )
   install_binary_component(satoxcoin-util HAS_MANPAGE)
 endif()

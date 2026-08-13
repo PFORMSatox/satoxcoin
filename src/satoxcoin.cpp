@@ -40,8 +40,8 @@ static constexpr auto HELP_FULL = R"(
 Additional less commonly used commands:
   bench [ARGS]      Run bench command, equivalent to running 'bench_bitcoin [ARGS]'.
   chainstate [ARGS] Run bitcoin kernel chainstate util, equivalent to running 'bitcoin-chainstate [ARGS]'.
-  test [ARGS]       Run unit tests, equivalent to running 'test_bitcoin [ARGS]'.
-  test-gui [ARGS]   Run GUI unit tests, equivalent to running 'test_bitcoin-qt [ARGS]'.
+  test [ARGS]       Run unit tests, equivalent to running 'test_satoxcoin [ARGS]'.
+  test-gui [ARGS]   Run GUI unit tests, equivalent to running 'test_satoxcoin-qt [ARGS]'.
 )";
 
 static constexpr auto HELP_SHORT = R"(
@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
         } else if (cmd.command == "chainstate") {
             args.emplace_back("bitcoin-chainstate");
         } else if (cmd.command == "test") {
-            args.emplace_back("test_bitcoin");
+            args.emplace_back("test_satoxcoin");
         } else if (cmd.command == "test-gui") {
-            args.emplace_back("test_bitcoin-qt");
+            args.emplace_back("test_satoxcoin-qt");
         } else if (cmd.command == "util") {
             args.emplace_back("bitcoin-util");
         } else {

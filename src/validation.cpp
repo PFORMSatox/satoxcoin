@@ -46,6 +46,13 @@
 #include <tinyformat.h>
 #include <txdb.h>
 #include <txmempool.h>
+#include <assets/assetglobals.h>
+#include <assets/assets.h>
+#include <assets/assettypes.h>
+#include <assets/messages.h>
+#include <assets/assetdb.h>
+#include <key_io.h>
+#include <mempool_asset.h>
 #include <uint256.h>
 #include <undo.h>
 #include <util/check.h>
@@ -900,6 +907,26 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
         return false; // state filled in by CheckTxInputs
     }
 
+    /** SATOXCOIN START - Reject asset scripts before activation & validate asset consensus rules */
+    if (!AreAssetsDeployed()) {
+        for (const auto& out : tx.vout) {
+            if (out.scriptPubKey.IsAssetScript()) {
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-contained-asset-when-not-active");
+            }
+        }
+    }
+
+    if (AreAssetsDeployed() && !tx.IsCoinBase()) {
+        CAssetsCache* currentAssetCache = GetCurrentAssetCache();
+        if (currentAssetCache) {
+            std::vector<std::pair<std::string, uint256>> vReissueAssets;
+            if (!Consensus::CheckTxAssets(tx, state, m_view, currentAssetCache, &m_pool, vReissueAssets)) {
+                return false; // state filled in by CheckTxAssets
+            }
+        }
+    }
+    /** SATOXCOIN END */
+
     if (m_pool.m_opts.require_standard && !AreInputsStandard(tx, m_view)) {
         return state.Invalid(TxValidationResult::TX_INPUTS_NOT_STANDARD, "bad-txns-nonstandard-inputs");
     }
@@ -1283,6 +1310,10 @@ bool MemPoolAccept::SubmitPackage(const ATMPArgs& args, std::vector<Workspace>& 
         return false;
     }
 
+    for (Workspace& ws : workspaces) {
+        RegisterAssetMempoolTxInputs(m_pool, *ws.m_ptx, m_view);
+    }
+
     std::vector<Wtxid> all_package_wtxids;
     all_package_wtxids.reserve(workspaces.size());
     std::transform(workspaces.cbegin(), workspaces.cend(), std::back_inserter(all_package_wtxids),
@@ -1387,6 +1418,10 @@ MempoolAcceptResult MemPoolAccept::AcceptSingleTransactionInternal(const CTransa
 
     if (!ConsensusScriptChecks(args, ws)) return MempoolAcceptResult::Failure(ws.m_state);
 
+    if (!CheckAssetMempoolPolicy(m_pool, *ws.m_ptx, ws.m_state)) {
+        return MempoolAcceptResult::Failure(ws.m_state);
+    }
+
     const CFeeRate effective_feerate{ws.m_modified_fees, static_cast<int32_t>(ws.m_vsize)};
     // Tx was accepted, but not added
     if (args.m_test_accept) {
@@ -1395,6 +1430,8 @@ MempoolAcceptResult MemPoolAccept::AcceptSingleTransactionInternal(const CTransa
     }
 
     FinalizeSubpackage(args);
+
+    RegisterAssetMempoolTxInputs(m_pool, *ws.m_ptx, m_view);
 
     // Limit the mempool, if appropriate.
     if (!args.m_package_submission && !args.m_bypass_limits) {
@@ -2527,6 +2564,16 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     CAmount nFees = 0;
     int nInputs = 0;
     int64_t nSigOpsCost = 0;
+
+    // Asset undo data for this block (stores pre-reissue metadata)
+    std::vector<std::pair<std::string, CBlockAssetUndo>> vUndoAssetData;
+    std::set<CMessage> setMessages;
+    std::vector<std::pair<std::string, CNullAssetTxData>> myNullAssetData;
+    // Work on a local copy of the asset cache so a failed connect does not
+    // leave partial asset state in the global cache. Flush() merges on success.
+    CAssetsCache localAssetsCache = GetCurrentAssetCache() ? *GetCurrentAssetCache() : CAssetsCache();
+    CAssetsCache* assetsCache = &localAssetsCache;
+
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
@@ -2568,6 +2615,18 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             }
         }
 
+        // Reject asset transactions before deployment
+        if (assetsCache && AreAssetsDeployed() && !tx.IsCoinBase()) {
+            std::vector<std::pair<std::string, uint256>> vReissueAssets;
+            TxValidationState asset_state;
+            if (!Consensus::CheckTxAssets(tx, asset_state, view, assetsCache, nullptr, vReissueAssets, false, &setMessages, block.nTime, &myNullAssetData)) {
+                state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                              asset_state.GetRejectReason(),
+                              asset_state.GetDebugMessage() + " in transaction " + tx.GetHash().ToString());
+                break;
+            }
+        }
+
         // GetTransactionSigOpCost counts 3 types of sigops:
         // * legacy (always)
         // * p2sh (when P2SH enabled in flags and excludes coinbase)
@@ -2605,6 +2664,177 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             blockundo.vtxundo.emplace_back();
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
+        if (assetsCache && AreAssetsDeployed()) {
+            // Spend asset inputs
+            if (!tx.IsCoinBase()) {
+                const CTxUndo& txundo = (i == 0) ? undoDummy : blockundo.vtxundo.back();
+                for (unsigned int j = 0; j < tx.vin.size(); j++) {
+                    const CTxOut& prevout = txundo.vprevout[j].out;
+                    if (prevout.scriptPubKey.IsAssetScript()) {
+                        if (!assetsCache->TrySpendCoin(tx.vin[j].prevout, prevout)) {
+                            LogError("ConnectBlock: Failed to spend asset coin %s\n", tx.vin[j].prevout.ToString());
+                        }
+                    }
+                }
+            }
+
+            std::pair<std::string, CBlockAssetUndo> undoPair = std::make_pair("", CBlockAssetUndo());
+
+            if (tx.IsNewAsset()) {
+                CNewAsset asset;
+                std::string strAddress;
+                if (AssetFromTransaction(tx, asset, strAddress)) {
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                        LogError("ConnectBlock: Failed to add new asset %s\n", asset.strName);
+                    std::string ownerName;
+                    std::string ownerAddress;
+                    OwnerFromTransaction(tx, ownerName, ownerAddress);
+                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                        LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
+                }
+            } else if (tx.IsReissueAsset()) {
+                CReissueAsset reissue;
+                std::string strAddress;
+                if (ReissueAssetFromTransaction(tx, reissue, strAddress)) {
+                    CNewAsset oldAsset;
+                    if (assetsCache->GetAssetMetaDataIfExists(reissue.strName, oldAsset)) {
+                        undoPair.first = reissue.strName;
+                        undoPair.second.fChangedIPFS = !reissue.strIPFSHash.empty();
+                        undoPair.second.strIPFS = oldAsset.strIPFSHash;
+                        undoPair.second.fChangedUnits = (reissue.nUnits != -1);
+                        undoPair.second.nUnits = oldAsset.units;
+                        undoPair.second.fChangedVerifierString = false;
+                    }
+                    int reissueIndex = -1;
+                    for (int j = (int)tx.vout.size() - 1; j >= 0; j--) {
+                        int nType = 0;
+                        bool fIsOwner = false;
+                        if (tx.vout[j].scriptPubKey.IsAssetScript(nType, fIsOwner) && nType == TX_REISSUE_ASSET) {
+                            reissueIndex = j;
+                            break;
+                        }
+                    }
+                    if (reissueIndex >= 0) {
+                        if (!assetsCache->AddReissueAsset(reissue, strAddress, COutPoint(tx.GetHash(), reissueIndex)))
+                            LogError("ConnectBlock: Failed to reissue asset %s\n", reissue.strName);
+                    }
+                }
+            } else if (tx.IsNewUniqueAsset()) {
+                for (int j = 0; j < (int)tx.vout.size(); j++) {
+                    if (IsScriptNewUniqueAsset(tx.vout[j].scriptPubKey)) {
+                        CNewAsset asset;
+                        std::string strAddress;
+                        if (AssetFromScript(tx.vout[j].scriptPubKey, asset, strAddress)) {
+                            if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                                LogError("ConnectBlock: Failed to add unique asset %s\n", asset.strName);
+                        }
+                    }
+                }
+            } else if (tx.IsNewMsgChannelAsset()) {
+                CNewAsset asset;
+                std::string strAddress;
+                if (MsgChannelAssetFromTransaction(tx, asset, strAddress)) {
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                        LogError("ConnectBlock: Failed to add msg channel asset %s\n", asset.strName);
+                    std::string ownerName, ownerAddress;
+                    OwnerFromTransaction(tx, ownerName, ownerAddress);
+                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                        LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
+                }
+            } else if (tx.IsNewQualifierAsset()) {
+                CNewAsset asset;
+                std::string strAddress;
+                if (QualifierAssetFromTransaction(tx, asset, strAddress)) {
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                        LogError("ConnectBlock: Failed to add qualifier asset %s\n", asset.strName);
+                    std::string ownerName, ownerAddress;
+                    OwnerFromTransaction(tx, ownerName, ownerAddress);
+                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                        LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
+                }
+            } else if (tx.IsNewRestrictedAsset()) {
+                CNewAsset asset;
+                std::string strAddress;
+                if (RestrictedAssetFromTransaction(tx, asset, strAddress)) {
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                        LogError("ConnectBlock: Failed to add restricted asset %s\n", asset.strName);
+                    // OwnerFromTransaction uses IsNewAsset() which excludes restricted assets, so
+                    // derive the owner name (TOKEN! from $TOKEN) and address from the ROOT! transfer output.
+                    std::string ownerName, ownerAddress;
+                    {
+                        const std::string rootOwnerName = asset.strName.substr(1) + OWNER_TAG;
+                        for (const auto& vout : tx.vout) {
+                            CAssetTransfer transfer;
+                            std::string transferAddress;
+                            if (TransferAssetFromScript(vout.scriptPubKey, transfer, transferAddress)) {
+                                if (transfer.strName == rootOwnerName) {
+                                    ownerName = rootOwnerName;
+                                    ownerAddress = transferAddress;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!ownerName.empty() && !assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                        LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
+                    CNullAssetTxVerifierString verifier;
+                    std::string strError;
+                    if (tx.GetVerifierStringFromTx( verifier, strError)) {
+                        if (!assetsCache->AddRestrictedVerifier(asset.strName, verifier.verifier_string))
+                            LogError("ConnectBlock: Failed to add restricted verifier for %s\n", asset.strName);
+                    }
+                }
+            }
+
+            // Process transfer outputs
+            for (int j = 0; j < (int)tx.vout.size(); j++) {
+                const CTxOut& out = tx.vout[j];
+                int nType = 0;
+                bool fIsOwner = false;
+                if (out.scriptPubKey.IsAssetScript(nType, fIsOwner)) {
+                    if (nType == TX_TRANSFER_ASSET) {
+                        CAssetOutputEntry assetData;
+                        if (GetAssetData(out.scriptPubKey, assetData)) {
+                            CAssetTransfer transfer(assetData.assetName, assetData.nAmount, assetData.message, assetData.expireTime);
+                            std::string address = EncodeDestination(assetData.destination);
+                            if (!assetsCache->AddTransferAsset(transfer, address, COutPoint(tx.GetHash(), j), out))
+                                LogError("ConnectBlock: Failed to add transfer asset %s\n", assetData.assetName);
+                        }
+                    }
+                }
+            }
+
+            // Process null asset data (qualifier tags, address restrictions, global freezes)
+            for (const auto& out : tx.vout) {
+                if (out.scriptPubKey.IsNullAsset()) {
+                    if (out.scriptPubKey.IsNullAssetTxDataScript()) {
+                        CNullAssetTxData data;
+                        std::string address;
+                        if (AssetNullDataFromScript(out.scriptPubKey, data, address)) {
+                            AssetType type;
+                            IsAssetNameValid(data.asset_name, type);
+                            if (type == AssetType::RESTRICTED) {
+                                assetsCache->AddRestrictedAddress(data.asset_name, address,
+                                    data.flag ? RestrictedType::FREEZE_ADDRESS : RestrictedType::UNFREEZE_ADDRESS);
+                            } else if (type == AssetType::QUALIFIER || type == AssetType::SUB_QUALIFIER) {
+                                assetsCache->AddQualifierAddress(data.asset_name, address,
+                                    data.flag ? QualifierType::ADD_QUALIFIER : QualifierType::REMOVE_QUALIFIER);
+                            }
+                        }
+                    } else if (out.scriptPubKey.IsNullGlobalRestrictionAssetTxDataScript()) {
+                        CNullAssetTxData data;
+                        if (GlobalAssetNullDataFromScript(out.scriptPubKey, data)) {
+                            assetsCache->AddGlobalRestricted(data.asset_name,
+                                data.flag ? RestrictedType::GLOBAL_FREEZE : RestrictedType::GLOBAL_UNFREEZE);
+                        }
+                    }
+                }
+            }
+
+            if (!undoPair.first.empty()) {
+                vUndoAssetData.emplace_back(undoPair);
+            }
+        }
     }
     const auto time_3{SteadyClock::now()};
     m_chainman.time_connect += time_3 - time_2;
@@ -2645,6 +2875,14 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         return false;
     }
 
+    // Write asset undo data to disk
+    if (!vUndoAssetData.empty() && passetsdb) {
+        if (!passetsdb->WriteBlockUndoAssetData(pindex->GetBlockHash(), vUndoAssetData)) {
+            LogError("ConnectBlock: Failed to write asset undo data for block %s\n", pindex->GetBlockHash().ToString());
+            return false;
+        }
+    }
+
     const auto time_5{SteadyClock::now()};
     m_chainman.time_undo += time_5 - time_4;
     LogDebug(BCLog::BENCH, "    - Write undo data: %.2fms [%.2fs (%.2fms/blk)]\n",
@@ -2675,6 +2913,12 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         nSigOpsCost,
         Ticks<std::chrono::nanoseconds>(time_5 - time_start)
     );
+
+    // Merge the local asset-cache changes into the global cache now that the
+    // block connected successfully.
+    if (GetCurrentAssetCache()) {
+        localAssetsCache.Flush();
+    }
 
     return true;
 }
@@ -2827,6 +3071,17 @@ bool Chainstate::FlushStateToDisk(
                     (uint64_t)coins_count,
                     (uint64_t)coins_mem_usage,
                     (bool)fFlushForPrune);
+
+                // Flush asset cache to LevelDB
+                if (AreAssetsDeployed()) {
+                    auto currentActiveAssetCache = GetCurrentAssetCache();
+                    if (currentActiveAssetCache) {
+                        if (!currentActiveAssetCache->DumpCacheToDatabase())
+                            return FatalError(m_chainman.GetNotifications(), state, _("Failed to write to asset database."));
+                    }
+                }
+                if (passetsdb)
+                    passetsdb->WriteReissuedMempoolState();
             }
         }
 

@@ -78,8 +78,8 @@ add_library(bitcoinkernel
   ../validation.cpp
   ../validationinterface.cpp
   ../versionbits.cpp
-  $<TARGET_OBJECTS:bitcoin_clientversion>
-  $<TARGET_OBJECTS:bitcoin_crypto>
+  $<TARGET_OBJECTS:satoxcoin_clientversion>
+  $<TARGET_OBJECTS:satoxcoin_crypto>
   $<TARGET_OBJECTS:leveldb>
   $<TARGET_OBJECTS:crc32c>
 )
@@ -93,8 +93,8 @@ if(NOT MSVC)
 endif()
 
 # Also manually apply the warnings to the kernel's internal dependencies
-target_link_libraries(bitcoin_clientversion PRIVATE kernel_warn_interface)
-target_link_libraries(bitcoin_crypto PRIVATE kernel_warn_interface)
+target_link_libraries(satoxcoin_clientversion PRIVATE kernel_warn_interface)
+target_link_libraries(satoxcoin_crypto PRIVATE kernel_warn_interface)
 target_link_libraries(leveldb PRIVATE kernel_warn_interface)
 target_link_libraries(crc32c PRIVATE kernel_warn_interface)
 

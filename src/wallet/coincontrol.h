@@ -89,6 +89,17 @@ public:
     std::optional<OutputType> m_change_type;
     //! If false, only safe inputs will be used
     bool m_include_unsafe_inputs = false;
+
+    CTxDestination destAssetChange = CNoDestination();
+    std::string strAssetSelected;
+    std::set<COutPoint> setAssetsSelected;
+
+    bool HasAssetSelected() const { return !setAssetsSelected.empty(); }
+    bool IsAssetSelected(const COutPoint& output) const { return setAssetsSelected.count(output) > 0; }
+    void SelectAsset(const COutPoint& output) { setAssetsSelected.insert(output); }
+    void UnSelectAsset(const COutPoint& output) { setAssetsSelected.erase(output); }
+    void UnSelectAllAssetInputs() { setAssetsSelected.clear(); }
+
     //! If true, the selection process can add extra unselected inputs from the wallet
     //! while requires all selected inputs be used
     bool m_allow_other_inputs = true;

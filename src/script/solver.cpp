@@ -6,6 +6,7 @@
 #include <pubkey.h>
 #include <script/interpreter.h>
 #include <script/script.h>
+#include <assets/assettypes.h>
 #include <script/solver.h>
 #include <span.h>
 
@@ -29,6 +30,10 @@ std::string GetTxnOutputType(TxoutType t)
     case TxoutType::WITNESS_V0_SCRIPTHASH: return "witness_v0_scripthash";
     case TxoutType::WITNESS_V1_TAPROOT: return "witness_v1_taproot";
     case TxoutType::WITNESS_UNKNOWN: return "witness_unknown";
+    case TxoutType::NEW_ASSET: return "new_asset";
+    case TxoutType::REISSUE_ASSET: return "reissue_asset";
+    case TxoutType::TRANSFER_ASSET: return "transfer_asset";
+    case TxoutType::RESTRICTED_ASSET_DATA: return "restricted_asset_data";
     } // no default case, so the compiler can warn about missing cases
     assert(false);
 }
@@ -204,6 +209,26 @@ TxoutType Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned c
         vSolutionsRet.insert(vSolutionsRet.end(), keys.begin(), keys.end());
         vSolutionsRet.push_back({static_cast<unsigned char>(keys.size())}); // safe as size is in range 1..20
         return TxoutType::MULTISIG;
+    }
+
+    // Satoxcoin asset scripts (P2PKH + OP_SATOX_ASSET payload)
+    {
+        int nType = 0;
+        bool fIsOwner = false;
+        if (scriptPubKey.IsAssetScript(nType, fIsOwner)) {
+            if (scriptPubKey.size() >= 23) {
+                std::vector<unsigned char> hashBytes(scriptPubKey.begin() + 3, scriptPubKey.begin() + 23);
+                vSolutionsRet.push_back(hashBytes);
+            }
+            if (nType == TX_NEW_ASSET) return TxoutType::NEW_ASSET;
+            if (nType == TX_REISSUE_ASSET) return TxoutType::REISSUE_ASSET;
+            if (nType == TX_TRANSFER_ASSET) return TxoutType::TRANSFER_ASSET;
+        }
+    }
+
+    // OP_SATOX_ASSET null data (restricted asset data, qualifier tags, verifier strings)
+    if (scriptPubKey.size() >= 1 && scriptPubKey[0] == OP_SATOX_ASSET) {
+        return TxoutType::RESTRICTED_ASSET_DATA;
     }
 
     vSolutionsRet.clear();

@@ -74,6 +74,15 @@
 #include <torcontrol.h>
 #include <txdb.h>
 #include <txmempool.h>
+#include <assets/assetglobals.h>
+#include <assets/assets.h>
+#include <assets/assetdb.h>
+#include <assets/assetsnapshotdb.h>
+#include <assets/messages.h>
+#include <assets/myassetsdb.h>
+#include <assets/restricteddb.h>
+#include <assets/snapshotrequestdb.h>
+#include <assets/assettypes.h>
 #include <util/asmap.h>
 #include <util/batchpriority.h>
 #include <util/chaintype.h>
@@ -391,6 +400,25 @@ void Shutdown(NodeContext& node)
     if (interfaces::Ipc* ipc = node.init->ipc()) {
         ipc->disconnectIncoming();
     }
+
+    // Clean up asset databases and caches
+    delete passets; passets = nullptr;
+    delete passetsdb; passetsdb = nullptr;
+    delete passetsCache; passetsCache = nullptr;
+    delete prestricteddb; prestricteddb = nullptr;
+    delete passetsVerifierCache; passetsVerifierCache = nullptr;
+    delete passetsQualifierCache; passetsQualifierCache = nullptr;
+    delete passetsRestrictionCache; passetsRestrictionCache = nullptr;
+    delete passetsGlobalRestrictionCache; passetsGlobalRestrictionCache = nullptr;
+    delete pMessagesCache; pMessagesCache = nullptr;
+    delete pMessageSubscribedChannelsCache; pMessageSubscribedChannelsCache = nullptr;
+    delete pMessagesSeenAddressCache; pMessagesSeenAddressCache = nullptr;
+    delete pmessagedb; pmessagedb = nullptr;
+    delete pmessagechanneldb; pmessagechanneldb = nullptr;
+    delete pmyrestricteddb; pmyrestricteddb = nullptr;
+    delete pSnapshotRequestDb; pSnapshotRequestDb = nullptr;
+    delete pAssetSnapshotDb; pAssetSnapshotDb = nullptr;
+    delete pDistributeSnapshotDb; pDistributeSnapshotDb = nullptr;
 
 #ifdef ENABLE_ZMQ
     if (g_zmq_notification_interface) {
@@ -1923,6 +1951,51 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
 
     // Init indexes
     for (auto index : node.indexes) if (!index->Init()) return false;
+
+    // ********************************************************* Step 8b: initialize asset databases
+    {
+        const size_t nAssetDBCache = 1 << 20; // 1 MB
+
+        bool fReset = do_reindex;
+        fAssetIndex = args.GetBoolArg("-assetindex", true);
+
+        // Basic assets
+        passetsdb = new CAssetsDB(nAssetDBCache, false, fReset);
+        passets = new CAssetsCache();
+        passetsCache = new CLRUCache<std::string, CDatabasedAssetData>(MAX_CACHE_ASSETS_SIZE);
+
+        // Messaging assets
+        pMessagesCache = new CLRUCache<std::string, CMessage>(1000);
+        pMessageSubscribedChannelsCache = new CLRUCache<std::string, int>(1000);
+        pMessagesSeenAddressCache = new CLRUCache<std::string, int>(1000);
+        pmessagedb = new CMessageDB(nAssetDBCache, false, false);
+        pmessagechanneldb = new CMessageChannelDB(nAssetDBCache, false, false);
+
+        // My restricted assets
+        pmyrestricteddb = new CMyRestrictedDB(nAssetDBCache, false, false);
+
+        // Restricted assets
+        prestricteddb = new CRestrictedDB(nAssetDBCache, false, fReset);
+        passetsVerifierCache = new CLRUCache<std::string, CNullAssetTxVerifierString>(MAX_CACHE_ASSETS_SIZE);
+        passetsQualifierCache = new CLRUCache<std::string, int8_t>(MAX_CACHE_ASSETS_SIZE);
+        passetsRestrictionCache = new CLRUCache<std::string, int8_t>(MAX_CACHE_ASSETS_SIZE);
+        passetsGlobalRestrictionCache = new CLRUCache<std::string, int8_t>(MAX_CACHE_ASSETS_SIZE);
+
+        // Rewards
+        pSnapshotRequestDb = new CSnapshotRequestDB(nAssetDBCache, false, false);
+        pAssetSnapshotDb = new CAssetSnapshotDB(nAssetDBCache, false, false);
+        pDistributeSnapshotDb = new CDistributeSnapshotRequestDB(nAssetDBCache, false, false);
+
+        // Need to load assets before we verify the database
+        if (!passetsdb->LoadAssets()) {
+            return InitError(_("Failed to load Assets Database"));
+        }
+
+        if (!passetsdb->ReadReissuedMempoolState())
+            LogInfo("Database failed to load last Reissued Mempool State. Will have to start from empty state");
+
+        LogInfo("Successfully loaded assets from database.\nCache of assets size: %d\n", passetsCache->Size());
+    }
 
     // ********************************************************* Step 9: load wallet
     for (const auto& client : node.chain_clients) {
