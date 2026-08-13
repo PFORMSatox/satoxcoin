@@ -134,3 +134,4 @@ cmake-build-debug
 CMakeLists.txt
 src/bench/bench_satoxcoin
 libsatoxcoinconsensus.pc
+src/qt/satoxcoin-qt
