@@ -34,6 +34,12 @@ constexpr bool ValidDeployment(BuriedDeployment dep) { return dep <= DEPLOYMENT_
 enum DeploymentPos : uint16_t {
     DEPLOYMENT_TESTDUMMY,
     DEPLOYMENT_TAPROOT, // Deployment of Schnorr/Taproot (BIPs 340-342)
+    DEPLOYMENT_ASSETS, // Deployment of RIP2
+    DEPLOYMENT_MSG_REST_ASSETS, // Deployment of RIP5 and Restricted assets
+    DEPLOYMENT_TRANSFER_SCRIPT_SIZE,
+    DEPLOYMENT_ENFORCE_VALUE,
+    DEPLOYMENT_COINBASE_ASSETS,
+    DEPLOYMENT_TRANSFER_OVERFLOW,   // Deployment of asset transfer qty overflow check
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in deploymentinfo.cpp
     MAX_VERSION_BITS_DEPLOYMENTS
 };
@@ -107,6 +113,15 @@ struct Params {
     /** Don't warn about unknown BIP 9 activations below this height.
      * This prevents us from warning about the CSV and segwit activations. */
     int MinBIP9WarningHeight;
+    /** satoxcoin: legacy activation flags (used by satoxcoin validation paths) */
+    bool nBIP34Enabled{true};
+    bool nBIP65Enabled{true};
+    bool nBIP66Enabled{true};
+    bool nSegwitEnabled{true};
+    bool nCSVEnabled{true};
+    int BIP34LockedIn{0};
+    uint32_t nRuleChangeActivationThreshold{0};
+    uint32_t nMinerConfirmationWindow{0};
     std::array<BIP9Deployment,MAX_VERSION_BITS_DEPLOYMENTS> vDeployments;
     /** Proof of work parameters */
     uint256 powLimit;

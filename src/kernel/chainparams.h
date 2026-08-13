@@ -107,6 +107,56 @@ public:
     bool MineBlocksOnDemand() const { return consensus.fPowNoRetargeting; }
     /** Return the block height at which DarkGravityWave difficulty activates */
     unsigned int DGWActivationBlock() const { return nDGWActivationBlock; }
+    /** Return the block height at which messaging activates */
+    unsigned int MessagingActivationBlock() const { return nMessagingActivationBlock; }
+    /** Return the block height at which restricted assets activate */
+    unsigned int RestrictedActivationBlock() const { return nRestrictedActivationBlock; }
+    /** Return the asset activation height */
+    int GetAssetActivationHeight() const { return nAssetActivationHeight; }
+    /** Return the community autonomous fund output amount (percentage) */
+    const CAmount& CommunityAutonomousAmount() const { return nCommunityAutonomousAmount; }
+    /** Return the community autonomous fund address */
+    const std::string& CommunityAutonomousAddress() const { return strCommunityAutonomousAddress; }
+    /** Return the global burn address */
+    const std::string& IssueAssetBurnAddress() const { return strIssueAssetBurnAddress; }
+    const std::string& ReissueAssetBurnAddress() const { return strReissueAssetBurnAddress; }
+    const std::string& IssueSubAssetBurnAddress() const { return strIssueSubAssetBurnAddress; }
+    const std::string& IssueUniqueAssetBurnAddress() const { return strIssueUniqueAssetBurnAddress; }
+    const std::string& IssueMsgChannelAssetBurnAddress() const { return strIssueMsgChannelAssetBurnAddress; }
+    const std::string& IssueQualifierAssetBurnAddress() const { return strIssueQualifierAssetBurnAddress; }
+    const std::string& IssueSubQualifierAssetBurnAddress() const { return strIssueSubQualifierAssetBurnAddress; }
+    const std::string& IssueRestrictedAssetBurnAddress() const { return strIssueRestrictedAssetBurnAddress; }
+    const std::string& AddNullQualifierTagBurnAddress() const { return strAddNullQualifierTagBurnAddress; }
+    const CAmount& IssueAssetBurnAmount() const { return nIssueAssetBurnAmount; }
+    const CAmount& ReissueAssetBurnAmount() const { return nReissueAssetBurnAmount; }
+    const CAmount& IssueSubAssetBurnAmount() const { return nIssueSubAssetBurnAmount; }
+    const CAmount& IssueUniqueAssetBurnAmount() const { return nIssueUniqueAssetBurnAmount; }
+    const CAmount& IssueMsgChannelAssetBurnAmount() const { return nIssueMsgChannelAssetBurnAmount; }
+    const CAmount& IssueQualifierAssetBurnAmount() const { return nIssueQualifierAssetBurnAmount; }
+    const CAmount& IssueSubQualifierAssetBurnAmount() const { return nIssueSubQualifierAssetBurnAmount; }
+    const CAmount& IssueRestrictedAssetBurnAmount() const { return nIssueRestrictedAssetBurnAmount; }
+    const CAmount& AddNullQualifierTagBurnAmount() const { return nAddNullQualifierTagBurnAmount; }
+    /** Return the global burn address */
+    const std::string& GlobalBurnAddress() const { return strGlobalBurnAddress; }
+    /** Whether the provided address is a burn/community address */
+    bool IsBurnAddress(const std::string& p_address) const
+    {
+        if (p_address == strIssueAssetBurnAddress
+            || p_address == strReissueAssetBurnAddress
+            || p_address == strIssueSubAssetBurnAddress
+            || p_address == strIssueUniqueAssetBurnAddress
+            || p_address == strIssueMsgChannelAssetBurnAddress
+            || p_address == strIssueQualifierAssetBurnAddress
+            || p_address == strIssueSubQualifierAssetBurnAddress
+            || p_address == strIssueRestrictedAssetBurnAddress
+            || p_address == strAddNullQualifierTagBurnAddress
+            || p_address == strGlobalBurnAddress
+            || p_address == strCommunityAutonomousAddress)
+        {
+            return true;
+        }
+        return false;
+    }
     /** Return the chain type string */
     std::string GetChainTypeString() const { return ChainTypeToString(m_chain_type); }
     /** Return the chain type */
@@ -183,6 +233,31 @@ protected:
     ChainTxData chainTxData;
     HeadersSyncParams m_headers_sync_params;
     unsigned int nDGWActivationBlock;
+    unsigned int nMessagingActivationBlock;
+    unsigned int nRestrictedActivationBlock;
+    int nAssetActivationHeight;
+    CAmount nCommunityAutonomousAmount;
+    std::string strCommunityAutonomousAddress;
+    std::string strGlobalBurnAddress;
+    std::string strIssueAssetBurnAddress;
+    std::string strReissueAssetBurnAddress;
+    std::string strIssueSubAssetBurnAddress;
+    std::string strIssueUniqueAssetBurnAddress;
+    std::string strIssueMsgChannelAssetBurnAddress;
+    std::string strIssueQualifierAssetBurnAddress;
+    std::string strIssueSubQualifierAssetBurnAddress;
+    std::string strIssueRestrictedAssetBurnAddress;
+    std::string strAddNullQualifierTagBurnAddress;
+    CAmount nIssueAssetBurnAmount;
+    CAmount nReissueAssetBurnAmount;
+    CAmount nIssueSubAssetBurnAmount;
+    CAmount nIssueUniqueAssetBurnAmount;
+    CAmount nIssueMsgChannelAssetBurnAmount;
+    CAmount nIssueQualifierAssetBurnAmount;
+    CAmount nIssueSubQualifierAssetBurnAmount;
+    CAmount nIssueRestrictedAssetBurnAmount;
+    CAmount nAddNullQualifierTagBurnAmount;
+    uint32_t nKAAAWWWPOWActivationTime;
 };
 
 std::optional<ChainType> GetNetworkForMagic(const MessageStartChars& pchMessageStart);
