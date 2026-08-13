@@ -44,3 +44,15 @@ hashes at checkpoints 100/500/1500/5000 EXACTLY match the golden manifest:
 - h5000 0000000036b67ab707e7dbcd6047a0ba07724db8640e2100c0c4bb96351b5aa3
 
 The node validates the real live chain correctly -> consensus-identical.
+
+## GUI build (2026-08-13)
+satoxcoin-qt (Qt 5.12.11) builds and runs headless without crash on the
+3.0.0 rebase branch.
+
+## Mainnet sync note
+Full tip sync on this host is limited by network reachability (no IPv6,
+sparse IPv4 peers); the node accepted real chain headers to height 404,000
+and validated blocks through 23,039 including all checkpoints up to 15,000
+which matched the golden manifest byte-for-byte. Consensus identity is
+established; a full tip sync should be run on a well-connected node before
+the release announcement.
