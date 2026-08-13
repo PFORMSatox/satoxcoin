@@ -126,6 +126,7 @@ public:
             || p_address == strIssueRestrictedAssetBurnAddress
             || p_address == strAddNullQualifierTagBurnAddress
             || p_address == strGlobalBurnAddress
+            || p_address == strCommunityAutonomousAddress
         ) {
             return true;
         }
@@ -142,6 +143,8 @@ public:
     int MinReorganizationAge() const { return nMinReorganizationAge; }
 
     int GetAssetActivationHeight() const { return nAssetActivationHeight; }
+    const CAmount& CommunityAutonomousAmount() const { return nCommunityAutonomousAmount; }
+    const std::string& CommunityAutonomousAddress() const { return strCommunityAutonomousAddress; }
     /** RVN End **/
 
 protected:
@@ -189,6 +192,9 @@ protected:
 
     // Global Burn Address
     std::string strGlobalBurnAddress;
+
+    CAmount nCommunityAutonomousAmount;
+    std::string strCommunityAutonomousAddress;
 
     unsigned int nDGWActivationBlock;
     unsigned int nMessagingActivationBlock;

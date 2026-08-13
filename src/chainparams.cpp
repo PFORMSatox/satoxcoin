@@ -121,10 +121,11 @@ public:
         consensus.nBIP34Enabled = true;
         consensus.nBIP65Enabled = true; // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
         consensus.nBIP66Enabled = true;
+        consensus.BIP34LockedIn = 6048; // Locked_in at height 6048
         consensus.nSegwitEnabled = true;
         consensus.nCSVEnabled = true;
-        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.kawpowLimit = uint256S("0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // Estimated starting diff for first 180 kawpow blocks
+        consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.kawpowLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // Estimated starting diff for first 180 kawpow blocks
         consensus.nPowTargetTimespan = 2016 * 60; // 1.4 days
         consensus.nPowTargetSpacing = 1 * 60;
 		consensus.fPowAllowMinDifficultyBlocks = false;
@@ -132,74 +133,76 @@ public:
         consensus.nRuleChangeActivationThreshold = 1613; // Approx 80% of 2016
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1653004800; // Friday, 20 May 2022 00:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1653264000; // Monday, 23 May 2022 00:00:00
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nOverrideRuleChangeActivationThreshold = 1814;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nOverrideMinerConfirmationWindow = 2016;
-        consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].bit = 6;  //Assets (RIP2)
-        consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].nStartTime = 1540944000; // Oct 31, 2018
-        consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].nTimeout = 1572480000; // Oct 31, 2019
+        consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].bit = 6;  //Assets (HIP2)
+        consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].nStartTime = 1653004800; // Friday, 20 May 2022 00:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].nTimeout = 1653264000; // Monday, 23 May 2022 00:00:00
         consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].nOverrideRuleChangeActivationThreshold = 1814;
         consensus.vDeployments[Consensus::DEPLOYMENT_ASSETS].nOverrideMinerConfirmationWindow = 2016;
-        consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].bit = 7;  // Assets (RIP5)
-        consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].nStartTime = 1578920400; // UTC: Mon Jan 13 2020 13:00:00
-        consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].nTimeout = 1610542800; // UTC: Wed Jan 13 2021 13:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].bit = 7;  // Assets (HIP5)
+        consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].nStartTime = 1653004800; // Friday, 20 May 2022 00:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].nTimeout = 1653264000; // Monday, 23 May 2022 00:00:00
         consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].nOverrideRuleChangeActivationThreshold = 1714; // Approx 85% of 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_MSG_REST_ASSETS].nOverrideMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].bit = 8;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].nStartTime = 1588788000; // UTC: Wed May 06 2020 18:00:00
-        consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].nTimeout = 1620324000; // UTC: Thu May 06 2021 18:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].nStartTime = 1653004800; // Friday, 20 May 2022 00:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].nTimeout = 1653264000; // Monday, 23 May 2022 00:00:00
         consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].nOverrideRuleChangeActivationThreshold = 1714; // Approx 85% of 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE].nOverrideMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].bit = 9;
-        consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].nStartTime = 1593453600; // UTC: Mon Jun 29 2020 18:00:00
-        consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].nTimeout = 1624989600; // UTC: Mon Jun 29 2021 18:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].nStartTime = 1653004800; // Friday, 20 May 2022 00:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].nTimeout = 1653264000; // Monday, 23 May 2022 00:00:00
         consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].nOverrideRuleChangeActivationThreshold = 1411; // Approx 70% of 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_ENFORCE_VALUE].nOverrideMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].bit = 10;
-        consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].nStartTime = 1597341600; // UTC: Thu Aug 13 2020 18:00:00
-        consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].nTimeout = 1628877600; // UTC: Fri Aug 13 2021 18:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].nStartTime = 1653004800; // Friday, 20 May 2022 00:00:00
+        consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].nTimeout = 1653264000; // Monday, 23 May 2022 00:00:00
         consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].nOverrideRuleChangeActivationThreshold = 1411; // Approx 70% of 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_COINBASE_ASSETS].nOverrideMinerConfirmationWindow = 2016;
 
 
         // The best chain should have at least this much work
-        consensus.nMinimumChainWork = uint256S("0000000000000000000000000000000000000000000000355cd0ac1503c83052"); // Block 2383567
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000005a0da9fea5"); // Block 2000
 
-        // By default assume that the signatures in ancestors of this block are valid. Block# 1040000
-        consensus.defaultAssumeValid = uint256S("0x0000000000018d2fdcf4ac8eaac8db059584bd2840be5629562bb8599d39998c"); // Block 2383560
+        // By default assume that the signatures in ancestors of this block are valid
+        consensus.defaultAssumeValid = uint256S("0x0000000002d6de2050f0ff663c31d49d3f50bdb5c6a842a56bfd8309c65fa028"); // Block 1859491 (matches last verified checkpoint)
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0x52; // R
-        pchMessageStart[1] = 0x41; // A
-        pchMessageStart[2] = 0x56; // V
-        pchMessageStart[3] = 0x4e; // N
-        nDefaultPort = 8767;
+        pchMessageStart[0] = 0x63; // S
+        pchMessageStart[1] = 0x56; // A
+        pchMessageStart[2] = 0x65; // T
+        pchMessageStart[3] = 0x65; // T
+        nDefaultPort = 60777;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1514999494, 25023712, 0x1e00ffff, 4, 5000 * COIN);
+        uint32_t nGenesisTime = 1661730843;
+
+        genesis = CreateGenesisBlock(nGenesisTime, 351574, 0x1e00ffff, 4, 5000 * COIN);
 
         consensus.hashGenesisBlock = genesis.GetX16RHash();
 
-        assert(consensus.hashGenesisBlock == uint256S("0000006b444bc2f2ffe627be9d9e7e7a0730000870ef6eb6da46c8eae389df90"));
-        assert(genesis.hashMerkleRoot == uint256S("28ff00a867739a352523808d301f504bc4547699398d70faf2266a8bae5f3516"));
+        assert(consensus.hashGenesisBlock == uint256S("0x000000edd819220359469c54f2614b5602ebc775ea67a64602f354bdaa320f70"));
+        assert(genesis.hashMerkleRoot == uint256S("0xe8916cf6592c8433d598c3a5fe60a9741fd2a997b39d93af2d789cdd9d9a7390"));
 
-        vSeeds.emplace_back("seed-raven.bitactivate.com", false);
-        vSeeds.emplace_back("seed-raven.ravencoin.com", false);
-        vSeeds.emplace_back("seed-raven.ravencoin.org", false);
+        vSeeds.emplace_back("xnode1.satoverse.io", false);
+        vSeeds.emplace_back("xnode2.satoverse.io", false);
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,60);
+        // Address start with S
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,122);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,112);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
 
-        // Raven BIP44 cointype in mainnet is '175'
-        nExtCoinType = 175;
+        // Satoxcoin BIP44 cointype in mainnet is '1669'
+        nExtCoinType = 1669;
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -210,67 +213,120 @@ public:
 
         checkpointData = (CCheckpointData) {
             {
-                { 535721, uint256S("0x000000000001217f58a594ca742c8635ecaaaf695d1a63f6ab06979f1c159e04")},
-                { 697376, uint256S("0x000000000000499bf4ebbe61541b02e4692b33defc7109d8f12d2825d4d2dfa0")},
-                { 740000, uint256S("0x00000000000027d11bf1e7a3b57d3c89acc1722f39d6e08f23ac3a07e16e3172")},
-                { 909251, uint256S("0x000000000000694c9a363eff06518aa7399f00014ce667b9762f9a4e7a49f485")},
-                { 1040000, uint256S("0x000000000000138e2690b06b1ddd8cf158c3a5cf540ee5278debdcdffcf75839")},
-                { 1186833, uint256S("0x0000000000000d4840d4de1f7d943542c2aed532bd5d6527274fc0142fa1a410")},
-                { 2383550, uint256S("0x0000000000008927ed21a1e3bb87d3e1020646e8cc94354a1f8fc608395e15dc")}
+                { 0, uint256S("0x000000edd819220359469c54f2614b5602ebc775ea67a64602f354bdaa320f70")},
+                { 1, uint256S("0x0043e718ee6c848abf0bbf8fe94d357c878324b03ce34badd4b6ed71b3533030")},
+                { 2, uint256S("0x001f7f5c529b5e3b1c0e8c5ff8592dd1a636d1579430a924574dc696e0456705")},
+                { 100, uint256S("0x0000001b0371bf5570c68dda2b73cdcb1909c3357875f0b7cc85b08395853cf7")},
+                { 500, uint256S("0x00000022fa6cc7fbe32a126e75f73e0fa3ae7069e8f4cf6ac57f96a7416a5aca")},
+                { 1500, uint256S("0x0000000509bd097b77ce6b91fd5a395904a8ec006b984413b50bdb9464276cb6")},
+                { 5000, uint256S("0x0000000036b67ab707e7dbcd6047a0ba07724db8640e2100c0c4bb96351b5aa3")},
+                { 8000, uint256S("0x0000000083e6d953f6d4278b83cec357bc559a2736501d8f9dff07f411d9b7b0")},
+                { 12000, uint256S("0x00000000199b7f1c005dd6bf32e5585727ba488add6ea372944339108a960ea3")},
+                { 15000, uint256S("0x00000002a4ddadb03fb7793ae1f97c87e07314e01fb21aa9707111dfa191fff2")},
+                { 25000, uint256S("0x00000000fa507ef3854bdb089523a5d2a315a7c0bacbd124f3636a745f8c392d")},
+                { 50000, uint256S("0x0000000001a041d0c3b7e9df08ee77f2d64778c1c742078bda24eae4165e0035")},
+                { 75000, uint256S("0x0000000000febb89d63e9a64a63aff5b69cc723e4b2f42591424474b3ed276ed")},
+                { 100000, uint256S("0x00000000042830c66c2690a6c0d9ae9faaad44e0b044b30c246a1cbebd03bd7c")},
+                { 150000, uint256S("0x0000000001d8d8f4535b0844024294333d002a8db40a912d78bccd32edcfdb0a")},
+                { 200000, uint256S("0x0000000002eecb6044f171d7096706f218b4d509695c349ebffb18830bd92947")},
+                { 250000, uint256S("0x00000000046c890c56e575d8dd6ad79d15505cfdb72284b5d4c5ff67cd42e242")},
+                { 300000, uint256S("0x0000000000e02048a31562bc181eb00afdc75ee3cf5c6f0a0dd717011981b0e9")},
+                { 350000, uint256S("0x00000000008ce70c1f0b0f04c540ecbc8c7fdf1b88a2191b7f33ce139b2be417")},
+                { 400000, uint256S("0x000000000184fdf9ee257ee93bb221c6c3e6e4e0579d9caa798b0eb4427fcf2c")},
+                { 450000, uint256S("0x00000000004ea7ea71d71ab57341cec07a38b18064a39c15ff047badf1573ef9")},
+                { 500000, uint256S("0x0000000000048ade7ac56b2b8c4237c25b566bbb49b37f825602e66fbab6572b")},
+                { 550000, uint256S("0x00000000001b9ab4ef2a73cc46e37822010dd334258c40c91e6e70692c56e5d3")},
+                { 600000, uint256S("0x000000000072230765bfaf6a65d13c9d2fc03c8aa1088c4852c9e856c739219d")},
+                { 650000, uint256S("0x0000000000f374620debcf7e09e13aa6d6a7abc59927f725d90c82b548d6bb28")},
+                { 700000, uint256S("0x0000000000a7de02bc8e8405c18817938c9062ae2b8a098787ff8621bf497049")},
+                { 750000, uint256S("0x00000000016981a53e927b430326c0f35c599e1088e1676043d8f6edc0384e09")},
+                { 800000, uint256S("0x00000000017bd990b6fb028a91f5b456349f836a9d1d74d7ef0b734dad6a2dbf")},
+                { 850000, uint256S("0x0000000000f480b94a7fb80a99a20d78fa7a41dc04eb370caef35c4b27af346c")},
+                { 900000, uint256S("0x000000000108180c74e8dd4130545e4bc12e65a74194fe907c8229672a1d0fea")},
+                { 950000, uint256S("0x000000000266e5a198e00940b3e3f215afd3a54bd2f1a69b0c71a6ecc808afc9")},
+                { 1000000, uint256S("0x0000000000944041d3ec14abf5130bb99ad75e3ef7a46b7a2548595d517f7529")},
+                { 1100000, uint256S("0x0000000000bfac39b29a945b216863b95d367c80edcfa0868267220ad8643cb0")},
+                { 1200000, uint256S("0x0000000002e29fd539d84a4afb0398a924acdadec563e44f95107b4e47f0ad33")},
+                { 1300000, uint256S("0x0000000004480af7b63dec8299b082f6f349d6b6ec8b1edd823eff1900ca5524")},
+                { 1400000, uint256S("0x00000000036631a658c9f532b4fb0e55df69f6c0ba26cf8d44fd7f86ea67ef7c")},
+                { 1500000, uint256S("0x00000000151335cda86559fde0ef9aa9418a6dae92c8dbd6ec3ac4d6d7cdbf4c")},
+                { 1600000, uint256S("0x000000000bc1393bc0a4f671c4bbb391a79b07a03d6aac80daaf06700802725a")},
+                { 1700000, uint256S("0x00000000081ee3c218dfaedcf8e272c0db8a2dea2ac240c4bbd99ef8bdc79f8e")},
+                { 1794659, uint256S("0x0000000006e5e50ab26a0341425ee2ed39811a659c01025d963ee5df9caec53a")},
+                { 1800000, uint256S("0x000000000167a8ed376dbe7722eb08fce8f88d3be1bbe855ae05ed2dfdabc83b")},
+                { 1840000, uint256S("0x00000000381fb6afea7e133d120aae4ac2103bcfc7470825e3cfe9b18e3747ca")},
+                { 1845912, uint256S("0x0000000017f68d72e076a15b03b35df45e49556f106e03bd533e4ced85b0391f")},
+                { 1851982, uint256S("0x000000000ce18c2ae9f74f44c4c2e017252ec976e547be8f3206988370eb43b9")},
+                { 1857411, uint256S("0x000000000cb12797dc2da6404812fc3cd1636285bcf00b3b52f98571dccc69c1")},
+                { 1858000, uint256S("0x0000000015add8ec8a7697a271f4a2cb7c716d63e17647bec7c3cc4c5f8c228a")},
+                { 1858500, uint256S("0x00000000286df3ebecd517578323dd2d518631a67318940837b95f4ded61000f")},
+                { 1859000, uint256S("0x000000002d026106e09aeb949305b888b796d4aee9a17e20e0277ac75917274f")},
+                { 1859491, uint256S("0x0000000002d6de2050f0ff663c31d49d3f50bdb5c6a842a56bfd8309c65fa028")},
+                { 1859669, uint256S("0x000000001b05dd502188d111c62fb074d956eaa56f0f9e39d32c6f7d9d2ed258")},
+                { 1861820, uint256S("0x00000000029ed6984cfe2400d35c69abfae5d50733e40834a48868d14995d6fb")},
+                { 1862460, uint256S("0x0000000004964dfaf344a310f9f4ae1bb89ceb6c6be23f8cbb7ec5556ca98411")},
+                { 1863254, uint256S("0x00000000345b4c6b2c0f5e78ceac111f3ccef8772d89a00e3fa852b147e61607")},
+                { 1863823, uint256S("0x000000000f43f9ed24e0639cee23de9fcee68f144cd76faf6f5eec8b7ec375ed")},
+                { 1865353, uint256S("0x00000000342546860cd9250210c63c000e67b5fe1b26559fe5e86b4052175c38")}
             }
         };
 
 		// 20969961 transactions as of block #2383625 at 2022-07-28 22:02:22 (UTC)
 		// previously set at 6709969 txns by time 1577939273 ==>
         chainTxData = ChainTxData{
-            // Update as we know more about the contents of the Raven chain
-            // Stats as of 0x00000000000016ec03d8d93f9751323bcc42137b1b4df67e6a11c4394fd8e5ad window size 43200
-            1659045742, // * UNIX timestamp of last known number of transactions
-            20969961,    // * total number of transactions between genesis and that timestamp
+            // Update as we know more about the contents of the satoxcoin chain from rpc: getchaintxstats 50000
+            0, // * UNIX timestamp of last known number of transactions
+            0,      // * total number of transactions between genesis and that timestamp
                         //   (the tx=... number in the SetBestChain debug.log lines)
-            5.7       // * estimated number of transactions per second after that timestamp
+            0.0     // * estimated number of transactions per second after that timestamp
         };
 
-        /** RVN Start **/
+        /** SATOXCOIN Start **/
         // Burn Amounts
-        nIssueAssetBurnAmount = 500 * COIN;
-        nReissueAssetBurnAmount = 100 * COIN;
-        nIssueSubAssetBurnAmount = 100 * COIN;
-        nIssueUniqueAssetBurnAmount = 5 * COIN;
-        nIssueMsgChannelAssetBurnAmount = 100 * COIN;
+        nIssueAssetBurnAmount = 2000 * COIN;
+        nReissueAssetBurnAmount = 1000 * COIN;
+        nIssueSubAssetBurnAmount = 1000 * COIN;
+        nIssueUniqueAssetBurnAmount = 50 * COIN;
+        nIssueMsgChannelAssetBurnAmount = 1000 * COIN;
         nIssueQualifierAssetBurnAmount = 1000 * COIN;
         nIssueSubQualifierAssetBurnAmount = 100 * COIN;
         nIssueRestrictedAssetBurnAmount = 1500 * COIN;
         nAddNullQualifierTagBurnAmount = .1 * COIN;
 
-        // Burn Addresses
-        strIssueAssetBurnAddress = "RXissueAssetXXXXXXXXXXXXXXXXXhhZGt";
-        strReissueAssetBurnAddress = "RXReissueAssetXXXXXXXXXXXXXXVEFAWu";
-        strIssueSubAssetBurnAddress = "RXissueSubAssetXXXXXXXXXXXXXWcwhwL";
-        strIssueUniqueAssetBurnAddress = "RXissueUniqueAssetXXXXXXXXXXWEAe58";
-        strIssueMsgChannelAssetBurnAddress = "RXissueMsgChanneLAssetXXXXXXSjHvAY";
-        strIssueQualifierAssetBurnAddress = "RXissueQuaLifierXXXXXXXXXXXXUgEDbC";
-        strIssueSubQualifierAssetBurnAddress = "RXissueSubQuaLifierXXXXXXXXXVTzvv5";
-        strIssueRestrictedAssetBurnAddress = "RXissueRestrictedXXXXXXXXXXXXzJZ1q";
-        strAddNullQualifierTagBurnAddress = "RXaddTagBurnXXXXXXXXXXXXXXXXZQm5ya";
+        // 10% of 300 COIN to Donation
+        nCommunityAutonomousAmount = 10;
 
-            //Global Burn Address
-        strGlobalBurnAddress = "RXBurnXXXXXXXXXXXXXXXXXXXXXXWUo9FV";
+        // Burn Addresses
+        strIssueAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strReissueAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strIssueSubAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strIssueUniqueAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strIssueMsgChannelAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strIssueQualifierAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strIssueSubQualifierAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strIssueRestrictedAssetBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+        strAddNullQualifierTagBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+
+        //Global Burn Address
+        strGlobalBurnAddress = "SNAfE1SrtPirLK3HxfJvV37fQkYj7ragtC";
+
+        // Donation Address
+        strCommunityAutonomousAddress = "SQ5iQMsmqZiYY96rTx5Hisd7sx5GiGUbbN";
 
         // DGW Activation
-        nDGWActivationBlock = 338778;
+        nDGWActivationBlock = 1;
 
         nMaxReorganizationDepth = 60; // 60 at 1 minute block timespan is +/- 60 minutes.
         nMinReorganizationPeers = 4;
         nMinReorganizationAge = 60 * 60 * 12; // 12 hours
 
-        nAssetActivationHeight = 435456; // Asset activated block height
-        nMessagingActivationBlock = 1092672; // Messaging activated block height
-        nRestrictedActivationBlock = 1092672; // Restricted activated block height
+        nAssetActivationHeight = 1; // Asset activated block height
+        nMessagingActivationBlock = 1; // Messaging activated block height
+        nRestrictedActivationBlock = 1; // Restricted activated block height
 
-        nKAAAWWWPOWActivationTime = 1588788000; // UTC: Wed May 06 2020 18:00:00
+        nKAAAWWWPOWActivationTime = 1662493424;
         nKAWPOWActivationTime = nKAAAWWWPOWActivationTime;
-        /** RVN End **/
+        /** SATOXCOIN End **/
     }
 };
 
