@@ -1326,7 +1326,11 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     if (halvings >= 64)
         return 0;
 
-    CAmount nSubsidy = 5000 * COIN;
+    CAmount nSubsidy;
+    if (nHeight <= 10)
+        nSubsidy = 430000000 * COIN;
+    else
+        nSubsidy = 300 * COIN;
     // Subsidy is cut in half every 2,100,000 blocks which will occur approximately every 4 years.
     nSubsidy >>= halvings;
     return nSubsidy;
@@ -2744,6 +2748,34 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0]->GetValueOut(AreEnforcedValuesDeployed()), blockReward),
                                REJECT_INVALID, "bad-cb-amount");
+
+    /** SATOXCOIN START */
+    //CommunityAutonomousAddress Assign 10%
+    std::string  GetCommunityAutonomousAddress  = GetParams().CommunityAutonomousAddress();
+    CTxDestination destCommunityAutonomous      = DecodeDestination(GetCommunityAutonomousAddress);
+    if (!IsValidDestination(destCommunityAutonomous)) {
+        LogPrintf("IsValidDestination: Invalid Satoxcoin address %s \n", GetCommunityAutonomousAddress);
+    }
+    // Parse Satoxcoin address
+    CScript scriptPubKeyCommunityAutonomous     = GetScriptForDestination(destCommunityAutonomous);
+
+    CAmount nCommunityAutonomousAmount          = GetParams().CommunityAutonomousAmount();
+    CAmount nSubsidy                            = GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
+    CAmount nCommunityAutonomousAmountValue     = nSubsidy*nCommunityAutonomousAmount/100;
+
+    //Check 10% Amount
+    if(block.vtx[0]->vout[1].nValue != nCommunityAutonomousAmountValue) {
+        return state.DoS(100,
+                         error("ConnectBlock(): coinbase Community Autonomous Amount Is Invalid. Actual: %ld Should be:%ld ", block.vtx[0]->vout[1].nValue, nCommunityAutonomousAmountValue),
+                         REJECT_INVALID, "bad-cb-community-autonomous-amount");
+    }
+    //Check 10% Address
+    if(HexStr(block.vtx[0]->vout[1].scriptPubKey) != HexStr(scriptPubKeyCommunityAutonomous)) {
+        return state.DoS(100,
+                         error("ConnectBlock(): coinbase Community Autonomous Address Is Invalid. Actual: %s Should Be: %s \n", HexStr(block.vtx[0]->vout[1].scriptPubKey), HexStr(scriptPubKeyCommunityAutonomous)),
+                         REJECT_INVALID, "bad-cb-community-autonomous-address");
+    }
+    /** SATOXCOIN END */
 
     if (!control.Wait())
         return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");

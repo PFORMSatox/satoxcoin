@@ -17,6 +17,7 @@
 #include "hash.h"
 #include "validation.h"
 #include "net.h"
+#include "base58.h"
 #include "policy/feerate.h"
 #include "policy/policy.h"
 #include "pow.h"
@@ -174,9 +175,24 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     CMutableTransaction coinbaseTx;
     coinbaseTx.vin.resize(1);
     coinbaseTx.vin[0].prevout.SetNull();
-    coinbaseTx.vout.resize(1);
+    CAmount nSubsidy = GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    CAmount nCommunityAutonomousAmount = GetParams().CommunityAutonomousAmount();
+
+    coinbaseTx.vout.resize(2);
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-    coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    coinbaseTx.vout[0].nValue = nFees + ((100 - nCommunityAutonomousAmount) * nSubsidy / 100);
+
+    // Assign the set % in chainparams.cpp to the TX
+    std::string GetCommunityAutonomousAddress = GetParams().CommunityAutonomousAddress();
+    CTxDestination destCommunityAutonomous = DecodeDestination(GetCommunityAutonomousAddress);
+    if (!IsValidDestination(destCommunityAutonomous)) {
+        LogPrintf("IsValidDestination: Invalid Satoxcoin address %s \n", GetCommunityAutonomousAddress);
+    }
+    CScript scriptPubKeyCommunityAutonomous = GetScriptForDestination(destCommunityAutonomous);
+
+    coinbaseTx.vout[1].scriptPubKey = scriptPubKeyCommunityAutonomous;
+    coinbaseTx.vout[1].nValue = nSubsidy * nCommunityAutonomousAmount / 100;
+
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
