@@ -10,6 +10,7 @@
 #include <consensus/params.h>
 #include <deploymentinfo.h>
 #include <logging.h>
+#include <primitives/block.h>
 #include <tinyformat.h>
 #include <util/chaintype.h>
 #include <util/strencodings.h>
@@ -141,4 +142,10 @@ void SelectParams(const ChainType chain)
 {
     SelectBaseParams(chain);
     globalChainParams = CreateChainParams(gArgs, chain);
+    // KAWPOW activation time is chain-specific and consumed by block-header
+    // serialization and PoW validation via the global. Set it from the selected
+    // chain so header deserialization gates correctly (the params constructors
+    // run for multiple chains during arg setup, so the global must be pinned
+    // to the active chain here).
+    nKAWPOWActivationTime = globalChainParams->KAWPOWActivationTime();
 }

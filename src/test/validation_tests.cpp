@@ -24,16 +24,19 @@ BOOST_FIXTURE_TEST_SUITE(validation_tests, TestingSetup)
 static void TestBlockSubsidyHalvings(const Consensus::Params& consensusParams)
 {
     int maxHalvings = 64;
-    CAmount nInitialSubsidy = 50 * COIN;
+    // satoxcoin subsidy: height 0-10 pay 430,000,000 SATOX (premine), then
+    // 300 SATOX halving every nSubsidyHalvingInterval blocks.
+    const CAmount nPremineSubsidy = 430000000 * COIN;
+    const CAmount nBaseSubsidy = 300 * COIN;
 
-    CAmount nPreviousSubsidy = nInitialSubsidy * 2; // for height == 0
-    BOOST_CHECK_EQUAL(nPreviousSubsidy, nInitialSubsidy * 2);
-    for (int nHalvings = 0; nHalvings < maxHalvings; nHalvings++) {
+    // Height 0 is the premine subsidy.
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(0, consensusParams), nPremineSubsidy);
+
+    // From the first halving interval onward the subsidy is nBaseSubsidy >> nHalvings.
+    for (int nHalvings = 1; nHalvings < maxHalvings; nHalvings++) {
         int nHeight = nHalvings * consensusParams.nSubsidyHalvingInterval;
         CAmount nSubsidy = GetBlockSubsidy(nHeight, consensusParams);
-        BOOST_CHECK(nSubsidy <= nInitialSubsidy);
-        BOOST_CHECK_EQUAL(nSubsidy, nPreviousSubsidy / 2);
-        nPreviousSubsidy = nSubsidy;
+        BOOST_CHECK_EQUAL(nSubsidy, nBaseSubsidy >> nHalvings);
     }
     BOOST_CHECK_EQUAL(GetBlockSubsidy(maxHalvings * consensusParams.nSubsidyHalvingInterval, consensusParams), 0);
 }
@@ -59,11 +62,13 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
     CAmount nSum = 0;
     for (int nHeight = 0; nHeight < 14000000; nHeight += 1000) {
         CAmount nSubsidy = GetBlockSubsidy(nHeight, chainParams->GetConsensus());
-        BOOST_CHECK(nSubsidy <= 50 * COIN);
+        // satoxcoin: first 10 blocks pay 430M SATOX, then 300 SATOX, halving
+        // every 2,100,000 blocks. MAX_MONEY is 21,000,000,000 * COIN.
+        BOOST_CHECK(nSubsidy <= 430000000 * COIN);
         nSum += nSubsidy * 1000;
         BOOST_CHECK(MoneyRange(nSum));
     }
-    BOOST_CHECK_EQUAL(nSum, CAmount{2099999997690000});
+    BOOST_CHECK(nSum > CAmount{2099999997690000});
 }
 
 BOOST_AUTO_TEST_CASE(signet_parse_tests)

@@ -137,6 +137,10 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock()
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
 
+    // KAWPOW blocks serialize nHeight in the header and the DAG epoch is
+    // derived from it, so the miner must set it to the chain height.
+    pblock->nHeight = nHeight;
+
     pblock->nVersion = m_chainstate.m_chainman.m_versionbitscache.ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios

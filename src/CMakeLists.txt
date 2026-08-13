@@ -72,11 +72,12 @@ add_library(bitcoin_consensus STATIC EXCLUDE_FROM_ALL
   uint256.cpp
 )
 target_link_libraries(bitcoin_consensus
-  PRIVATE
-    core_interface
+  PUBLIC
     bitcoin_crypto
     bitcoin_ethash
     bitcoin_algo
+  PRIVATE
+    core_interface
     secp256k1
 )
 

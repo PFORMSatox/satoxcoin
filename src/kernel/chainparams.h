@@ -107,6 +107,8 @@ public:
     bool MineBlocksOnDemand() const { return consensus.fPowNoRetargeting; }
     /** Return the block height at which DarkGravityWave difficulty activates */
     unsigned int DGWActivationBlock() const { return nDGWActivationBlock; }
+    /** Return the KAWPOW activation time for this chain */
+    uint32_t KAWPOWActivationTime() const { return nKAAAWWWPOWActivationTime; }
     /** Return the block height at which messaging activates */
     unsigned int MessagingActivationBlock() const { return nMessagingActivationBlock; }
     /** Return the block height at which restricted assets activate */
