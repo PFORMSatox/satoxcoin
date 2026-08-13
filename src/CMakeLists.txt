@@ -75,6 +75,8 @@ target_link_libraries(bitcoin_consensus
   PRIVATE
     core_interface
     bitcoin_crypto
+    bitcoin_ethash
+    bitcoin_algo
     secp256k1
 )
 

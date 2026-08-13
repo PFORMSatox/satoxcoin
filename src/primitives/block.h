@@ -1,5 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2017-2020 The Raven Core developers
+// Copyright (c) 2022-2026 The Satoxcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,12 +18,25 @@
 #include <utility>
 #include <vector>
 
+extern uint32_t nKAWPOWActivationTime;
+
+class BlockNetwork
+{
+public:
+    BlockNetwork();
+    bool fOnRegtest;
+    bool fOnTestnet;
+    void SetNetwork(const std::string& network);
+};
+
+extern BlockNetwork bNetwork;
+
 /** Nodes collect new transactions into a block, hash them into a hash tree,
- * and scan through nonce values to make the block's hash satisfy proof-of-work
- * requirements.  When they solve the proof-of-work, they broadcast the block
- * to everyone and the block is added to the block chain.  The first transaction
- * in the block is a special one that creates a new coin owned by the creator
- * of the block.
+ *  and scan through nonce values to make the block's hash satisfy proof-of-work
+ *  requirements.  When they solve the proof-of-work, they broadcast the block
+ *  to everyone and the block is added to the block chain.  The first transaction
+ *  in the block is a special one that creates a new coin owned by the creator
+ *  of the block.
  */
 class CBlockHeader
 {
@@ -34,12 +49,25 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
 
+    // KAWPOW data
+    uint32_t nHeight;
+    uint64_t nNonce64;
+    uint256 mix_hash;
+
     CBlockHeader()
     {
         SetNull();
     }
 
-    SERIALIZE_METHODS(CBlockHeader, obj) { READWRITE(obj.nVersion, obj.hashPrevBlock, obj.hashMerkleRoot, obj.nTime, obj.nBits, obj.nNonce); }
+    SERIALIZE_METHODS(CBlockHeader, obj)
+    {
+        READWRITE(obj.nVersion, obj.hashPrevBlock, obj.hashMerkleRoot, obj.nTime, obj.nBits);
+        if (obj.nTime < nKAWPOWActivationTime) {
+            READWRITE(obj.nNonce);
+        } else {
+            READWRITE(obj.nHeight, obj.nNonce64, obj.mix_hash);
+        }
+    }
 
     void SetNull()
     {
@@ -49,6 +77,10 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+
+        nNonce64 = 0;
+        nHeight = 0;
+        mix_hash.SetNull();
     }
 
     bool IsNull() const
@@ -57,6 +89,11 @@ public:
     }
 
     uint256 GetHash() const;
+    uint256 GetX16RHash() const;
+    uint256 GetX16RV2Hash() const;
+
+    uint256 GetHashFull(uint256& mix_hash) const;
+    uint256 GetKAWPOWHeaderHash() const;
 
     NodeSeconds Time() const
     {
@@ -67,6 +104,8 @@ public:
     {
         return (int64_t)nTime;
     }
+
+    std::string ToString() const;
 };
 
 
@@ -90,6 +129,23 @@ public:
     {
         SetNull();
         *(static_cast<CBlockHeader*>(this)) = header;
+    }
+
+    CBlockHeader GetBlockHeader() const
+    {
+        CBlockHeader block;
+        block.nVersion       = nVersion;
+        block.hashPrevBlock  = hashPrevBlock;
+        block.hashMerkleRoot = hashMerkleRoot;
+        block.nTime          = nTime;
+        block.nBits          = nBits;
+        block.nNonce         = nNonce;
+
+        // KAWPOW
+        block.nHeight        = nHeight;
+        block.nNonce64       = nNonce64;
+        block.mix_hash       = mix_hash;
+        return block;
     }
 
     SERIALIZE_METHODS(CBlock, obj)
@@ -145,6 +201,30 @@ struct CBlockLocator
     bool IsNull() const
     {
         return vHave.empty();
+    }
+};
+
+/**
+ * Custom serializer for CBlockHeader that omits the nNonce and mixHash, for use
+ * as input to ProgPow.
+ */
+class CKAWPOWInput : private CBlockHeader
+{
+public:
+    CKAWPOWInput(const CBlockHeader &header)
+    {
+        CBlockHeader::SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    SERIALIZE_METHODS(CKAWPOWInput, obj)
+    {
+        READWRITE(obj.nVersion);
+        READWRITE(obj.hashPrevBlock);
+        READWRITE(obj.hashMerkleRoot);
+        READWRITE(obj.nTime);
+        READWRITE(obj.nBits);
+        READWRITE(obj.nHeight);
     }
 };
 

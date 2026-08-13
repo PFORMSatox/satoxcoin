@@ -1,5 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2017-2020 The Raven Core developers
+// Copyright (c) 2022-2026 The Satoxcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,6 +10,9 @@
  */
 #ifndef BITCOIN_UTIL_STRENCODINGS_H
 #define BITCOIN_UTIL_STRENCODINGS_H
+
+#define BEGIN(a)            ((char*)&(a))
+#define END(a)              ((char*)&((&(a))[1]))
 
 #include <crypto/hex_base.h>
 #include <span.h>

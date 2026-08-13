@@ -202,6 +202,27 @@ public:
     constexpr explicit uint256(std::span<const unsigned char> vch) : base_blob<256>(vch) {}
     static const uint256 ZERO;
     static const uint256 ONE;
+
+    int GetNibble(int index) const
+    {
+        index = 63 - index;
+        if (index % 2 == 1)
+            return(m_data[index / 2] >> 4);
+        return(m_data[index / 2] & 0x0F);
+    }
+};
+
+/** 512-bit opaque blob, used by the x16r/x16rv2 hashing functions. */
+class uint512 : public base_blob<512> {
+public:
+    uint512() = default;
+    constexpr explicit uint512(std::span<const unsigned char> vch) : base_blob<512>(vch) {}
+    uint256 trim256() const
+    {
+        uint256 result;
+        memcpy((void*)&result, (void*)m_data.data(), 32);
+        return result;
+    }
 };
 
 #endif // BITCOIN_UINT256_H

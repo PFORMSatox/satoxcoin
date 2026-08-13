@@ -27,6 +27,61 @@ target_link_libraries(bitcoin_crypto
     core_interface
 )
 
+# ethash (ProgPoW/KAWPOW) library — vendored from Ravencoin, upstream copyright
+# (c) 2018-2019 Pawel Bylica. Source files are left unmodified.
+add_library(bitcoin_ethash STATIC EXCLUDE_FROM_ALL
+  ethash/lib/ethash/ethash.cpp
+  ethash/lib/ethash/managed.cpp
+  ethash/lib/ethash/progpow.cpp
+  ethash/lib/ethash/primes.c
+  ethash/lib/keccak/keccak.c
+  ethash/lib/keccak/keccakf1600.c
+  ethash/lib/keccak/keccakf800.c
+)
+target_include_directories(bitcoin_ethash
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/ethash/include
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/ethash/lib/ethash
+    ${CMAKE_CURRENT_SOURCE_DIR}/ethash/lib/support
+)
+target_compile_features(bitcoin_ethash PRIVATE c_std_99)
+
+# x16r/x16rv2 algo library — vendored from Ravencoin (sphlib, Projet RNRT SAPHIR).
+# Source files are left unmodified.
+add_library(bitcoin_algo STATIC EXCLUDE_FROM_ALL
+  ../algo/groestl.c
+  ../algo/blake.c
+  ../algo/bmw.c
+  ../algo/cubehash.c
+  ../algo/echo.c
+  ../algo/jh.c
+  ../algo/keccak.c
+  ../algo/luffa.c
+  ../algo/shavite.c
+  ../algo/simd.c
+  ../algo/skein.c
+  ../algo/hamsi.c
+  ../algo/whirlpool.c
+  ../algo/shabal.c
+  ../algo/fugue.c
+  ../algo/sha2.c
+  ../algo/extra.c
+  ../algo/sph_sha2big.c
+  ../algo/haval.c
+  ../algo/sph_sha2.c
+  ../algo/gost_streebog.c
+  ../algo/tiger.cpp
+  ../algo/lyra2.cpp
+  ../algo/sponge.cpp
+)
+target_include_directories(bitcoin_algo
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../algo
+)
+target_compile_features(bitcoin_algo PRIVATE c_std_99)
+
+
 if(HAVE_SSE41)
   target_compile_definitions(bitcoin_crypto PRIVATE ENABLE_SSE41)
   target_sources(bitcoin_crypto PRIVATE sha256_sse41.cpp)
