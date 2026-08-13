@@ -1,0 +1,11 @@
+prefix=/home/pform/projects/satoxcoin/depends/x86_64-pc-linux-gnu
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Satoxcoin Core consensus library
+Description: Library for the Satoxcoin consensus protocol.
+Version: 4.6.1
+Libs: -L${libdir} -lsatoxcoinconsensus
+Cflags: -I${includedir}
+Requires.private: libcrypto

@@ -544,8 +544,16 @@ void CConnman::Ban(const CSubNet& subNet, const BanReason &banReason, int64_t ba
     }
     banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime() )+bantimeoffset;
 
+    // Enforce a hard cap on the ban list so automatic misbehaviour bans
+    // cannot grow it without bound (CVE-2020-14198). Expired entries are
+    // swept first; only brand-new subnets count against the cap.
+    SweepBanned();
     {
         LOCK(cs_setBanned);
+        if (setBanned.count(subNet) == 0 && setBanned.size() >= MAX_BANLIST_SIZE) {
+            LogPrintf("%s: ban list is full (%u entries); refusing to ban %s\n", __func__, (unsigned)setBanned.size(), subNet.ToString());
+            return;
+        }
         if (setBanned[subNet].nBanUntil < banEntry.nBanUntil) {
             setBanned[subNet] = banEntry;
             setBannedIsDirty = true;
