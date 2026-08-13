@@ -26,3 +26,11 @@ consensus port required** — only mechanical rename (M2).
 - difficulty_algorithm `BTC`, DGW_activation_height `1`, mediantime `1661730843`
 
 Matches golden-consensus-manifest.md exactly.
+
+## Test suite results on rebase-ph3 (2026-08-13)
+- consensus_golden_tests: PASS
+- pow_tests, kawpow_tests, bip39_tests: PASS
+- asset_tests, asset_reissue_tests: PASS
+- Full combined run: crashes at boost recursive_mutex teardown - the SAME
+  known pre-existing test-harness issue (Boost + modern glibc) documented in
+  phase1-backports.md; not a rebase regression. Individual suites pass.
