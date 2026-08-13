@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2021 The Raven Core developers
+// Copyright (c) 2017-2021 The Satoxcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "streams.h"
@@ -247,31 +247,31 @@ bool CScript::IsAssetScript(int& nType, bool& fIsOwner, int& nStartingIndex) con
     if (this->size() > 31) {
         if ((*this)[25] == OP_RVN_ASSET) { // OP_RVN_ASSET is always in the 25 index of the script if it exists
             int index = -1;
-            if ((*this)[27] == RVN_R) { // Check to see if RVN starts at 27 ( this->size() < 105)
-                if ((*this)[28] == RVN_V)
-                    if ((*this)[29] == RVN_N)
+            if ((*this)[27] == SATOX_N) { // Check to see if RVN starts at 27 ( this->size() < 105)
+                if ((*this)[28] == SATOX_E)
+                    if ((*this)[29] == SATOX_X)
                         index = 30;
             } else {
-                if ((*this)[28] == RVN_R) // Check to see if RVN starts at 28 ( this->size() >= 105)
-                    if ((*this)[29] == RVN_V)
-                        if ((*this)[30] == RVN_N)
+                if ((*this)[28] == SATOX_N) // Check to see if RVN starts at 28 ( this->size() >= 105)
+                    if ((*this)[29] == SATOX_E)
+                        if ((*this)[30] == SATOX_X)
                             index = 31;
             }
 
             if (index > 0) {
                 nStartingIndex = index + 1; // Set the index where the asset data begins. Use to serialize the asset data into asset objects
-                if ((*this)[index] == RVN_T) { // Transfer first anticipating more transfers than other assets operations
+                if ((*this)[index] == SATOX_T) { // Transfer first anticipating more transfers than other assets operations
                     nType = TX_TRANSFER_ASSET;
                     return true;
-                } else if ((*this)[index] == RVN_Q && this->size() > 39) {
+                } else if ((*this)[index] == SATOX_Q && this->size() > 39) {
                     nType = TX_NEW_ASSET;
                     fIsOwner = false;
                     return true;
-                } else if ((*this)[index] == RVN_O) {
+                } else if ((*this)[index] == SATOX_O) {
                     nType = TX_NEW_ASSET;
                     fIsOwner = true;
                     return true;
-                } else if ((*this)[index] == RVN_R) {
+                } else if ((*this)[index] == SATOX_N) {
                     nType = TX_REISSUE_ASSET;
                     return true;
                 }

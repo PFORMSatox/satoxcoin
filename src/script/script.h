@@ -1,11 +1,11 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2021 The Raven Core developers
+// Copyright (c) 2017-2021 The Satoxcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef RAVEN_SCRIPT_SCRIPT_H
-#define RAVEN_SCRIPT_SCRIPT_H
+#ifndef SATOXCOIN_SCRIPT_SCRIPT_H
+#define SATOXCOIN_SCRIPT_SCRIPT_H
 
 #include "crypto/common.h"
 #include "prevector.h"
@@ -642,7 +642,7 @@ public:
     }
 
     /**
-     * Pre-version-0.6, Raven always counted CHECKMULTISIGs
+     * Pre-version-0.6, Satoxcoin always counted CHECKMULTISIGs
      * as 20 sigops. With pay-to-script-hash, that changed:
      * CHECKMULTISIGs serialized in scriptSigs are
      * counted more accurately, assuming they are of the form
@@ -739,4 +739,4 @@ bool ScriptNewAsset(const CScript& scriptPubKey, int& nStartingIndex);
 bool ScriptTransferAsset(const CScript& scriptPubKey, int& nStartingIndex);
 bool ScriptReissueAsset(const CScript& scriptPubKey, int& nStartingIndex);
 
-#endif // RAVEN_SCRIPT_SCRIPT_H
+#endif // SATOXCOIN_SCRIPT_SCRIPT_H

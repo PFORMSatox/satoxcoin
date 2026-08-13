@@ -1,10 +1,10 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2021 The Raven Core developers
+// Copyright (c) 2017-2021 The Satoxcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef RAVEN_QT_OPTIONSMODEL_H
-#define RAVEN_QT_OPTIONSMODEL_H
+#ifndef SATOXCOIN_QT_OPTIONSMODEL_H
+#define SATOXCOIN_QT_OPTIONSMODEL_H
 
 #include "amount.h"
 
@@ -14,7 +14,7 @@ QT_BEGIN_NAMESPACE
 class QNetworkProxy;
 QT_END_NAMESPACE
 
-/** Interface from Qt to configuration data structure for Raven client.
+/** Interface from Qt to configuration data structure for Satoxcoin client.
    To Qt, the options are presented as a list with the different options
    laid out vertically.
    This can be changed to a tree once the settings become sufficiently
@@ -40,7 +40,7 @@ public:
         ProxyUseTor,            // bool
         ProxyIPTor,             // QString
         ProxyPortTor,           // int
-        DisplayUnit,            // RavenUnits::Unit
+        DisplayUnit,            // SatoxcoinUnits::Unit
         DisplayCurrencyIndex,   // int
         ThirdPartyTxUrls,       // QString
         IpfsUrl,                // QString
@@ -117,4 +117,4 @@ Q_SIGNALS:
     void updateIconsOnlyToolbar(bool);
 };
 
-#endif // RAVEN_QT_OPTIONSMODEL_H
+#endif // SATOXCOIN_QT_OPTIONSMODEL_H

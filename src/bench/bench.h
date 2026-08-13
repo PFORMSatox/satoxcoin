@@ -1,14 +1,15 @@
 // Copyright (c) 2015-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2019 The Raven Core developers
+// Copyright (c) 2017-2019 The Satoxcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef RAVEN_BENCH_BENCH_H
-#define RAVEN_BENCH_BENCH_H
+#ifndef SATOXCOIN_BENCH_BENCH_H
+#define SATOXCOIN_BENCH_BENCH_H
 
 #include <functional>
 #include <limits>
 #include <map>
+#include <stdint.h>
 #include <string>
 
 #include <boost/preprocessor/cat.hpp>
@@ -78,4 +79,4 @@ namespace benchmark {
 #define BENCHMARK(n) \
     benchmark::BenchRunner BOOST_PP_CAT(bench_, BOOST_PP_CAT(__LINE__, n))(BOOST_PP_STRINGIZE(n), n);
 
-#endif // RAVEN_BENCH_BENCH_H
+#endif // SATOXCOIN_BENCH_BENCH_H
