@@ -3875,9 +3875,21 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock& block, CBlockInd
 
 static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
-    // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
-        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
+    // Check proof of work matches claimed amount. Use the full KAWPOW hash so
+    // the mix_hash is (re)computed and compared against the serialized value;
+    // this closes the mix_hash forgery hole where an attacker provided a
+    // mix_hash that matched a cheap/wrong epoch (Ravencoin incident).
+    if (fCheckPOW) {
+        if (block.nTime >= nKAWPOWActivationTime) {
+            uint256 mix_hash;
+            if (!CheckProofOfWork(block.GetHashFull(mix_hash), block.nBits, consensusParams))
+                return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
+            if (mix_hash != block.mix_hash)
+                return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-mix-hash", "mix hash mismatch");
+        } else if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) {
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
+        }
+    }
 
     return true;
 }
@@ -4131,6 +4143,20 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
 
+    // KAWPOW: the serialized header carries nHeight (deserialized into
+    // block.nHeight), and the KAWPOW hash is computed over it and the DAG
+    // epoch derived from it (hash.cpp: KAWPOWHash -> get_epoch_number).
+    // It MUST match the chain-derived height. An attacker who forges a low
+    // nHeight selects a tiny/cheap DAG epoch, so the proof-of-work can be
+    // satisfied with negligible work and an invalid block is accepted
+    // (Ravencoin incident, height 4,487,776).
+    // Only checked for KAWPOW blocks: pre-activation headers do not serialize
+    // nHeight, so block.nHeight is 0 and must not be compared.
+    if (block.nTime >= nKAWPOWActivationTime && block.nHeight != (uint32_t)nHeight) {
+        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-height",
+                             "block height does not match chain height");
+    }
+
     // Check proof of work
     const Consensus::Params& consensusParams = chainman.GetConsensus();
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
@@ -4252,12 +4278,12 @@ bool ChainstateManager::AcceptBlockHeader(const CBlockHeader& block, BlockValida
             return true;
         }
 
-        if (!CheckBlockHeader(block, state, GetConsensus())) {
-            LogDebug(BCLog::VALIDATION, "%s: Consensus::CheckBlockHeader: %s, %s\n", __func__, hash.ToString(), state.ToString());
-            return false;
-        }
-
-        // Get prev block index
+        // Get prev block index FIRST. The cheap contextual checks (which
+        // include the KAWPOW block.nHeight validation) must run BEFORE the
+        // expensive KAWPOW proof-of-work hash, otherwise an attacker can
+        // forge a huge block.nHeight that selects an enormous DAG epoch
+        // (e.g. nHeight = 2^31-1 -> ~37GB light-cache build) and hang/OOM the
+        // node before the height mismatch is ever checked.
         CBlockIndex* pindexPrev = nullptr;
         BlockMap::iterator mi{m_blockman.m_block_index.find(block.hashPrevBlock)};
         if (mi == m_blockman.m_block_index.end()) {
@@ -4271,6 +4297,11 @@ bool ChainstateManager::AcceptBlockHeader(const CBlockHeader& block, BlockValida
         }
         if (!ContextualCheckBlockHeader(block, state, m_blockman, *this, pindexPrev)) {
             LogDebug(BCLog::VALIDATION, "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n", __func__, hash.ToString(), state.ToString());
+            return false;
+        }
+
+        if (!CheckBlockHeader(block, state, GetConsensus())) {
+            LogDebug(BCLog::VALIDATION, "%s: Consensus::CheckBlockHeader: %s, %s\n", __func__, hash.ToString(), state.ToString());
             return false;
         }
     }
