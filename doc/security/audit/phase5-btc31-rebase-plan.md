@@ -33,17 +33,35 @@
   3.0.x activation line; activation per runbook happens only after 4.0 is out.
 - **No meowcoin code** enters the tree.
 
+## Sequencing policy (activation freeze)
+
+There will be **no asset-consensus push (activation) until everything else is
+done and proven correct** on the latest possible Bitcoin Core and dependency
+versions. Order of work:
+
+1. Port everything (M1–M3, M5) and reach consensus parity (M6) on the 4.0
+   line — all satoxcoin subsystems working correctly on the modern base.
+2. Re-implement the asset-overflow soft-fork on 4.0 (M4) — code present,
+   **activation gated**; zero signalling risk pre-activation (logs only).
+3. Only after 4.0 is released and running stable, diff our feature set against
+   the **latest ravencoin develop** to find anything we are missing (e.g.
+   ravencoin fixes we did not port yet).
+4. Fix gaps — including problems **ravencoin has not yet solved**. Our job is
+   not to match ravencoin's bug-for-bug behaviour; if we find a defect there,
+   we fix it properly on our line.
+5. Then, and only then, run the activation runbook (pools signal bit 11).
+
 ## Branch structure
 
 ```
 security/kawpow-hardening   FROZEN (3.0.x consensus/activation line, keep as-is)
 3.0.0-rebase                FROZEN (release base)
-rebase/ph4-btc31            CURRENT (this doc + lineage fix) [plan mode]
-   └─ M0   BTC 31.1 baseline import (upstream remote)
+rebase/ph4-btc31            CURRENT (this doc + lineage fix)
+   └─ M0   BTC 31.1 baseline import (upstream remote)         [DONE 2026-08-13, 153/153 ctest]
    └─ M1   kawpow/x16r-port        (from security/kawpow-hardening)
    └─ M2   assets-port             (from ravencoin develop)
    └─ M3   community-fund+subsidy
-   └─ M4   asset-overflow-softfork
+   └─ M4   asset-overflow-softfork (implemented, NOT activated)
    └─ M5   rpc/qt/wallet
    └─ M6   golden+sync-parity
    └─ M7   release 4.0.0
