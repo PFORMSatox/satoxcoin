@@ -5,12 +5,19 @@ Jenkinsfile
 *.exe
 src/raven
 src/ravend
+src/satoxcoind
 src/raven-cli
+src/satoxcoin-cli
 src/raven-tx
+src/satoxcoin-tx
 src/test/test_raven
+src/test/test_satoxcoin
 src/test/test_raven_fuzzy
+src/test/test_satoxcoin_fuzzy
 src/test/test_raven_hash
+src/test/test_satoxcoin_hash
 src/qt/test/test_raven-qt
+src/qt/test/test_satoxcoin-qt
 .vscode
 output.txt
 
@@ -125,3 +132,5 @@ contrib/devtools/split-debug.sh
 cmake-build-debug
 
 CMakeLists.txt
+src/bench/bench_satoxcoin
+libsatoxcoinconsensus.pc
