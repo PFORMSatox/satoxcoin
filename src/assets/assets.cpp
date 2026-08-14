@@ -751,6 +751,19 @@ bool OwnerFromTransaction(const CTransaction& tx, std::string& ownerName, std::s
     return OwnerAssetFromScript(scriptPubKey, ownerName, strAddress);
 }
 
+//! Extract the P2PKH destination from an asset script (P2PKH prefix at bytes 0-24
+//! followed by OP_SATOX_ASSET + payload). The generic ExtractDestination returns
+//! CNoDestination for asset scripts, so we extract from the underlying P2PKH.
+static bool ExtractAssetDestination(const CScript& scriptPubKey, CTxDestination& destination)
+{
+    if (scriptPubKey.size() < 25) {
+        destination = CNoDestination();
+        return false;
+    }
+    CScript p2pkh_script(scriptPubKey.begin(), scriptPubKey.begin() + 25);
+    return ExtractDestination(p2pkh_script, destination);
+}
+
 bool TransferAssetFromScript(const CScript& scriptPubKey, CAssetTransfer& assetTransfer, std::string& strAddress)
 {
     int nStartingIndex = 0;
@@ -759,7 +772,7 @@ bool TransferAssetFromScript(const CScript& scriptPubKey, CAssetTransfer& assetT
     }
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -794,7 +807,7 @@ bool AssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew, std::stri
         return false;
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -819,7 +832,7 @@ bool MsgChannelAssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew,
         return false;
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -844,7 +857,7 @@ bool QualifierAssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew, 
         return false;
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -869,7 +882,7 @@ bool RestrictedAssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew,
         return false;
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -894,7 +907,7 @@ bool OwnerAssetFromScript(const CScript& scriptPubKey, std::string& assetName, s
         return false;
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -919,7 +932,7 @@ bool ReissueAssetFromScript(const CScript& scriptPubKey, CReissueAsset& reissue,
         return false;
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -944,7 +957,7 @@ bool AssetNullDataFromScript(const CScript& scriptPubKey, CNullAssetTxData& asse
     }
 
     CTxDestination destination;
-    ExtractDestination(scriptPubKey, destination);
+    ExtractAssetDestination(scriptPubKey, destination);
 
     strAddress = EncodeDestination(destination);
 
@@ -1814,9 +1827,11 @@ bool CAssetsCache::TrySpendCoin(const COutPoint& out, const CTxOut& txOut)
                 nAmount = transfer.nAmount;
             }
         } else if (nType == TX_NEW_ASSET && fIsOwner) {
-            if (!OwnerAssetFromScript(txOut.scriptPubKey, assetName, address))
-                LogError("%s : ERROR Failed to get owner asset from the OutPoint: %s", __func__,
-                             out.ToString()); return false;;
+            if (!OwnerAssetFromScript(txOut.scriptPubKey, assetName, address)) {
+                LogError("%s : ERROR Failed to get owner asset from the OutPoint: %s (script=%s)", __func__,
+                             out.ToString(), HexStr(txOut.scriptPubKey));
+                return false;
+            }
             nAmount = OWNER_ASSET_AMOUNT;
         } else if (nType == TX_REISSUE_ASSET) {
             CReissueAsset reissue;
@@ -1847,7 +1862,8 @@ bool CAssetsCache::TrySpendCoin(const COutPoint& out, const CTxOut& txOut)
             }
         }
     } else {
-        LogError("%s : ERROR Failed to get asset from the OutPoint: %s", __func__, out.ToString()); return false;;
+        LogError("%s : ERROR Failed to get asset from the OutPoint: %s (script=%s)", __func__,
+                 out.ToString(), HexStr(txOut.scriptPubKey)); return false;
     }
 
     return true;
@@ -1868,7 +1884,6 @@ bool CAssetsCache::UndoAssetCoin(const Coin& coin, const COutPoint& out)
     std::string strAddress = "";
     std::string assetName = "";
     CAmount nAmount = 0;
-
     // Get the asset tx from the script
     int nType = -1;
     bool fIsOwner = false;
@@ -1879,35 +1894,39 @@ bool CAssetsCache::UndoAssetCoin(const Coin& coin, const COutPoint& out)
             if (!AssetFromScript(coin.out.scriptPubKey, asset, strAddress)) {
                 LogError("%s : Failed to get asset from script while trying to undo asset spend. OutPoint : %s",
                              __func__,
-                             out.ToString()); return false;;
+                             out.ToString()); return false;
             }
             assetName = asset.strName;
 
             nAmount = asset.nAmount;
         } else if (nType == TX_TRANSFER_ASSET) {
             CAssetTransfer transfer;
-            if (!TransferAssetFromScript(coin.out.scriptPubKey, transfer, strAddress))
+            if (!TransferAssetFromScript(coin.out.scriptPubKey, transfer, strAddress)) {
                 LogError(
                         "%s : Failed to get transfer asset from script while trying to undo asset spend. OutPoint : %s",
                         __func__,
-                        out.ToString()); return false;;
+                        out.ToString()); return false;
+            }
 
             assetName = transfer.strName;
             nAmount = transfer.nAmount;
         } else if (nType == TX_NEW_ASSET && fIsOwner) {
             std::string ownerName;
-            if (!OwnerAssetFromScript(coin.out.scriptPubKey, ownerName, strAddress))
+            if (!OwnerAssetFromScript(coin.out.scriptPubKey, ownerName, strAddress)) {
                 LogError(
                         "%s : Failed to get owner asset from script while trying to undo asset spend. OutPoint : %s",
-                        __func__, out.ToString()); return false;;
+                        __func__, out.ToString()); return false;
+            }
             assetName = ownerName;
             nAmount = OWNER_ASSET_AMOUNT;
         } else if (nType == TX_REISSUE_ASSET) {
             CReissueAsset reissue;
-            if (!ReissueAssetFromScript(coin.out.scriptPubKey, reissue, strAddress))
+            if (!ReissueAssetFromScript(coin.out.scriptPubKey, reissue, strAddress)) {
                 LogError(
                         "%s : Failed to get reissue asset from script while trying to undo asset spend. OutPoint : %s",
-                        __func__, out.ToString()); return false;;
+                        __func__, out.ToString()); return false;
+            }
+
             assetName = reissue.strName;
             nAmount = reissue.nAmount;
         }
@@ -1948,20 +1967,23 @@ bool CAssetsCache::UndoTransfer(const CAssetTransfer& transfer, const std::strin
 {
     if (fAssetIndex) {
         // Make sure we are in a valid state to undo the transfer of the asset
-        if (!GetBestAssetAddressAmount(*this, transfer.strName, address))
+        if (!GetBestAssetAddressAmount(*this, transfer.strName, address)) {
             LogError("%s : Failed to get the assets address balance from the database. Asset : %s Address : %s",
-                         __func__, transfer.strName, address); return false;;
+                         __func__, transfer.strName, address); return false;
+        }
 
         auto pair = std::make_pair(transfer.strName, address);
-        if (!mapAssetsAddressAmount.count(pair))
+        if (!mapAssetsAddressAmount.count(pair)) {
             LogError(
                     "%s : Tried undoing a transfer and the map of address amount didn't have the asset address pair. Asset : %s Address : %s",
-                    __func__, transfer.strName, address); return false;;
+                    __func__, transfer.strName, address); return false;
+        }
 
-        if (mapAssetsAddressAmount.at(pair) < transfer.nAmount)
+        if (mapAssetsAddressAmount.at(pair) < transfer.nAmount) {
             LogError(
                     "%s : Tried undoing a transfer and the map of address amount had less than the amount we are trying to undo. Asset : %s Address : %s",
-                    __func__, transfer.strName, address); return false;;
+                    __func__, transfer.strName, address); return false;
+        }
 
         // Change the in memory balance of the asset at the address
         mapAssetsAddressAmount[pair] -= transfer.nAmount;
@@ -2020,9 +2042,11 @@ bool CAssetsCache::AddReissueAsset(const CReissueAsset& reissue, const std::stri
     CNewAsset asset;
     int assetHeight;
     uint256 assetBlockHash;
-    if (!GetAssetMetaDataIfExists(reissue.strName, asset, assetHeight, assetBlockHash))
+    if (!GetAssetMetaDataIfExists(reissue.strName, asset, assetHeight, assetBlockHash)) {
         LogError("%s: Failed to get the original asset that is getting reissued. Asset Name : %s",
-                     __func__, reissue.strName); return false;;
+                     __func__, reissue.strName);
+        return false;
+    }
 
     // Insert the reissue information into the reissue map
     if (!mapReissuedAssetData.count(reissue.strName)) {
@@ -2120,15 +2144,17 @@ bool CAssetsCache::RemoveReissueAsset(const CReissueAsset& reissue, const std::s
     if (fAssetIndex) {
         // Get the best amount form the database or dirty cache
         if (!GetBestAssetAddressAmount(*this, reissue.strName, address)) {
-            if (reissueAsset.reissue.nAmount != 0)
+            if (reissueAsset.reissue.nAmount != 0) {
                 LogError("%s : Trying to undo reissue of an asset but the assets amount isn't in the database",
-                         __func__); return false;;
+                         __func__); return false;
+            }
         }
         mapAssetsAddressAmount[pair] -= reissue.nAmount;
 
-        if (mapAssetsAddressAmount[pair] < 0)
+        if (mapAssetsAddressAmount[pair] < 0) {
             LogError("%s : Tried undoing reissue of an asset, but the assets amount went negative: %s", __func__,
-                         reissue.strName); return false;;
+                         reissue.strName); return false;
+        }
     }
 
     return true;

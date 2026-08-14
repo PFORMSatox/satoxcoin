@@ -195,6 +195,11 @@ def assert_is_hash_string(string, length=64):
         raise AssertionError("String %r contains invalid characters for a hash." % string)
 
 
+
+def assert_does_not_contain_key(key, obj):
+    if key in obj:
+        raise AssertionError(f"Object should not contain key '{key}' but it does: {obj}")
+
 def assert_array_result(object_array, to_match, expected, should_not_find=False):
     """
         Pass in array of JSON objects, a dictionary with key/value pairs
@@ -327,6 +332,10 @@ def get_binary_paths(config):
         "bitcoin-tx": "BITCOINTX",
         "bitcoin-chainstate": "BITCOINCHAINSTATE",
         "bitcoin-wallet": "BITCOINWALLET",
+        "satoxcoind": "SATOXCOIND",
+        "satoxcoin-cli": "SATOXCOINCLI",
+        "satoxcoin-tx": "SATOXCOINTX",
+        "satoxcoin-wallet": "SATOXCOINWALLET",
     }
     # Set paths to bitcoin core binaries allowing overrides with environment
     # variables.
@@ -336,7 +345,13 @@ def get_binary_paths(config):
             "bin",
             binary + config["environment"]["EXEEXT"],
         )
+        # Satoxcoin binaries are renamed; map satoxcoin-* to the BTC framework
+        # names so existing test code that looks up 'bitcoind' finds satoxcoind.
         setattr(paths, env_variable_name.lower(), os.getenv(env_variable_name, default=default_filename))
+    paths.bitcoind = paths.bitcoind if os.path.exists(paths.bitcoind) else paths.satoxcoind
+    paths.bitcoincli = paths.bitcoincli if os.path.exists(paths.bitcoincli) else paths.satoxcoincli
+    paths.bitcointx = paths.bitcointx if os.path.exists(paths.bitcointx) else paths.satoxcointx
+    paths.bitcoinwallet = paths.bitcoinwallet if os.path.exists(paths.bitcoinwallet) else paths.satoxcoinwallet
     # BITCOIN_CMD environment variable can be specified to invoke bitcoin
     # wrapper binary instead of other executables.
     paths.bitcoin_cmd = shlex.split(os.getenv("BITCOIN_CMD", "")) or None
@@ -535,7 +550,7 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
     datadir = get_datadir_path(dirname, n)
     if not os.path.isdir(datadir):
         os.makedirs(datadir)
-    write_config(os.path.join(datadir, "bitcoin.conf"), n=n, chain=chain, disable_autoconnect=disable_autoconnect)
+    write_config(os.path.join(datadir, "satoxcoin.conf"), n=n, chain=chain, disable_autoconnect=disable_autoconnect)
     os.makedirs(os.path.join(datadir, 'stderr'), exist_ok=True)
     os.makedirs(os.path.join(datadir, 'stdout'), exist_ok=True)
     return datadir
@@ -615,7 +630,7 @@ def get_temp_default_datadir(temp_dir: pathlib.Path) -> tuple[dict, pathlib.Path
 
 
 def append_config(datadir, options):
-    with open(os.path.join(datadir, "bitcoin.conf"), 'a') as f:
+    with open(os.path.join(datadir, "satoxcoin.conf"), 'a') as f:
         for option in options:
             f.write(option + "\n")
 
@@ -623,8 +638,8 @@ def append_config(datadir, options):
 def get_auth_cookie(datadir, chain):
     user = None
     password = None
-    if os.path.isfile(os.path.join(datadir, "bitcoin.conf")):
-        with open(os.path.join(datadir, "bitcoin.conf"), 'r') as f:
+    if os.path.isfile(os.path.join(datadir, "satoxcoin.conf")):
+        with open(os.path.join(datadir, "satoxcoin.conf"), 'r') as f:
             for line in f:
                 if line.startswith("rpcuser="):
                     assert user is None  # Ensure that there is only one rpcuser line

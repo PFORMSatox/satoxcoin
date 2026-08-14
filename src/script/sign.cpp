@@ -628,18 +628,44 @@ static bool SignTaproot(const SigningProvider& provider, const BaseSignatureCrea
 static bool SignStep(const SigningProvider& provider, const BaseSignatureCreator& creator, const CScript& scriptPubKey,
                      std::vector<valtype>& ret, TxoutType& whichTypeRet, SigVersion sigversion, SignatureData& sigdata)
 {
+    std::vector<valtype> vSolutions;
+    whichTypeRet = Solver(scriptPubKey, vSolutions);
     CScript scriptRet;
     ret.clear();
     std::vector<unsigned char> sig;
-
-    std::vector<valtype> vSolutions;
-    whichTypeRet = Solver(scriptPubKey, vSolutions);
 
     switch (whichTypeRet) {
     case TxoutType::NONSTANDARD:
     case TxoutType::NULL_DATA:
     case TxoutType::WITNESS_UNKNOWN:
         return false;
+    case TxoutType::NEW_ASSET:
+    case TxoutType::REISSUE_ASSET:
+    case TxoutType::TRANSFER_ASSET: {
+        // P2PKH prefix + OP_SATOX_ASSET payload; ECDSA commits to full scriptPubKey (see interpreter).
+        if (!scriptPubKey.IsAssetScript() || scriptPubKey.size() < 26) {
+            return false;
+        }
+        const CScript underlying(scriptPubKey.begin(), scriptPubKey.begin() + 25);
+        std::vector<valtype> subSol;
+        TxoutType sub = Solver(underlying, subSol);
+        if (sub != TxoutType::PUBKEYHASH) {
+            return false;
+        }
+        CKeyID keyID = CKeyID(uint160(subSol[0]));
+        CPubKey pubkey;
+        if (!GetPubKey(provider, sigdata, keyID, pubkey)) {
+            sigdata.missing_pubkeys.push_back(keyID);
+            return false;
+        }
+        std::vector<unsigned char> sig;
+        if (!CreateSig(creator, sigdata, provider, sig, pubkey, scriptPubKey, sigversion)) {
+            return false;
+        }
+        ret.push_back(std::move(sig));
+        ret.push_back(ToByteVector(pubkey));
+        return true;
+    }
     case TxoutType::PUBKEY:
         if (!CreateSig(creator, sigdata, provider, sig, CPubKey(vSolutions[0]), scriptPubKey, sigversion)) return false;
         ret.push_back(std::move(sig));

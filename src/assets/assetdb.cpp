@@ -28,15 +28,18 @@ bool CAssetsDB::WriteAssetData(const CNewAsset &asset, const int nHeight, const 
 {
     CDatabasedAssetData data(asset, nHeight, blockHash);
     Write(std::make_pair(ASSET_FLAG, asset.strName), data);
+    return true;
 }
 
 bool CAssetsDB::WriteAssetAddressQuantity(const std::string &assetName, const std::string &address, const CAmount &quantity)
 {
     Write(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(assetName, address)), quantity);
+    return true;
 }
 
 bool CAssetsDB::WriteAddressAssetQuantity(const std::string &address, const std::string &assetName, const CAmount& quantity) {
     Write(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)), quantity);
+    return true;
 }
 
 bool CAssetsDB::ReadAssetData(const std::string& strName, CNewAsset& asset, int& nHeight, uint256& blockHash)
@@ -66,19 +69,23 @@ bool CAssetsDB::ReadAddressAssetQuantity(const std::string &address, const std::
 bool CAssetsDB::EraseAssetData(const std::string& assetName)
 {
     Erase(std::make_pair(ASSET_FLAG, assetName));
+    return true;
 }
 
 bool CAssetsDB::EraseMyAssetData(const std::string& assetName)
 {
     Erase(std::make_pair(MY_ASSET_FLAG, assetName));
+    return true;
 }
 
 bool CAssetsDB::EraseAssetAddressQuantity(const std::string &assetName, const std::string &address) {
     Erase(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(assetName, address)));
+    return true;
 }
 
 bool CAssetsDB::EraseAddressAssetQuantity(const std::string &address, const std::string &assetName) {
     Erase(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)));
+    return true;
 }
 
 bool EraseAddressAssetQuantity(const std::string &address, const std::string &assetName);
@@ -86,6 +93,7 @@ bool EraseAddressAssetQuantity(const std::string &address, const std::string &as
 bool CAssetsDB::WriteBlockUndoAssetData(const uint256& blockhash, const std::vector<std::pair<std::string, CBlockAssetUndo> >& assetUndoData)
 {
     Write(std::make_pair(BLOCK_ASSET_UNDO_DATA, blockhash), assetUndoData);
+    return true;
 }
 
 bool CAssetsDB::ReadBlockUndoAssetData(const uint256 &blockhash, std::vector<std::pair<std::string, CBlockAssetUndo> > &assetUndoData)
@@ -101,6 +109,7 @@ bool CAssetsDB::ReadBlockUndoAssetData(const uint256 &blockhash, std::vector<std
 bool CAssetsDB::WriteReissuedMempoolState()
 {
     Write(MEMPOOL_REISSUED_TX, mapReissuedAssets);
+    return true;
 }
 
 bool CAssetsDB::ReadReissuedMempoolState()

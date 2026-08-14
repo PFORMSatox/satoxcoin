@@ -22,35 +22,44 @@ class CDatabasedAssetData;
 
 struct CBlockAssetUndo
 {
-    bool fChangedIPFS;
-    bool fChangedUnits;
+    bool fChangedIPFS{false};
+    bool fChangedUnits{false};
     std::string strIPFS;
-    int32_t nUnits;
-    int8_t version;
-    bool fChangedVerifierString;
+    int32_t nUnits{0};
+    int8_t version{0};
+    bool fChangedVerifierString{false};
     std::string verifierString;
 
-    SERIALIZE_METHODS(CBlockAssetUndo, obj)
+    // Explicit Serialize/Unserialize because the read path uses s.empty()/s.size()
+    // which only exist on certain stream types (DataStream), not all.
+    template <typename Stream>
+    void Serialize(Stream& s) const
     {
-        READWRITE(obj.fChangedUnits);
-        READWRITE(obj.fChangedIPFS);
-        READWRITE(obj.strIPFS);
-        READWRITE(obj.nUnits);
-        if constexpr (ser_action.ForRead()) {
-            if (!s.empty() and s.size() >= 1) {
-                int8_t nVersionCheck;
-                ::Unserialize(s, nVersionCheck);
+        ::Serialize(s, fChangedUnits);
+        ::Serialize(s, fChangedIPFS);
+        ::Serialize(s, strIPFS);
+        ::Serialize(s, nUnits);
+        ::Serialize(s, ASSET_UNDO_INCLUDES_VERIFIER_STRING);
+        ::Serialize(s, fChangedVerifierString);
+        ::Serialize(s, verifierString);
+    }
 
-                if (nVersionCheck == ASSET_UNDO_INCLUDES_VERIFIER_STRING) {
-                    ::Unserialize(s, obj.fChangedVerifierString);
-                    ::Unserialize(s, obj.verifierString);
-                }
-                obj.version = nVersionCheck;
+    template <typename Stream>
+    void Unserialize(Stream& s)
+    {
+        ::Unserialize(s, fChangedUnits);
+        ::Unserialize(s, fChangedIPFS);
+        ::Unserialize(s, strIPFS);
+        ::Unserialize(s, nUnits);
+        if (!s.empty() && s.size() >= 1) {
+            int8_t nVersionCheck;
+            ::Unserialize(s, nVersionCheck);
+
+            if (nVersionCheck == ASSET_UNDO_INCLUDES_VERIFIER_STRING) {
+                ::Unserialize(s, fChangedVerifierString);
+                ::Unserialize(s, verifierString);
             }
-        } else {
-            ::Serialize(s, ASSET_UNDO_INCLUDES_VERIFIER_STRING);
-            ::Serialize(s, obj.fChangedVerifierString);
-            ::Serialize(s, obj.verifierString);
+            version = nVersionCheck;
         }
     }
 };

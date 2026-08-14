@@ -805,6 +805,15 @@ bool SendAssetTransaction(
     std::pair<int, std::string>& error,
     std::string& txid)
 {
+    // Broadcast to the mempool first so a rejection (e.g. reissue chaining)
+    // surfaces to the caller and does NOT leave the wallet with inputs marked
+    // spent or the rejected transaction committed.
+    std::string err_string;
+    if (!wallet.chain().broadcastTransaction(tx, wallet.m_default_max_tx_fee, node::TxBroadcast::MEMPOOL_AND_BROADCAST_TO_ALL, err_string)) {
+        error = std::make_pair(RPC_WALLET_ERROR, strprintf("Error: The transaction was rejected! Reason given: %s", err_string));
+        return false;
+    }
+
     wallet.CommitTransaction(tx, {}, {});
     txid = tx->GetHash().GetHex();
     return true;

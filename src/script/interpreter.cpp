@@ -1214,6 +1214,12 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                 }
                 break;
 
+                case OP_SATOX_ASSET:
+                    // Satoxcoin asset opcode. The following payload is pushed
+                    // as data and dropped by the trailing OP_DROP; treat this
+                    // opcode as a NOP (mirrors the 3.0.x interpreter).
+                    break;
+
                 default:
                     return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
             }

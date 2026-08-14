@@ -117,11 +117,28 @@ static std::optional<int64_t> MaxInputWeight(const Descriptor& desc, const std::
 
 int CalculateMaximumSignedInputSize(const CTxOut& txout, const COutPoint outpoint, const SigningProvider* provider, bool can_grind_r, const CCoinControl* coin_control)
 {
+    if (txout.scriptPubKey.IsAssetScript()) {
+        LogDebug(BCLog::SELECTCOINS, "CMSIS: asset input %s provider=%p\n", outpoint.ToString(), (void*)provider);
+    }
     if (!provider) return -1;
 
     if (const auto desc = InferDescriptor(txout.scriptPubKey, *provider)) {
         if (const auto weight = MaxInputWeight(*desc, CTxIn{outpoint}, coin_control, true, can_grind_r)) {
             return static_cast<int>(GetVirtualTransactionSize(*weight, 0, 0));
+        }
+    }
+
+    // Asset scripts are P2PKH + OP_SATOX_ASSET + payload; satisfaction matches the 25-byte P2PKH prefix.
+    const CScript& spk = txout.scriptPubKey;
+    if (spk.IsAssetScript() && spk.size() >= 26) {
+        const CScript underlying(spk.begin(), spk.begin() + 25);
+        const CTxOut utxo(txout.nValue, underlying);
+        if (const auto desc = InferDescriptor(utxo.scriptPubKey, *provider)) {
+            if (const auto weight = MaxInputWeight(*desc, {}, coin_control, true, can_grind_r)) {
+                return static_cast<int>(GetVirtualTransactionSize(*weight, 0, 0));
+            }
+        } else {
+            LogDebug(BCLog::SELECTCOINS, "asset sizing: InferDescriptor failed for underlying %s\n", HexStr(underlying));
         }
     }
 
@@ -131,7 +148,17 @@ int CalculateMaximumSignedInputSize(const CTxOut& txout, const COutPoint outpoin
 int CalculateMaximumSignedInputSize(const CTxOut& txout, const CWallet* wallet, const CCoinControl* coin_control)
 {
     const std::unique_ptr<SigningProvider> provider = wallet->GetSolvingProvider(txout.scriptPubKey);
-    return CalculateMaximumSignedInputSize(txout, COutPoint(), provider.get(), wallet->CanGrindR(), coin_control);
+    int n = CalculateMaximumSignedInputSize(txout, COutPoint(), provider.get(), wallet->CanGrindR(), coin_control);
+    if (n != -1) return n;
+
+    const CScript& spk = txout.scriptPubKey;
+    if (spk.IsAssetScript() && spk.size() >= 26) {
+        const CScript underlying(spk.begin(), spk.begin() + 25);
+        const CTxOut utxo(txout.nValue, underlying);
+        const std::unique_ptr<SigningProvider> p2 = wallet->GetSolvingProvider(underlying);
+        return CalculateMaximumSignedInputSize(utxo, COutPoint(), p2.get(), wallet->CanGrindR(), coin_control);
+    }
+    return -1;
 }
 
 /** Infer a descriptor for the given output script. */
@@ -142,10 +169,30 @@ static std::unique_ptr<Descriptor> GetDescriptor(const CWallet* wallet, const CC
     for (const auto spkman: wallet->GetScriptPubKeyMans(script_pubkey)) {
         providers.AddProvider(spkman->GetSolvingProvider(script_pubkey));
     }
+    if (auto p = wallet->GetSolvingProvider(script_pubkey)) {
+        providers.AddProvider(std::move(p));
+    }
     if (coin_control) {
         providers.AddProvider(std::make_unique<FlatSigningProvider>(coin_control->m_external_provider));
     }
-    return InferDescriptor(script_pubkey, providers);
+    if (auto desc = InferDescriptor(script_pubkey, providers)) {
+        return desc;
+    }
+    if (script_pubkey.IsAssetScript() && script_pubkey.size() >= 26) {
+        const CScript underlying(script_pubkey.begin(), script_pubkey.begin() + 25);
+        MultiSigningProvider providers_u;
+        for (const auto spkman: wallet->GetScriptPubKeyMans(underlying)) {
+            providers_u.AddProvider(spkman->GetSolvingProvider(underlying));
+        }
+        if (auto p = wallet->GetSolvingProvider(underlying)) {
+            providers_u.AddProvider(std::move(p));
+        }
+        if (coin_control) {
+            providers_u.AddProvider(std::make_unique<FlatSigningProvider>(coin_control->m_external_provider));
+        }
+        return InferDescriptor(underlying, providers_u);
+    }
+    return nullptr;
 }
 
 /** Infer the maximum size of this input after it will be signed. */
@@ -161,8 +208,18 @@ static std::optional<int64_t> GetSignedTxinWeight(const CWallet* wallet, const C
 
     // Otherwise, use the maximum satisfaction size provided by the descriptor.
     std::unique_ptr<Descriptor> desc{GetDescriptor(wallet, coin_control, txo.scriptPubKey)};
-    if (desc) return MaxInputWeight(*desc, {txin}, coin_control, tx_is_segwit, can_grind_r);
+    if (desc) {
+        if (const auto w = MaxInputWeight(*desc, {txin}, coin_control, tx_is_segwit, can_grind_r)) {
+            return w;
+        }
+    }
 
+    // Align with FetchSelectedInputs / coin selection: if descriptor inference still fails, use the
+    // same marginal input vsize path (covers edge SPKM / asset combinations).
+    const int input_vbytes = CalculateMaximumSignedInputSize(txo, wallet, coin_control);
+    if (input_vbytes > 0) {
+        return static_cast<int64_t>(input_vbytes) * WITNESS_SCALE_FACTOR;
+    }
     return {};
 }
 
@@ -187,7 +244,11 @@ TxSize CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *walle
     // Add the size of the transaction inputs as if they were signed.
     for (uint32_t i = 0; i < txouts.size(); i++) {
         const auto txin_weight = GetSignedTxinWeight(wallet, coin_control, tx.vin[i], txouts[i], is_segwit, wallet->CanGrindR());
-        if (!txin_weight) return TxSize{-1, -1};
+        if (!txin_weight) {
+            LogDebug(BCLog::SELECTCOINS, "GetSignedTxinWeight failed for input %s script=%s\n",
+                     tx.vin[i].prevout.ToString(), HexStr(txouts[i].scriptPubKey));
+            return TxSize{-1, -1};
+        }
         assert(*txin_weight > -1);
         weight += *txin_weight;
     }
@@ -425,7 +486,7 @@ CoinsResult AvailableCoins(const CWallet& wallet,
             }
 
             if (nDepth == 0 && params.check_version_trucness) {
-                if (coinControl->m_version == TRUC_VERSION) {
+                if (coinControl && coinControl->m_version == TRUC_VERSION) {
                     if (wtx.tx->version != TRUC_VERSION) continue;
                     // this unconfirmed v3 transaction already has a child
                     if (wtx.truc_child_in_mempool.has_value()) continue;

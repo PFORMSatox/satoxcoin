@@ -151,6 +151,13 @@ static void RegisterVouts(CTxMemPool& pool, const CTransaction& tx)
                 pool.mapAssetToHash[data.assetName] = txid;
             }
 
+            if (data.type == TX_REISSUE_ASSET && !IsAssetNameAnOwner(data.assetName)) {
+                // A reissue transaction locks the asset against further reissues
+                // until it confirms (or is removed from the mempool).
+                mapReissuedAssets[data.assetName] = txid.ToUint256();
+                mapReissuedTx[txid.ToUint256()] = data.assetName;
+            }
+
             if (AreRestrictedAssetsDeployed() && IsAssetNameAnRestricted(data.assetName)) {
                 const std::string address = EncodeDestination(data.destination);
                 pool.mapAddressesQualifiersChanged[address].insert(txid);
@@ -254,6 +261,13 @@ void UnregisterAssetMempoolTx(CTxMemPool& pool, const CTransaction& tx)
     if (!AreAssetsDeployed()) return;
 
     const Txid txid = tx.GetHash();
+
+    // If the transaction being removed is locking other reissues, free them.
+    if (mapReissuedTx.count(txid.ToUint256())) {
+        const std::string locked_asset = mapReissuedTx.at(txid.ToUint256());
+        mapReissuedAssets.erase(locked_asset);
+        mapReissuedTx.erase(txid.ToUint256());
+    }
 
     for (const auto& out : tx.vout) {
         CAssetOutputEntry data;

@@ -53,13 +53,17 @@ static void CheckIPFSOrTxidMessage(const std::string& message, int64_t expireTim
             throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid txid hash: RIP5 messaging not yet active");
     } else {
         if (len)
-            throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid IPFS/txid hash (IPFS=46 chars, txid=64 chars)");
+            throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid IPFS/Txid hash (IPFS=46 chars, txid=64 chars)");
     }
     if (!message.empty() && message.substr(0, 2) != "Qm") {
-        if (!AreMessagesDeployed())
+        if (!AreMessagesDeployed()) {
+            // A 46/64-char value that is not hex is an invalid IPFS/Txid hash.
+            if (!IsHex(message))
+                throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid IPFS/Txid hash");
             throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid IPFS hash: should start with 'Qm'");
+        }
         if (!IsHex(message))
-            throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid IPFS/txid hash: not valid hex");
+            throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid IPFS/Txid hash: not valid hex");
     }
     if (expireTime < 0)
         throw JSONRPCError(RPC_INVALID_PARAMS, "Expire time must be a positive number");
@@ -73,7 +77,8 @@ static std::string ResolveOrGenerateAddress(CWallet& wallet, const std::string& 
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Satoxcoin address: " + input);
         return input;
     }
-    auto op = wallet.GetNewDestination(wallet.m_default_address_type, "");
+    // Assets require legacy (P2PKH) destinations for the P2PKH-subscript asset layout.
+    auto op = wallet.GetNewDestination(OutputType::LEGACY, "");
     if (!op) throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, util::ErrorString(op).original);
     return EncodeDestination(*op);
 }
@@ -135,9 +140,10 @@ RPCHelpMan issue()
             std::string toAddr   = request.params[2].isNull() ? "" : request.params[2].get_str();
             std::string chgAddr  = request.params[3].isNull() ? "" : request.params[3].get_str();
             int units            = request.params[4].isNull() ? 0  : request.params[4].getInt<int>();
-            bool reissuable      = (assetType == AssetType::UNIQUE || assetType == AssetType::MSGCHANNEL ||
-                                    assetType == AssetType::QUALIFIER || assetType == AssetType::SUB_QUALIFIER)
-                                   ? false : (request.params[5].isNull() ? true : request.params[5].get_bool());
+            bool reissuable      = !(assetType == AssetType::UNIQUE || assetType == AssetType::MSGCHANNEL ||
+                                    assetType == AssetType::QUALIFIER || assetType == AssetType::SUB_QUALIFIER);
+            if (!request.params[5].isNull())
+                reissuable = request.params[5].get_bool();
             bool has_ipfs        = !request.params[6].isNull() && request.params[6].get_bool();
             std::string ipfsHash = (has_ipfs && !request.params[7].isNull()) ? request.params[7].get_str() : "";
 
@@ -145,10 +151,10 @@ RPCHelpMan issue()
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid change address: " + chgAddr);
             if ((assetType == AssetType::UNIQUE || assetType == AssetType::MSGCHANNEL) &&
                 (nAmount != COIN || units != 0 || reissuable))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Unique/MsgChannel assets require qty=1, units=0, reissuable=false");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameters for issuing a unique asset.");
             if ((assetType == AssetType::QUALIFIER || assetType == AssetType::SUB_QUALIFIER) &&
                 (nAmount < QUALIFIER_ASSET_MIN_AMOUNT || nAmount > QUALIFIER_ASSET_MAX_AMOUNT || units != 0 || reissuable))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameters for qualifier asset (amount 1–10, units=0, reissuable=false)");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameters for issuing a qualifier asset.");
 
             int64_t expireTime = 0;
             if (has_ipfs && !ipfsHash.empty()) CheckIPFSOrTxidMessage(ipfsHash, expireTime);
@@ -967,7 +973,7 @@ RPCHelpMan listmyassets()
         },
         RPCResult{
             RPCResult::Type::OBJ_DYN, "", "asset balances",
-            {{RPCResult::Type::NUM, "asset_name", "balance or object with balance+outpoints when verbose"}}
+            {{RPCResult::Type::ANY, "asset_name", "balance or object with balance+outpoints when verbose"}}
         },
         RPCExamples{
             HelpExampleRpc("listmyassets", "")

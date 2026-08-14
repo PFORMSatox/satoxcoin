@@ -56,6 +56,8 @@ static RPCHelpMan listassets()
                         {RPCResult::Type::NUM, "has_ipfs", "1 if has IPFS data"},
                         {RPCResult::Type::NUM, "block_height", "the block height the asset was created"},
                         {RPCResult::Type::STR_HEX, "blockhash", "the block hash the asset was created"},
+                        {RPCResult::Type::STR, "ipfs_hash", /*optional=*/true, "the IPFS hash of the asset data (when has_ipfs=1)"},
+                        {RPCResult::Type::STR, "txid_hash", /*optional=*/true, "the txid hash of the asset data (when has_ipfs=1)"},
                     }},
                 }
             },
@@ -118,7 +120,36 @@ static RPCHelpMan listassets()
                     if (matches)
                         assets.emplace_back(entry.asset, entry.blockHeight, entry.blockHash);
                 }
+
+            // Re-apply skip/count to the merged result so the in-memory overlay
+            // respects the same paging as the DB read.
+            if (!assets.empty()) {
+                std::sort(assets.begin(), assets.end(), [](const CDatabasedAssetData& a, const CDatabasedAssetData& b) {
+                    return a.asset.strName < b.asset.strName;
+                });
+                size_t skip = start < 0 ? 0 : static_cast<size_t>(start);
+                if (start < 0 && static_cast<size_t>(-start) < assets.size())
+                    skip = assets.size() - static_cast<size_t>(-start);
+                if (skip < assets.size())
+                    assets.erase(assets.begin(), assets.begin() + skip);
+                else
+                    assets.clear();
+                if (count > 0 && assets.size() > static_cast<size_t>(count))
+                    assets.resize(count);
             }
+        }
+
+        // Overlay assets whose metadata was reissued but not yet flushed to the
+        // database. Reissued metadata (amount, units, ipfs) lives in the dirty
+        // cache until DumpCacheToDatabase() runs, so consult it for the freshest
+        // values.
+        if (passets) {
+            for (auto& data : assets) {
+                const auto& rit = passets->mapReissuedAssetData.find(data.asset.strName);
+                if (rit != passets->mapReissuedAssetData.end())
+                    data.asset = rit->second;
+            }
+        }
 
             UniValue result;
             result = verbose ? UniValue(UniValue::VOBJ) : UniValue(UniValue::VARR);
@@ -316,6 +347,7 @@ static RPCHelpMan listassetbalancesbyaddress()
                 if (pair.second == address)
                     combined[pair.first] = amount;
             }
+
 
             if (onlytotal) {
                 int nTotal = 0;
