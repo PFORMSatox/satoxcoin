@@ -2195,6 +2195,15 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
 {
     bool fClean = true;
 
+    // This is needed because undo is going to be cleared and moved when AddCoin is called.
+    // We need this for undo assets.
+    Coin tempCoin;
+    bool fIsAsset = false;
+    if (undo.out.scriptPubKey.IsAssetScript()) {
+        fIsAsset = true;
+        tempCoin = undo;
+    }
+
     if (view.HaveCoin(out)) fClean = false; // overwriting transaction output
 
     if (undo.nHeight == 0) {
@@ -2215,6 +2224,13 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
     // we don't need to guess. When fClean is false, an unspent coin already
     // existed and it is an overwrite.
     view.AddCoin(out, std::move(undo), !fClean);
+
+    if (AreAssetsDeployed()) {
+        if (fIsAsset) {
+            if (GetCurrentAssetCache() && !GetCurrentAssetCache()->UndoAssetCoin(tempCoin, out))
+                fClean = false;
+        }
+    }
 
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
