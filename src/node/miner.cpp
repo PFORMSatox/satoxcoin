@@ -5,6 +5,7 @@
 
 #include <node/miner.h>
 
+#include <addresstype.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
@@ -15,6 +16,7 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <deploymentstatus.h>
+#include <key_io.h>
 #include <logging.h>
 #include <node/context.h>
 #include <node/kernel_notifications.h>
@@ -176,12 +178,34 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock()
     coinbase_tx.sequence = coinbaseTx.vin[0].nSequence;
 
     // Add an output that spends the full coinbase reward.
-    coinbaseTx.vout.resize(1);
-    coinbaseTx.vout[0].scriptPubKey = m_options.coinbase_output_script;
-    // Block subsidy + fees
-    const CAmount block_reward{nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus())};
-    coinbaseTx.vout[0].nValue = block_reward;
-    coinbase_tx.block_reward_remaining = block_reward;
+    // Satoxcoin: split subsidy into miner payout + community autonomous fund.
+    const CAmount nSubsidy{GetBlockSubsidy(nHeight, chainparams.GetConsensus())};
+    const CAmount nTotalReward{nFees + nSubsidy};
+    const CAmount nCommunityAutonomousAmount = chainparams.CommunityAutonomousAmount();
+    const CAmount nCommunityAutonomousValue = (nSubsidy * nCommunityAutonomousAmount) / 100;
+
+    if (nCommunityAutonomousAmount > 0) {
+        coinbaseTx.vout.resize(2);
+        // Output 0: Miner payout (subsidy + fees - community fund)
+        coinbaseTx.vout[0].scriptPubKey = m_options.coinbase_output_script;
+        coinbaseTx.vout[0].nValue = nTotalReward - nCommunityAutonomousValue;
+        // Output 1: Community Autonomous Fund
+        const std::string& strCommunityAutonomousAddress = chainparams.CommunityAutonomousAddress();
+        CTxDestination destCommunityAutonomous = DecodeDestination(strCommunityAutonomousAddress);
+        if (!IsValidDestination(destCommunityAutonomous)) {
+            LogError("CreateNewBlock(): Invalid Satoxcoin community autonomous address %s\n", strCommunityAutonomousAddress);
+            coinbaseTx.vout.resize(1); // Fallback to single output
+            coinbaseTx.vout[0].nValue = nTotalReward;
+        } else {
+            coinbaseTx.vout[1].scriptPubKey = GetScriptForDestination(destCommunityAutonomous);
+            coinbaseTx.vout[1].nValue = nCommunityAutonomousValue;
+        }
+    } else {
+        coinbaseTx.vout.resize(1);
+        coinbaseTx.vout[0].scriptPubKey = m_options.coinbase_output_script;
+        coinbaseTx.vout[0].nValue = nTotalReward;
+    }
+    coinbase_tx.block_reward_remaining = nTotalReward;
 
     // Start the coinbase scriptSig with the block height as required by BIP34.
     // Mining clients are expected to append extra data to this prefix, so

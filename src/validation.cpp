@@ -2865,6 +2865,30 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                       strprintf("coinbase pays too much (actual=%d vs limit=%d)", block.vtx[0]->GetValueOut(), blockReward));
     }
+
+    // Community Autonomous Fund: check the community payout amount and address.
+    if (state.IsValid()) {
+        const CAmount nCommunityAutonomousAmount = params.CommunityAutonomousAmount();
+        if (nCommunityAutonomousAmount > 0) {
+            const CAmount nSubsidy = GetBlockSubsidy(pindex->nHeight, params.GetConsensus());
+            const CAmount nCommunityAutonomousAmountValue = (nSubsidy * nCommunityAutonomousAmount) / 100;
+
+            std::string strCommunityAutonomousAddress = params.CommunityAutonomousAddress();
+            CTxDestination destCommunityAutonomous = DecodeDestination(strCommunityAutonomousAddress);
+            CScript scriptPubKeyCommunityAutonomous = GetScriptForDestination(destCommunityAutonomous);
+
+            if (block.vtx[0]->vout.size() < 2 ||
+                block.vtx[0]->vout[1].nValue != nCommunityAutonomousAmountValue) {
+                state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-community-autonomous-amount",
+                              strprintf("coinbase community autonomous amount is invalid (actual=%d should=%d)",
+                                        block.vtx[0]->vout.size() < 2 ? 0 : block.vtx[0]->vout[1].nValue,
+                                        nCommunityAutonomousAmountValue));
+            } else if (HexStr(block.vtx[0]->vout[1].scriptPubKey) != HexStr(scriptPubKeyCommunityAutonomous)) {
+                state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-community-autonomous-address",
+                              "coinbase community autonomous address is invalid");
+            }
+        }
+    }
     if (control) {
         auto parallel_result = control->Complete();
         if (parallel_result.has_value() && state.IsValid()) {
