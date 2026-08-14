@@ -1653,6 +1653,20 @@ bool CWallet::IsMine(const CScript& script) const
         return res;
     }
 
+    // For asset scripts (P2PKH + OP_SATOX_ASSET suffix), extract the
+    // underlying standard P2PKH script and check if that address is ours.
+    if (script.IsAssetScript() && script.size() >= 25) {
+        CScript underlyingScript(script.begin(), script.begin() + 25);
+        const auto& asset_it = m_cached_spks.find(underlyingScript);
+        if (asset_it != m_cached_spks.end()) {
+            bool res = false;
+            for (const auto& spkm : asset_it->second) {
+                res = res || spkm->IsMine(underlyingScript);
+            }
+            return res;
+        }
+    }
+
     return false;
 }
 
@@ -3442,8 +3456,22 @@ std::set<ScriptPubKeyMan*> CWallet::GetScriptPubKeyMans(const CScript& script) c
     if (it != m_cached_spks.end()) {
         spk_mans.insert(it->second.begin(), it->second.end());
     }
+
+    // Asset scripts embed P2PKH at bytes 0-24 followed by OP_SATOX_ASSET <data> OP_DROP.
+    bool found_via_asset_subscript = false;
+    if (spk_mans.empty() && script.IsAssetScript()) {
+        CScript p2pkh_script(script.begin(), script.begin() + 25);
+        const auto& it2 = m_cached_spks.find(p2pkh_script);
+        if (it2 != m_cached_spks.end()) {
+            spk_mans.insert(it2->second.begin(), it2->second.end());
+            found_via_asset_subscript = true;
+        }
+    }
+
     SignatureData sigdata;
-    Assume(std::all_of(spk_mans.begin(), spk_mans.end(), [&script, &sigdata](ScriptPubKeyMan* spkm) { return spkm->CanProvide(script, sigdata); }));
+    if (!found_via_asset_subscript) {
+        Assume(std::all_of(spk_mans.begin(), spk_mans.end(), [&script, &sigdata](ScriptPubKeyMan* spkm) { return spkm->CanProvide(script, sigdata); }));
+    }
 
     return spk_mans;
 }
@@ -3470,6 +3498,16 @@ std::unique_ptr<SigningProvider> CWallet::GetSolvingProvider(const CScript& scri
         // All spkms for a given script must already be able to make a SigningProvider for the script, so just return the first one.
         Assume(it->second.at(0)->CanProvide(script, sigdata));
         return it->second.at(0)->GetSolvingProvider(script);
+    }
+
+    // Asset scripts embed P2PKH at bytes 0-24. The SPKM cache and
+    // m_map_script_pub_keys only store the P2PKH portion, so retry with that.
+    if (script.IsAssetScript()) {
+        CScript p2pkh_script(script.begin(), script.begin() + 25);
+        const auto& it2 = m_cached_spks.find(p2pkh_script);
+        if (it2 != m_cached_spks.end()) {
+            return it2->second.at(0)->GetSolvingProvider(p2pkh_script);
+        }
     }
 
     return nullptr;
