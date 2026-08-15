@@ -5,8 +5,10 @@
 #include <boost/test/unit_test.hpp>
 
 #include <chainparams.h>
+#include <addresstype.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
+#include <key_io.h>
 #include <node/miner.h>
 #include <pow.h>
 #include <random.h>
@@ -75,17 +77,27 @@ std::shared_ptr<CBlock> MinerTestingSetup::Block(const uint256& prev_hash)
     pblock->hashPrevBlock = prev_hash;
     pblock->nTime = ++time;
 
-    // Make the coinbase transaction with two outputs:
+    // Make the coinbase transaction with three outputs:
     // One zero-value one that has a unique pubkey to make sure that blocks at the same height can have a different hash
+    // One with the community autonomous fund payout (required by M3 consensus)
     // Another one that has the coinbase reward in a P2WSH with OP_TRUE as witness program to make it easy to spend
+    //
+    // Satoxcoin has a height-dependent subsidy, so compute the CAF payout for
+    // the height this block will actually be connected at (prev_height + 1),
+    // not the tip height BlockAssembler saw at build time.
+    const int prev_height{WITH_LOCK(::cs_main, return m_node.chainman->m_blockman.LookupBlockIndex(prev_hash)->nHeight)};
+    const CAmount nSubsidy = GetBlockSubsidy(prev_height + 1, Params().GetConsensus());
+    const CAmount nCommunityAutonomousValue = (nSubsidy * Params().CommunityAutonomousAmount()) / 100;
+
     CMutableTransaction txCoinbase(*pblock->vtx[0]);
-    txCoinbase.vout.resize(2);
-    txCoinbase.vout[1].scriptPubKey = P2WSH_OP_TRUE;
-    txCoinbase.vout[1].nValue = txCoinbase.vout[0].nValue;
+    txCoinbase.vout.resize(3);
+    txCoinbase.vout[1].scriptPubKey = GetScriptForDestination(DecodeDestination(Params().CommunityAutonomousAddress()));
+    txCoinbase.vout[1].nValue = nCommunityAutonomousValue;
+    txCoinbase.vout[2].scriptPubKey = P2WSH_OP_TRUE;
+    txCoinbase.vout[2].nValue = nSubsidy - nCommunityAutonomousValue;
     txCoinbase.vout[0].nValue = 0;
     txCoinbase.vin[0].scriptWitness.SetNull();
     // Always pad with OP_0 as dummy extraNonce (also avoids bad-cb-length error for block <=16)
-    const int prev_height{WITH_LOCK(::cs_main, return m_node.chainman->m_blockman.LookupBlockIndex(prev_hash)->nHeight)};
     txCoinbase.vin[0].scriptSig = CScript{} << prev_height + 1 << OP_0;
     txCoinbase.nLockTime = static_cast<uint32_t>(prev_height);
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
@@ -253,9 +265,9 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg)
         std::vector<CTransactionRef> txs;
         for (int num_txs = 22; num_txs > 0; --num_txs) {
             CMutableTransaction mtx;
-            mtx.vin.emplace_back(COutPoint{last_mined->vtx[0]->GetHash(), 1}, CScript{});
+            mtx.vin.emplace_back(COutPoint{last_mined->vtx[0]->GetHash(), 2}, CScript{});
             mtx.vin[0].scriptWitness.stack.push_back(WITNESS_STACK_ELEM_OP_TRUE);
-            mtx.vout.push_back(last_mined->vtx[0]->vout[1]);
+            mtx.vout.push_back(last_mined->vtx[0]->vout[2]);
             mtx.vout[0].nValue -= 1000;
             txs.push_back(MakeTransactionRef(mtx));
 

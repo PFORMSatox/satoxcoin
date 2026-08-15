@@ -76,6 +76,12 @@ struct BlockCreateOptions {
      * Whether to include an OP_0 as a dummy extraNonce in the template's coinbase
      */
     bool include_dummy_extranonce{false};
+    /**
+     * Whether to call TestBlockValidity() at the end of CreateNewBlock().
+     * Disable it when assembling templates that are intentionally not
+     * immediately connectable (e.g. containing non-final transactions).
+     */
+    bool test_block_validity{true};
 };
 
 struct BlockWaitOptions {

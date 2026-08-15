@@ -487,15 +487,6 @@ bool GetScriptOp(CScriptBase::const_iterator& pc, CScriptBase::const_iterator en
         pc += nSize;
     }
 
-    // If we see an op rvn asset, we consider all data after it has data, and not op codes
-    // Move the pc to the end of the script
-    if (opcode == OP_SATOX_ASSET) {
-        unsigned int nSize = end - pc;
-        if (pvchRet)
-            pvchRet->assign(pc, pc + nSize);
-        pc += nSize;
-    }
-
     opcodeRet = static_cast<opcodetype>(opcode);
     return true;
 }

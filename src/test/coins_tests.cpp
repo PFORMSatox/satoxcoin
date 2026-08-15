@@ -25,7 +25,7 @@
 
 using namespace util::hex_literals;
 
-int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out);
+int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out, class CAssetsCache* assetCache = nullptr);
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, CTxUndo &txundo, int nHeight);
 
 namespace

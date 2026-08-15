@@ -235,7 +235,9 @@ struct SnapshotTestSetup : TestChain100Setup {
         }
 
         size_t initial_size;
-        size_t initial_total_coins{100};
+        // Satoxcoin coinbases have two outputs (miner + community fund), so
+        // the UTXO set holds twice the number of coinbase transactions.
+        size_t initial_total_coins{200};
 
         // Make some initial assertions about the contents of the chainstate.
         {
@@ -247,7 +249,9 @@ struct SnapshotTestSetup : TestChain100Setup {
             for (CTransactionRef& txn : m_coinbase_txns) {
                 COutPoint op{txn->GetHash(), 0};
                 BOOST_CHECK(ibd_coinscache.HaveCoin(op));
-                total_coins++;
+                COutPoint op_caf{txn->GetHash(), 1};
+                BOOST_CHECK(ibd_coinscache.HaveCoin(op_caf));
+                total_coins += 2;
             }
 
             BOOST_CHECK_EQUAL(total_coins, initial_total_coins);
@@ -264,8 +268,8 @@ struct SnapshotTestSetup : TestChain100Setup {
         // be found.
         constexpr int snapshot_height = 110;
         mineBlocks(10);
-        initial_size += 10;
-        initial_total_coins += 10;
+        initial_size += 20;
+        initial_total_coins += 20;
 
         // Should not load malleated snapshots
         BOOST_REQUIRE(!CreateAndActivateUTXOSnapshot(
@@ -352,7 +356,9 @@ struct SnapshotTestSetup : TestChain100Setup {
                 for (CTransactionRef& txn : m_coinbase_txns) {
                     COutPoint op{txn->GetHash(), 0};
                     BOOST_CHECK(coinscache.HaveCoin(op));
-                    total_coins++;
+                    COutPoint op_caf{txn->GetHash(), 1};
+                    BOOST_CHECK(coinscache.HaveCoin(op_caf));
+                    total_coins += 2;
                 }
 
                 BOOST_CHECK_EQUAL(initial_size , coinscache.GetCacheSize());
@@ -364,8 +370,9 @@ struct SnapshotTestSetup : TestChain100Setup {
         }
 
         // Mine some new blocks on top of the activated snapshot chainstate.
-        constexpr size_t new_coins{100};
-        mineBlocks(new_coins);  // Defined in TestChain100Setup.
+        // Each block contributes two coins (miner + community fund outputs).
+        constexpr size_t new_coins{200};
+        mineBlocks(new_coins / 2);  // Defined in TestChain100Setup.
 
         {
             LOCK(::cs_main);
@@ -381,9 +388,9 @@ struct SnapshotTestSetup : TestChain100Setup {
                 for (CTransactionRef& txn : m_coinbase_txns) {
                     COutPoint op{txn->GetHash(), 0};
                     if (coinscache.HaveCoin(op)) {
-                        (is_background ? coins_in_background : coins_in_active)++;
+                        (is_background ? coins_in_background : coins_in_active) += 2;
                     } else if (is_background) {
-                        coins_missing_from_background++;
+                        coins_missing_from_background += 2;
                     }
                 }
             }

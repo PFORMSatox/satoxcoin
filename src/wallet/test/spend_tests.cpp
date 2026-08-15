@@ -43,8 +43,14 @@ BOOST_FIXTURE_TEST_CASE(SubtractFee, TestChain100Setup)
     // be uneconomical to add and spend the output), and make sure it pays the
     // leftover input amount which would have been change to the recipient
     // instead of the miner.
-    auto check_tx = [&wallet](CAmount leftover_input_amount) {
-        CRecipient recipient{PubKeyDestination({}), 50 * COIN - leftover_input_amount, /*subtract_fee=*/true};
+    // The single mature input is the block-1 coinbase (the only one with
+    // >= COINBASE_MATURITY confirmations at this tip); its spendable value is
+    // the subsidy minus the community autonomous fund payout.
+    const CAmount input_amount{
+        GetBlockSubsidy(1, m_node.chainman->GetConsensus()) * (100 - m_node.chainman->GetParams().CommunityAutonomousAmount()) / 100
+    };
+    auto check_tx = [&wallet, &input_amount](CAmount leftover_input_amount) {
+        CRecipient recipient{PubKeyDestination({}), input_amount - leftover_input_amount, /*subtract_fee=*/true};
         CCoinControl coin_control;
         coin_control.m_feerate.emplace(10000);
         coin_control.fOverrideFeeRate = true;
@@ -82,36 +88,38 @@ BOOST_FIXTURE_TEST_CASE(wallet_duplicated_preset_inputs_test, TestChain100Setup)
 {
     // Verify that the wallet's Coin Selection process does not include pre-selected inputs twice in a transaction.
 
-    // Add 4 spendable UTXO, 50 BTC each, to the wallet (total balance 200 BTC)
+    // Add 4 spendable coinbase UTXOs to the wallet. Satoxcoin coinbases are
+    // far larger than Bitcoin's 50 COIN, so derive the amounts from the chain.
     for (int i = 0; i < 4; i++) CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     auto wallet = CreateSyncedWallet(*m_node.chain, WITH_LOCK(Assert(m_node.chainman)->GetMutex(), return m_node.chainman->ActiveChain()), coinbaseKey);
 
     LOCK(wallet->cs_wallet);
     auto available_coins = AvailableCoins(*wallet);
     std::vector<COutput> coins = available_coins.All();
-    // Preselect the first 3 UTXO (150 BTC total)
+    // Preselect the first 3 UTXOs
     std::set<COutPoint> preset_inputs = {coins[0].outpoint, coins[1].outpoint, coins[2].outpoint};
 
     // Try to create a tx that spends more than what preset inputs + wallet selected inputs are covering for.
-    // The wallet can cover up to 200 BTC, and the tx target is 299 BTC.
+    // The wallet can cover up to its full balance, and the tx target is that balance plus 1 coin.
+    const CAmount total_balance{available_coins.GetTotalAmount()};
     std::vector<CRecipient> recipients{{*Assert(wallet->GetNewDestination(OutputType::BECH32, "dummy")),
-                                           /*nAmount=*/299 * COIN, /*fSubtractFeeFromAmount=*/true}};
+                                           /*nAmount=*/total_balance + COIN, /*fSubtractFeeFromAmount=*/true}};
     CCoinControl coin_control;
     coin_control.m_allow_other_inputs = true;
     for (const auto& outpoint : preset_inputs) {
         coin_control.Select(outpoint);
     }
 
-    // Attempt to send 299 BTC from a wallet that only has 200 BTC. The wallet should exclude
+    // Attempt to send more than the wallet balance. The wallet should exclude
     // the preset inputs from the pool of available coins, realize that there is not enough
-    // money to fund the 299 BTC payment, and fail with "Insufficient funds".
+    // money to fund the payment, and fail with "Insufficient funds".
     //
-    // Even with SFFO, the wallet can only afford to send 200 BTC.
+    // Even with SFFO, the wallet can only afford to send its full balance.
     // If the wallet does not properly exclude preset inputs from the pool of available coins
     // prior to coin selection, it may create a transaction that does not fund the full payment
     // amount or, through SFFO, incorrectly reduce the recipient's amount by the difference
-    // between the original target and the wrongly counted inputs (in this case 99 BTC)
-    // so that the recipient's amount is no longer equal to the user's selected target of 299 BTC.
+    // between the original target and the wrongly counted inputs
+    // so that the recipient's amount is no longer equal to the user's selected target.
 
     // First case, use 'subtract_fee_from_outputs=true'
     BOOST_CHECK(!CreateTransaction(*wallet, recipients, /*change_pos=*/std::nullopt, coin_control));

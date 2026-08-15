@@ -118,6 +118,10 @@ void MinerTestingSetup::TestPackageSelection(const CScript& scriptPubKey, const 
     BlockAssembler::Options options;
     options.coinbase_output_script = scriptPubKey;
     options.include_dummy_extranonce = true;
+    // This test intentionally assembles templates that contain relative-locked
+    // (non-final) transactions, which satoxcoin's TestBlockValidity() would
+    // reject. Skip that check here.
+    options.test_block_validity = false;
 
     LOCK(tx_mempool.cs);
     BOOST_CHECK(tx_mempool.size() == 0);
@@ -633,6 +637,9 @@ void MinerTestingSetup::TestBasicMining(const CScript& scriptPubKey, const std::
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | 1;
     BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}, tx_mempool)); // Sequence locks fail
 
+    // The template below legitimately contains the relative-locked (still
+    // non-final) transaction; skip satoxcoin's TestBlockValidity() check here.
+    options.test_block_validity = false;
     auto block_template = mining->createNewBlock(options, /*cooldown=*/false);
     BOOST_REQUIRE(block_template);
 
@@ -819,15 +826,21 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
             block.nTime = Assert(m_node.chainman)->ActiveChain().Tip()->GetMedianTimePast()+1;
             txCoinbase.version = 1;
             txCoinbase.vin[0].scriptSig = CScript{} << (current_height + 1) << bi.extranonce;
-            txCoinbase.vout.resize(1); // Ignore the (optional) segwit commitment added by CreateNewBlock (as the hardcoded nonces don't account for this)
             txCoinbase.vout[0].scriptPubKey = CScript();
+            // Keep the community autonomous fund output (vout[1]) as built by
+            // CreateNewBlock; it is required by satoxcoin M3 consensus.
             block.vtx[0] = MakeTransactionRef(txCoinbase);
             if (txFirst.size() == 0)
                 baseheight = current_height;
             if (txFirst.size() < 4)
                 txFirst.push_back(block.vtx[0]);
             block.hashMerkleRoot = BlockMerkleRoot(block);
+            // The hardcoded nonces were generated for Bitcoin's sha256d PoW;
+            // satoxcoin uses X16R (and KAWPOW), so re-mine until the hash is valid.
             block.nNonce = bi.nonce;
+            while (!CheckProofOfWork(block.GetHash(), block.nBits, m_node.chainman->GetConsensus())) {
+                ++block.nNonce;
+            }
         }
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(block);
         // Alternate calls between Chainman's ProcessNewBlock and submitSolution

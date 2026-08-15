@@ -153,7 +153,10 @@ BOOST_FIXTURE_TEST_CASE(stale_tip_peer_management, OutboundTest)
 
     const auto time_init{GetTime<std::chrono::seconds>()};
     SetMockTime(time_init);
-    const auto time_later{time_init + 3 * std::chrono::seconds{m_node.chainman->GetConsensus().nPowTargetSpacing} + 1s};
+    // The stale tip check only runs once per STALE_CHECK_INTERVAL (10 minutes),
+    // so advance time past both that gate and the 3x block-spacing staleness
+    // threshold. On satoxcoin regtest the spacing is 1 minute (not Bitcoin's 10).
+    const auto time_later{time_init + std::max<std::chrono::seconds>(std::chrono::seconds{3 * m_node.chainman->GetConsensus().nPowTargetSpacing}, std::chrono::seconds{10min + 1s})};
     connman->Init(options);
     std::vector<CNode *> vNodes;
 
