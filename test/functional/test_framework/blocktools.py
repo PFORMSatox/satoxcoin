@@ -53,7 +53,8 @@ MAX_STANDARD_TX_SIGOPS = 4000
 MAX_STANDARD_TX_WEIGHT = 400000
 
 # Genesis block time (regtest)
-TIME_GENESIS_BLOCK = 1296688602
+# satoxcoin regtest genesis is at 1661734578 (2022-08-29), not Bitcoin's 2009 date.
+TIME_GENESIS_BLOCK = 1661734578
 
 MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60
 
