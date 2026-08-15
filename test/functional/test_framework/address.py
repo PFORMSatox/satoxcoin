@@ -193,6 +193,10 @@ def address_to_scriptpubkey(address):
         return keyhash_to_p2pkh_script(payload)
     elif version == 196:  # testnet script hash
         return scripthash_to_p2sh_script(payload)
+    elif version == 42:  # satoxcoin regtest pubkey hash
+        return keyhash_to_p2pkh_script(payload)
+    elif version == 124:  # satoxcoin regtest script hash
+        return scripthash_to_p2sh_script(payload)
     raise ValueError(f"Unsupported address type: {address}")
 
 

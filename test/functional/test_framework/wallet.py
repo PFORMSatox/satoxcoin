@@ -13,11 +13,11 @@ from typing import (
 )
 from test_framework.address import (
     address_to_scriptpubkey,
-    create_deterministic_address_bcrt1_p2tr_op_true,
     key_to_p2pkh,
     key_to_p2sh_p2wpkh,
     key_to_p2wpkh,
     output_key_to_p2tr,
+    script_to_p2wsh,
 )
 from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.descriptors import descsum_create
@@ -32,7 +32,6 @@ from test_framework.messages import (
     CTxIn,
     CTxInWitness,
     CTxOut,
-    hash256,
 )
 from test_framework.script import (
     CScript,
@@ -102,8 +101,11 @@ class MiniWallet:
             pub_key = self._priv_key.get_pubkey()
             self._scriptPubKey = key_to_p2pk_script(pub_key.get_bytes())
         elif mode == MiniWalletMode.ADDRESS_OP_TRUE:
-            internal_key = None if tag_name is None else compute_xonly_pubkey(hash256(tag_name.encode()))[0]
-            self._address, self._taproot_info = create_deterministic_address_bcrt1_p2tr_op_true(internal_key)
+            # satoxcoin has never activated taproot, so use an anyone-can-spend
+            # P2WSH (segwit v0) address instead of the P2TR one. The witness
+            # script is OP_TRUE and the spend is the witness stack [OP_TRUE].
+            self._witness_script = CScript([OP_TRUE])
+            self._address = script_to_p2wsh(self._witness_script)
             self._scriptPubKey = address_to_scriptpubkey(self._address)
 
         # When the pre-mined test framework chain is used, it contains coinbase
@@ -184,12 +186,7 @@ class MiniWallet:
         elif self._mode == MiniWalletMode.ADDRESS_OP_TRUE:
             tx.wit.vtxinwit = [CTxInWitness()] * len(tx.vin)
             for i in tx.wit.vtxinwit:
-                assert_equal(len(self._taproot_info.leaves), 1)
-                leaf_info = list(self._taproot_info.leaves.values())[0]
-                i.scriptWitness.stack = [
-                    leaf_info.script,
-                    bytes([leaf_info.version | self._taproot_info.negflag]) + self._taproot_info.internal_pubkey,
-                ]
+                i.scriptWitness.stack = [self._witness_script]
         else:
             assert False
 
@@ -364,7 +361,9 @@ class MiniWallet:
         assert fee >= 0
         # calculate fee
         if self._mode in (MiniWalletMode.RAW_OP_TRUE, MiniWalletMode.ADDRESS_OP_TRUE):
-            vsize = Decimal(104)  # anyone-can-spend
+            # P2WSH(OP_TRUE) anyone-can-spend: 96 vB (P2TR would be 104, but
+            # satoxcoin has never activated taproot).
+            vsize = Decimal(96)
         elif self._mode == MiniWalletMode.RAW_P2PK:
             vsize = Decimal(168)  # P2PK (73 bytes scriptSig + 35 bytes scriptPubKey + 60 bytes other)
         else:

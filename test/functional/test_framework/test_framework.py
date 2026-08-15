@@ -929,8 +929,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             # This is needed so that we are out of IBD when the test starts,
             # see the tip age check in IsInitialBlockDownload().
             # satoxcoin has never activated taproot, so use a valid regtest
-            # bech32 (segwit v0) address instead of the taproot one.
-            gen_addresses = [k.address for k in TestNode.PRIV_KEYS][:3] + ["bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080"]
+            # P2WSH (segwit v0) anyone-can-spend address instead of the taproot
+            # one. This matches MiniWallet's ADDRESS_OP_TRUE output script, so
+            # the cache chain pre-funds it.
+            gen_addresses = [k.address for k in TestNode.PRIV_KEYS][:3] + ["bcrt1qft5p2uhsdcdc3l2ua4ap5qqfg4pjaqlp250x7us7a8qqhrxrxfsqseac85"]
             assert_equal(len(gen_addresses), 4)
             for i in range(8):
                 self.generatetoaddress(
