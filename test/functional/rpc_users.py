@@ -46,7 +46,10 @@ class HTTPBasicsTest(BitcoinTestFramework):
         self.rpcuser = "rpcuser💻"
         self.rpcpassword = "rpcpassword🔑"
 
-        gen_rpcauth = self.config["environment"]["RPCAUTH"]
+        rpcauth = self.config["environment"]["RPCAUTH"]
+        if not os.path.isabs(rpcauth):
+            rpcauth = os.path.join(self.config["environment"]["SRCDIR"], rpcauth)
+        gen_rpcauth = rpcauth
 
         # Generate RPCAUTH with specified password
         self.rt2password = "8/F3uMDw4KSEbw96U3CA1C4X05dkHDN2BPFjTgZW4KI="

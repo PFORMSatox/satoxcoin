@@ -22,7 +22,10 @@ class RpcAuthTest(BitcoinTestFramework):
         pass
 
     def setUp(self):
-        sys.path.insert(0, os.path.dirname(self.config["environment"]["RPCAUTH"]))
+        rpcauth = self.config["environment"]["RPCAUTH"]
+        if not os.path.isabs(rpcauth):
+            rpcauth = os.path.join(self.config["environment"]["SRCDIR"], rpcauth)
+        sys.path.insert(0, os.path.dirname(rpcauth))
         self.rpcauth = importlib.import_module('rpcauth')
 
     def run_test(self):

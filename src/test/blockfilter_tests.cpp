@@ -13,10 +13,15 @@
 #include <undo.h>
 #include <univalue.h>
 #include <util/strencodings.h>
+#include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(blockfilter_tests)
+// The BASIC block filter's SipHash key is derived from the block hash, which on
+// satoxcoin depends on the network (X16R / KAWPOW). Use a fixture so the
+// network globals (nKAWPOWActivationTime, bNetwork) are initialized before
+// deserializing blocks and computing filters.
+BOOST_FIXTURE_TEST_SUITE(blockfilter_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(gcsfilter_test)
 {
