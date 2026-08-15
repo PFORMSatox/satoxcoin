@@ -200,6 +200,22 @@ def assert_does_not_contain_key(key, obj):
     if key in obj:
         raise AssertionError(f"Object should not contain key '{key}' but it does: {obj}")
 
+
+def assert_contains(val, arr):
+    if not (val in arr):
+        raise AssertionError("val %s not in arr" % val)
+
+
+def assert_does_not_contain(val, arr):
+    if val in arr:
+        raise AssertionError("val %s is in arr" % val)
+
+
+def assert_contains_pair(key, val, dict_data):
+    if not (key in dict_data and val == dict_data[key]):
+        raise AssertionError("k/v pair (%s,%s) not in dict" % (key, val))
+
+
 def assert_array_result(object_array, to_match, expected, should_not_find=False):
     """
         Pass in array of JSON objects, a dictionary with key/value pairs
