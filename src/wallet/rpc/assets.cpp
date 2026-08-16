@@ -457,7 +457,7 @@ RPCHelpMan transfer()
             {"qty",                 RPCArg::Type::NUM,  RPCArg::Optional::NO,   "amount to send"},
             {"to_address",          RPCArg::Type::STR,  RPCArg::Optional::NO,   "destination address"},
             {"message",             RPCArg::Type::STR,  RPCArg::Default{""}, "optional IPFS/txid message (RIP5)"},
-            {"expire_time",         RPCArg::Type::NUM,  RPCArg::Default{0},      "UTC timestamp when message expires"},
+            {"expire_time",         RPCArg::Type::NUM,  RPCArg::Default{0},      "UTC timestamp when message expires", RPCArgOptions{.skip_type_check = true, .type_str = {"numeric or string", "numeric or string"}}},
             {"change_address",      RPCArg::Type::STR,  RPCArg::Default{""}, "SATOX change address"},
             {"asset_change_address",RPCArg::Type::STR,  RPCArg::Default{""}, "asset change address"},
         },
@@ -539,7 +539,7 @@ RPCHelpMan transferfromaddresses()
             {"qty",                  RPCArg::Type::NUM,  RPCArg::Optional::NO, "amount to send"},
             {"to_address",           RPCArg::Type::STR,  RPCArg::Optional::NO, "destination address"},
             {"message",              RPCArg::Type::STR,  RPCArg::Default{""},  "optional IPFS/txid message (RIP5)"},
-            {"expire_time",          RPCArg::Type::NUM,  RPCArg::Default{0},   "UTC timestamp when message expires"},
+            {"expire_time",          RPCArg::Type::NUM,  RPCArg::Default{0},   "UTC timestamp when message expires", RPCArgOptions{.skip_type_check = true, .type_str = {"numeric or string", "numeric or string"}}},
             {"satox_change_address",  RPCArg::Type::STR,  RPCArg::Default{""},  "SATOX change address"},
             {"asset_change_address", RPCArg::Type::STR,  RPCArg::Default{""},  "asset change address"},
         },
@@ -605,7 +605,7 @@ RPCHelpMan transferfromaddresses()
                 }
             }
             if (!ctrl.HasAssetSelected())
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "No asset UTXOs found at the given from addresses");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "No asset outpoints are selected from the given addresses, failed to create the transaction");
 
             ctrl.destChange      = DecodeDestination(chgAddr);
             ctrl.destAssetChange = DecodeDestination(assetChg);
@@ -644,7 +644,7 @@ RPCHelpMan transferfromaddress()
             {"qty",                  RPCArg::Type::NUM,  RPCArg::Optional::NO, "amount to send"},
             {"to_address",           RPCArg::Type::STR,  RPCArg::Optional::NO, "destination address"},
             {"message",              RPCArg::Type::STR,  RPCArg::Default{""},  "optional IPFS/txid message (RIP5)"},
-            {"expire_time",          RPCArg::Type::NUM,  RPCArg::Default{0},   "UTC timestamp when message expires"},
+            {"expire_time",          RPCArg::Type::NUM,  RPCArg::Default{0},   "UTC timestamp when message expires", RPCArgOptions{.skip_type_check = true, .type_str = {"numeric or string", "numeric or string"}}},
             {"satox_change_address",  RPCArg::Type::STR,  RPCArg::Default{""},  "SATOX change address"},
             {"asset_change_address", RPCArg::Type::STR,  RPCArg::Default{""},  "asset change address"},
         },
@@ -700,7 +700,7 @@ RPCHelpMan transferfromaddress()
                 }
             }
             if (!ctrl.HasAssetSelected())
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "No asset UTXOs found at from_address: " + fromAddr);
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "No asset outpoints are selected from the given address, failed to create the transaction");
 
             ctrl.destChange      = DecodeDestination(chgAddr);
             ctrl.destAssetChange = DecodeDestination(assetChg);
@@ -740,7 +740,7 @@ RPCHelpMan transferqualifier()
             {"to_address",      RPCArg::Type::STR,  RPCArg::Optional::NO,  "destination address"},
             {"change_address",  RPCArg::Type::STR,  RPCArg::Default{""},   "change address"},
             {"message",         RPCArg::Type::STR,  RPCArg::Default{""},   "optional IPFS/txid message (RIP5)"},
-            {"expire_time",     RPCArg::Type::NUM,  RPCArg::Default{0},    "UTC timestamp when message expires"},
+            {"expire_time",     RPCArg::Type::NUM,  RPCArg::Default{0},    "UTC timestamp when message expires", RPCArgOptions{.skip_type_check = true, .type_str = {"numeric or string", "numeric or string"}}},
         },
         RPCResult{RPCResult::Type::ARR, "", "list of transaction IDs",
             {{RPCResult::Type::STR_HEX, "", "txid"}}},

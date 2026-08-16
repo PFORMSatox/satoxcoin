@@ -808,7 +808,7 @@ static RPCHelpMan isvalidverifierstring()
             {"verifier_string", RPCArg::Type::STR, RPCArg::Optional::NO, "the verifier string to validate"},
         },
         RPCResult{
-            RPCResult::Type::BOOL, "", "true if the verifier string is valid"
+            RPCResult::Type::STR, "", "the string 'Valid Verifier' if the verifier string is valid"
         },
         RPCExamples{
             HelpExampleCli("isvalidverifierstring", "\"#TAG & #TAG2\"")
@@ -824,9 +824,11 @@ static RPCHelpMan isvalidverifierstring()
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "asset cache unavailable.");
 
             std::string strError;
-            bool result = ContextualCheckVerifierString(passets, verifier_string, "", strError);
+            if (!ContextualCheckVerifierString(passets, GetStrippedVerifierString(verifier_string), "", strError)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strError);
+            }
 
-            return result;
+            return "Valid Verifier";
         },
     };
 }

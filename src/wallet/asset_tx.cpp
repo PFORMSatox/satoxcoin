@@ -413,6 +413,23 @@ bool CreateTransferAssetTransaction(
                 error = std::make_pair(RPC_INVALID_PARAMETER, strError);
                 return false;
             }
+
+            // If an explicit asset change address was provided, it must satisfy the verifier
+            // (mirrors the 3.0.x hard check in CreateTransferAssetTransaction).
+            if (!std::get_if<CNoDestination>(&coinControl.destAssetChange)) {
+                std::string change_address = EncodeDestination(coinControl.destAssetChange);
+                CNullAssetTxVerifierString verifier;
+                if (!passets->GetAssetVerifierStringIfExists(asset_name, verifier)) {
+                    error = std::make_pair(RPC_DATABASE_ERROR, "Unable to get restricted assets verifier string. Database out of sync. Reindex required");
+                    return false;
+                }
+                std::string change_str_error;
+                if (!ContextualCheckVerifierString(passets, verifier.verifier_string, change_address, change_str_error)) {
+                    error = std::make_pair(RPC_DATABASE_ERROR,
+                        std::string("Change address can not be sent to because it doesn't have the correct qualifier tags ") + change_str_error);
+                    return false;
+                }
+            }
         }
 
         // Build the asset transfer output script
@@ -810,7 +827,16 @@ bool SendAssetTransaction(
     // spent or the rejected transaction committed.
     std::string err_string;
     if (!wallet.chain().broadcastTransaction(tx, wallet.m_default_max_tx_fee, node::TxBroadcast::MEMPOOL_AND_BROADCAST_TO_ALL, err_string)) {
-        error = std::make_pair(RPC_WALLET_ERROR, strprintf("Error: The transaction was rejected! Reason given: %s", err_string));
+        // Map the restricted-asset mempool duplicate rejections to the 3.0.x RPC
+        // errors so callers (freezerestrictedasset/unfreezerestrictedasset) surface
+        // the expected code and message.
+        if (err_string.find("bad-txns-global-freeze-already-in-mempool") != std::string::npos) {
+            error = std::make_pair(RPC_TRANSACTION_REJECTED, "Freezing transaction already in mempool");
+        } else if (err_string.find("bad-txns-global-unfreeze-already-in-mempool") != std::string::npos) {
+            error = std::make_pair(RPC_TRANSACTION_REJECTED, "Unfreezing transaction already in mempool");
+        } else {
+            error = std::make_pair(RPC_WALLET_ERROR, strprintf("Error: The transaction was rejected! Reason given: %s", err_string));
+        }
         return false;
     }
 
