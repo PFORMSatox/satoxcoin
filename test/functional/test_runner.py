@@ -109,6 +109,8 @@ BASE_SCRIPTS = [
     'feature_assets_mempool.py',
     'feature_listmyassets.py',
     'feature_unique_assets.py',
+    'feature_restricted_assets.py',
+    'rpc_assettransfer.py',
     'mempool_ephemeral_dust.py',
     'wallet_conflicts.py',
     'p2p_opportunistic_1p1c.py',
