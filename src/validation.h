@@ -1012,6 +1012,14 @@ public:
     kernel::Notifications& GetNotifications() const { return m_options.notifications; };
 
     /**
+     * Height of the deepest hardcoded checkpoint whose block is already in our
+     * block index (i.e. that we have validated). Used to reject forks that
+     * diverge from the main chain below the last known checkpoint. Returns -1
+     * while no checkpoint has been reached (e.g. early in initial sync).
+     */
+    int GetLastCheckpointHeight() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    /**
      * Make various assertions about the state of the block index.
      *
      * By default this only executes fully when using the Regtest chain; see: m_options.check_block_index.

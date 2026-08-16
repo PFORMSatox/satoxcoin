@@ -146,6 +146,14 @@ struct Params {
     uint256 defaultAssumeValid;
 
     /**
+     * Hardcoded satoxcoin mainnet checkpoints: block height -> known-valid hash.
+     * The last known checkpoint is used to reject forks of the main chain that
+     * diverge below it (consensus security; ported back from satoxcoin, which
+     * Bitcoin Core 31.1 had removed as a mechanism).
+     */
+    std::map<int, uint256> mapCheckpoints;
+
+    /**
      * If true, witness commitments contain a payload equal to a Bitcoin Script solution
      * to the signet challenge. See BIP325.
      */

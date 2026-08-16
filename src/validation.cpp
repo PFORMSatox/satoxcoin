@@ -4728,6 +4728,18 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work");
 
+    // Check against hardcoded checkpoints. Reject a forked chain that
+    // diverges from the main chain below the last checkpoint we already know
+    // about (mirrors satoxcoin, which Bitcoin Core 31.1 had removed).
+    // GetLastCheckpointHeight returns the height of the deepest checkpoint
+    // whose hash is already in our block index (i.e. that we have validated);
+    // during initial sync that advances as each checkpoint is reached, so a
+    // fresh sync is never blocked below an unvalidated checkpoint.
+    if (nHeight < chainman.GetLastCheckpointHeight()) {
+        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-fork-prior-to-checkpoint",
+                             strprintf("forked chain older than last checkpoint (height %d)", nHeight));
+    }
+
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "time-too-old", "block's timestamp is too early");
@@ -4821,6 +4833,18 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
     }
 
     return true;
+}
+
+int ChainstateManager::GetLastCheckpointHeight() const
+{
+    AssertLockHeld(::cs_main);
+    const auto& checkpoints = GetConsensus().mapCheckpoints;
+    for (auto it = checkpoints.rbegin(); it != checkpoints.rend(); ++it) {
+        if (m_blockman.m_block_index.count(it->second)) {
+            return it->first;
+        }
+    }
+    return -1;
 }
 
 bool ChainstateManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationState& state, CBlockIndex** ppindex, bool min_pow_checked)

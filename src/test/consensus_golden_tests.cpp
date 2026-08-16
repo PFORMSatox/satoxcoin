@@ -72,7 +72,11 @@ BOOST_AUTO_TEST_CASE(mainnet_basic_params)
     BOOST_CHECK_EQUAL(p->Base58Prefix(CChainParams::SCRIPT_ADDRESS)[0], 122);
     BOOST_CHECK_EQUAL(p->Base58Prefix(CChainParams::SECRET_KEY)[0], 112);
 
-    // Section 1.8 (checkpoints were removed in the Bitcoin Core 31.1 base)
+    // Section 1.8 (hardcoded mainnet checkpoints, re-added to the 31.1 base)
+    BOOST_CHECK_EQUAL(c.mapCheckpoints.size(), 55U);
+    BOOST_CHECK_EQUAL(c.mapCheckpoints.at(100).GetHex(), "0000001b0371bf5570c68dda2b73cdcb1909c3357875f0b7cc85b08395853cf7");
+    BOOST_CHECK_EQUAL(c.mapCheckpoints.at(1500).GetHex(), "0000000509bd097b77ce6b91fd5a395904a8ec006b984413b50bdb9464276cb6");
+    BOOST_CHECK_EQUAL(c.mapCheckpoints.at(1859491).GetHex(), "0000000002d6de2050f0ff663c31d49d3f50bdb5c6a842a56bfd8309c65fa028");
     // Section 1.13
     BOOST_CHECK_EQUAL((uint64_t)nKAWPOWActivationTime, 1662493424ULL);
 }

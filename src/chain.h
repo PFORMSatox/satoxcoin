@@ -143,6 +143,13 @@ public:
     uint32_t nBits{0};
     uint32_t nNonce{0};
 
+    //! KAWPOW header fields (nTime >= nKAWPOWActivationTime): the serialized
+    //! header carries these (nHeight equals CBlockIndex::nHeight by consensus),
+    //! so they must be kept so the block hash can be reconstructed exactly on
+    //! disk-index reload.
+    uint64_t nNonce64{0};
+    uint256 mix_hash{};
+
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     //! Initialized to SEQ_ID_INIT_FROM_DISK{1} when loading blocks from disk, except for blocks
     //! belonging to the best chain which overwrite it to SEQ_ID_BEST_CHAIN_FROM_DISK{0}.
@@ -158,6 +165,11 @@ public:
           nBits{block.nBits},
           nNonce{block.nNonce}
     {
+        // KAWPOW: nHeight is the existing CBlockIndex chain-height member; the
+        // serialized header's nHeight must equal it (enforced in validation).
+        nHeight = block.nHeight;
+        nNonce64 = block.nNonce64;
+        mix_hash = block.mix_hash;
     }
 
     FlatFilePos GetBlockPos() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
@@ -192,6 +204,10 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        // KAWPOW
+        block.nHeight = nHeight;
+        block.nNonce64 = nNonce64;
+        block.mix_hash = mix_hash;
         return block;
     }
 
@@ -356,7 +372,17 @@ public:
         READWRITE(obj.hashMerkleRoot);
         READWRITE(obj.nTime);
         READWRITE(obj.nBits);
-        READWRITE(obj.nNonce);
+        if (obj.nTime < nKAWPOWActivationTime) {
+            READWRITE(obj.nNonce);
+        } else {
+            // KAWPOW: the serialized header carries nHeight, nNonce64 and
+            // mix_hash; persist them so the block hash can be reconstructed
+            // exactly on reload (otherwise CheckProofOfWork in
+            // LoadBlockIndexGuts fails for KAWPOW blocks).
+            READWRITE(obj.nHeight);
+            READWRITE(obj.nNonce64);
+            READWRITE(obj.mix_hash);
+        }
     }
 
     uint256 ConstructBlockHash() const
@@ -368,6 +394,10 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        // KAWPOW
+        block.nHeight = nHeight;
+        block.nNonce64 = nNonce64;
+        block.mix_hash = mix_hash;
         return block.GetHash();
     }
 
