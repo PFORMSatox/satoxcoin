@@ -121,10 +121,14 @@ rebase/ph4-btc31            CURRENT (this doc + lineage fix)
 - 7 asset functional tests all pass via `test_runner` (`feature_assets`,
   `feature_assets_reorg`, `feature_assets_mempool`, `feature_listmyassets`,
   `feature_unique_assets`, `feature_restricted_assets`, `rpc_assettransfer`).
-- **Sync parity NOT yet re-proven on 4.0** (see risk register). The 3.0.x
-  `rebase-ph3` line already proved checkpoints 100–5000 hash-identical to the
-  golden manifest (commit 47c9d5a38d), but the 4.0 (BTC 31.1) rebuild must
-  re-run that gate against the live network.
+- **Sync parity IN PROGRESS on 4.0 (live network).** The 3.0.x `rebase-ph3`
+  line proved checkpoints 100–5000 hash-identical to the golden manifest
+  (commit 47c9d5a38d). On 4.0: PROTOCOL_VERSION was 70016 (BTC 31.1 default)
+  which the satoxcoin network rejects (needs ≥70025); fixed to 70028
+  (113d3f1632). Live mainnet sync from xnode2.satoverse.io:60777 now runs
+  with full validation (X16R/X16RV2 blocks, genesis
+  `000000edd81922...` confirmed); parity checkpoints 100/500/1500/5000/8000/
+  12000/15000 pending (verify_parity.sh in the sync datadir).
 
 ### M7 — Release 4.0.0
 - Bump version, rebrand binaries (`satoxcoind`, `satoxcoin-cli`, `satoxcoin-qt`).
