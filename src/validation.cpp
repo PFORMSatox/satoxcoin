@@ -50,6 +50,7 @@
 #include <assets/assets.h>
 #include <assets/assettypes.h>
 #include <assets/messages.h>
+#include <assets/myassetsdb.h>
 #include <assets/assetdb.h>
 #include <key_io.h>
 #include <mempool_asset.h>
@@ -2947,13 +2948,29 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 std::string strAddress;
                 if (ReissueAssetFromTransaction(tx, reissue, strAddress)) {
                     CNewAsset oldAsset;
+                    bool fVerifierChanged = false;
+                    CNullAssetTxVerifierString newVerifier;
                     if (assetsCache->GetAssetMetaDataIfExists(reissue.strName, oldAsset)) {
                         undoPair.first = reissue.strName;
                         undoPair.second.fChangedIPFS = !reissue.strIPFSHash.empty();
                         undoPair.second.strIPFS = oldAsset.strIPFSHash;
                         undoPair.second.fChangedUnits = (reissue.nUnits != -1);
                         undoPair.second.nUnits = oldAsset.units;
-                        undoPair.second.fChangedVerifierString = false;
+                        // If the reissue carries a verifier output, the verifier string changed;
+                        // record the old verifier so it can be restored on disconnect.
+                        std::string strError;
+                        CNullAssetTxVerifierString verifier;
+                        bool fNotFound = false;
+                        if (tx.GetVerifierStringFromTx(verifier, strError, fNotFound) && !fNotFound) {
+                            fVerifierChanged = true;
+                            newVerifier = verifier;
+                            undoPair.second.fChangedVerifierString = true;
+                            CNullAssetTxVerifierString currentVerifier;
+                            if (assetsCache->GetAssetVerifierStringIfExists(reissue.strName, currentVerifier))
+                                undoPair.second.verifierString = currentVerifier.verifier_string;
+                        } else {
+                            undoPair.second.fChangedVerifierString = false;
+                        }
                     }
                     int reissueIndex = -1;
                     for (int j = (int)tx.vout.size() - 1; j >= 0; j--) {
@@ -2967,6 +2984,10 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                     if (reissueIndex >= 0) {
                         if (!assetsCache->AddReissueAsset(reissue, strAddress, COutPoint(tx.GetHash(), reissueIndex)))
                             LogError("ConnectBlock: Failed to reissue asset %s\n", reissue.strName);
+                        if (fVerifierChanged && !newVerifier.verifier_string.empty()) {
+                            if (!assetsCache->AddRestrictedVerifier(reissue.strName, newVerifier.verifier_string))
+                                LogError("ConnectBlock: Failed to add restricted verifier for %s\n", reissue.strName);
+                        }
                     }
                 }
             } else if (tx.IsNewUniqueAsset()) {
@@ -3154,6 +3175,18 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         if (!passetsdb->WriteBlockUndoAssetData(pindex->GetBlockHash(), vUndoAssetData)) {
             LogError("ConnectBlock: Failed to write asset undo data for block %s\n", pindex->GetBlockHash().ToString());
             return false;
+        }
+    }
+
+    // Record qualifier/restricted tagging events this wallet issued so the
+    // "my tagged/restricted addresses" view can be queried later.
+    if (AreRestrictedAssetsDeployed() && !myNullAssetData.empty() && pmyrestricteddb) {
+        for (const auto& item : myNullAssetData) {
+            if (IsAssetNameAQualifier(item.second.asset_name)) {
+                pmyrestricteddb->WriteTaggedAddress(item.first, item.second.asset_name, item.second.flag, block.nTime);
+            } else if (IsAssetNameAnRestricted(item.second.asset_name)) {
+                pmyrestricteddb->WriteRestrictedAddress(item.first, item.second.asset_name, item.second.flag, block.nTime);
+            }
         }
     }
 

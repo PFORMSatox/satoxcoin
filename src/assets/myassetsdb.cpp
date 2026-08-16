@@ -22,6 +22,7 @@ CMessageDB::CMessageDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBWrapper
 bool CMessageDB::WriteMessage(const CMessage &message)
 {
     Write(std::make_pair(MESSAGE_FLAG, message.out), message);
+    return true;
 }
 
 bool CMessageDB::ReadMessage(const COutPoint &out, CMessage &message)
@@ -32,6 +33,7 @@ bool CMessageDB::ReadMessage(const COutPoint &out, CMessage &message)
 bool CMessageDB::EraseMessage(const COutPoint &out)
 {
     Erase(std::make_pair(MESSAGE_FLAG, out));
+    return true;
 }
 
 bool CMessageDB::LoadMessages(std::set<CMessage>& setMessages)
@@ -135,6 +137,7 @@ CMessageChannelDB::CMessageChannelDB(size_t nCacheSize, bool fMemory, bool fWipe
 bool CMessageChannelDB::WriteMyMessageChannel(const std::string& channelname)
 {
     Write(std::make_pair(MY_MESSAGE_CHANNEL, channelname), 1);
+    return true;
 }
 
 bool CMessageChannelDB::ReadMyMessageChannel(const std::string& channelname)
@@ -146,6 +149,7 @@ bool CMessageChannelDB::ReadMyMessageChannel(const std::string& channelname)
 bool CMessageChannelDB::EraseMyMessageChannel(const std::string& channelname)
 {
     Erase(std::make_pair(MY_MESSAGE_CHANNEL, channelname));
+    return true;
 }
 
 bool CMessageChannelDB::LoadMyMessageChannels(std::set<std::string>& setChannels)
@@ -171,7 +175,8 @@ bool CMessageChannelDB::LoadMyMessageChannels(std::set<std::string>& setChannels
 
 bool CMessageDB::WriteFlag(const std::string &name, bool fValue)
 {
-    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
+    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>('1') : static_cast<uint8_t>('0'));
+    return true;
 }
 
 bool CMessageDB::ReadFlag(const std::string &name, bool &fValue)
@@ -187,6 +192,7 @@ bool CMessageDB::ReadFlag(const std::string &name, bool &fValue)
 bool CMessageChannelDB::WriteUsedAddress(const std::string& address)
 {
     Write(std::make_pair(MY_SEEN_ADDRESSES, address), 1);
+    return true;
 }
 bool CMessageChannelDB::ReadUsedAddress(const std::string& address)
 {
@@ -196,11 +202,13 @@ bool CMessageChannelDB::ReadUsedAddress(const std::string& address)
 bool CMessageChannelDB::EraseUsedAddress(const std::string& address)
 {
     Erase(std::make_pair(MY_SEEN_ADDRESSES, address));
+    return true;
 }
 
 bool CMessageChannelDB::WriteFlag(const std::string &name, bool fValue)
 {
-    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
+    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>('1') : static_cast<uint8_t>('0'));
+    return true;
 }
 
 bool CMessageChannelDB::ReadFlag(const std::string &name, bool &fValue)
@@ -256,6 +264,7 @@ CMyRestrictedDB::CMyRestrictedDB(size_t nCacheSize, bool fMemory, bool fWipe) : 
 bool CMyRestrictedDB::WriteTaggedAddress(const std::string& address, const std::string& tag_name, const bool fAdd, const uint32_t& nHeight)
 {
     Write(std::make_pair(MY_TAGGED_ADDRESSES, std::make_pair(address, tag_name)), std::make_pair(fAdd ? 1 : 0, nHeight));
+    return true;
 }
 bool CMyRestrictedDB::ReadTaggedAddress(const std::string& address, const std::string& tag_name, bool& fAdd, uint32_t& nHeight)
 {
@@ -268,6 +277,7 @@ bool CMyRestrictedDB::ReadTaggedAddress(const std::string& address, const std::s
 bool CMyRestrictedDB::EraseTaggedAddress(const std::string& address, const std::string& tag_name)
 {
     Erase(std::make_pair(MY_TAGGED_ADDRESSES, std::make_pair(address, tag_name)));
+    return true;
 }
 bool CMyRestrictedDB::LoadMyTaggedAddresses(std::vector<std::tuple<std::string, std::string, bool, uint32_t> >& vecTaggedAddresses)
 {
@@ -296,6 +306,7 @@ bool CMyRestrictedDB::LoadMyTaggedAddresses(std::vector<std::tuple<std::string, 
 bool CMyRestrictedDB::WriteRestrictedAddress(const std::string& address, const std::string& tag_name, const bool fAdd, const uint32_t& nHeight)
 {
     Write(std::make_pair(MY_RESTRICTED_ADDRESSES, std::make_pair(address, tag_name)), std::make_pair(fAdd ? 1 : 0, nHeight));
+    return true;
 }
 
 bool CMyRestrictedDB::ReadRestrictedAddress(const std::string& address, const std::string& tag_name, bool& fAdd, uint32_t& nHeight)
@@ -310,6 +321,7 @@ bool CMyRestrictedDB::ReadRestrictedAddress(const std::string& address, const st
 bool CMyRestrictedDB::EraseRestrictedAddress(const std::string& address, const std::string& tag_name)
 {
     Erase(std::make_pair(MY_RESTRICTED_ADDRESSES, std::make_pair(address, tag_name)));
+    return true;
 }
 
 bool CMyRestrictedDB::LoadMyRestrictedAddresses(std::vector<std::tuple<std::string, std::string, bool, uint32_t> >& vecRestrictedAddresses)
@@ -339,7 +351,8 @@ bool CMyRestrictedDB::LoadMyRestrictedAddresses(std::vector<std::tuple<std::stri
 
 bool CMyRestrictedDB::WriteFlag(const std::string &name, bool fValue)
 {
-    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
+    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>('1') : static_cast<uint8_t>('0'));
+    return true;
 }
 
 bool CMyRestrictedDB::ReadFlag(const std::string &name, bool &fValue)

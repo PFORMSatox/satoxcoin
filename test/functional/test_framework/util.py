@@ -5,6 +5,7 @@
 """Helpful routines for regression testing."""
 
 from base64 import b64encode
+from datetime import datetime, timezone
 from decimal import Decimal
 from subprocess import CalledProcessError
 import hashlib
@@ -201,6 +202,11 @@ def assert_does_not_contain_key(key, obj):
         raise AssertionError(f"Object should not contain key '{key}' but it does: {obj}")
 
 
+def assert_contains_key(key, dict_data):
+    if key not in dict_data:
+        raise AssertionError("key %s is not in dict" % key)
+
+
 def assert_contains(val, arr):
     if not (val in arr):
         raise AssertionError("val %s not in arr" % val)
@@ -214,6 +220,19 @@ def assert_does_not_contain(val, arr):
 def assert_contains_pair(key, val, dict_data):
     if not (key in dict_data and val == dict_data[key]):
         raise AssertionError("k/v pair (%s,%s) not in dict" % (key, val))
+
+
+def assert_happening(date_str, within_secs=120):
+    """Make sure date_str happened within within_secs seconds of now.
+       Assumes date_str is in rpc results cust_format e.g. '2019-11-07 17:50:06' and assumed to represent UTC.
+       Using a big default to eliminate inaccurate wall clocks...
+    """
+    cust_format = '%Y-%m-%d %H:%M:%S'
+    then = datetime.strptime(date_str, cust_format).replace(tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    diff_secs = (now - then).total_seconds()
+    if abs(diff_secs) > within_secs:
+        raise AssertionError("More than expected %s second difference between %s and now(%s) (%ss)" % (within_secs, date_str, now, diff_secs))
 
 
 def assert_array_result(object_array, to_match, expected, should_not_find=False):

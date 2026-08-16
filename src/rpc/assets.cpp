@@ -6,10 +6,10 @@
 #include <rpc/server.h>
 #include <rpc/server_util.h>
 #include <rpc/util.h>
-
 #include <assets/assetglobals.h>
 #include <assets/assets.h>
 #include <assets/assetdb.h>
+#include <assets/myassetsdb.h>
 #include <assets/restricteddb.h>
 #include <core_io.h>
 #include <validation.h>
@@ -24,6 +24,16 @@
 
 extern CAssetSnapshotDB* pAssetSnapshotDb;
 extern CSnapshotRequestDB* pSnapshotRequestDb;
+
+// The asset cache is written to LevelDB during chainstate flushes. RPCs that
+// scan the restricted-asset database directly must flush first so the results
+// reflect blocks connected in this session (mirrors the 3.0.x FlushStateToDisk()
+// that was dropped in the 4.0 port).
+static void ForceAssetCacheFlush(const JSONRPCRequest& request)
+{
+    ChainstateManager& chainman = EnsureAnyChainman(request.context);
+    chainman.ActiveChainstate().ForceFlushStateToDisk(/*wipe_cache=*/false);
+}
 
 static RPCHelpMan listassets()
 {
@@ -613,6 +623,8 @@ static RPCHelpMan listtagsforaddress()
             if (!prestricteddb)
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "restricted asset db unavailable.");
 
+            ForceAssetCacheFlush(request);
+
             std::vector<std::string> qualifiers;
             prestricteddb->GetAddressQualifiers(address, qualifiers);
 
@@ -653,6 +665,8 @@ static RPCHelpMan listaddressesfortag()
 
             if (!prestricteddb)
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "restricted asset db unavailable.");
+
+            ForceAssetCacheFlush(request);
 
             std::vector<std::string> addresses;
             prestricteddb->GetQualifierAddresses(tag_name, addresses);
@@ -698,6 +712,8 @@ static RPCHelpMan listaddressrestrictions()
             if (!prestricteddb)
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "restricted asset db unavailable.");
 
+            ForceAssetCacheFlush(request);
+
             std::vector<std::string> restrictions;
             prestricteddb->GetAddressRestrictions(address, restrictions);
 
@@ -731,6 +747,8 @@ static RPCHelpMan listglobalrestrictions()
         {
             if (!prestricteddb)
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "restricted asset db unavailable.");
+
+            ForceAssetCacheFlush(request);
 
             std::vector<std::string> restrictions;
             prestricteddb->GetGlobalRestrictions(restrictions);
@@ -813,9 +831,109 @@ static RPCHelpMan isvalidverifierstring()
     };
 }
 
-static RPCHelpMan getsnapshot()
+// Formats a unix timestamp as '%Y-%m-%d %H:%M:%S' (UTC, space separated).
+static std::string FormatSpaceDateTime(int64_t nTime)
+{
+    std::string iso = FormatISO8601DateTime(nTime);
+    if (iso.size() >= 20 && iso[10] == 'T' && iso.back() == 'Z')
+        return iso.substr(0, 10) + " " + iso.substr(11, 8);
+    return iso;
+}
+
+static RPCHelpMan viewmytaggedaddresses()
 {
     return RPCHelpMan{
+        "viewmytaggedaddresses",
+        "View all addresses this wallet owns that have been tagged.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::ARR, "", "list of tagged addresses",
+            {
+                {RPCResult::Type::OBJ_DYN, "", "",
+                {
+                    {RPCResult::Type::STR, "Address", "the address that was tagged"},
+                    {RPCResult::Type::STR, "Tag Name", "the asset name"},
+                    {RPCResult::Type::STR, "Assigned|Removed", "the UTC datetime of the assignment or removal of the tag (only the most recent event is returned per address)"},
+                }},
+            }
+        },
+        RPCExamples{
+            HelpExampleCli("viewmytaggedaddresses", "")
+          + HelpExampleRpc("viewmytaggedaddresses", "")
+        },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+        {
+            LOCK(cs_main);
+
+            if (!pmyrestricteddb)
+                throw JSONRPCError(RPC_DATABASE_ERROR, "My restricted database is not available");
+
+            std::vector<std::tuple<std::string, std::string, bool, uint32_t>> myTaggedAddresses;
+            if (!pmyrestricteddb->LoadMyTaggedAddresses(myTaggedAddresses))
+                throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to load my tagged addresses");
+
+            UniValue myTags(UniValue::VARR);
+            for (const auto& item : myTaggedAddresses) {
+                UniValue obj(UniValue::VOBJ);
+                obj.pushKV("Address", std::get<0>(item));
+                obj.pushKV("Tag Name", std::get<1>(item));
+                obj.pushKV(std::get<2>(item) ? "Assigned" : "Removed", FormatSpaceDateTime(std::get<3>(item)));
+                myTags.push_back(obj);
+            }
+
+            return myTags;
+        },
+    };
+}
+
+static RPCHelpMan viewmyrestrictedaddresses()
+{
+    return RPCHelpMan{
+        "viewmyrestrictedaddresses",
+        "View all addresses this wallet owns that have been restricted.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::ARR, "", "list of restricted addresses",
+            {
+                {RPCResult::Type::OBJ_DYN, "", "",
+                {
+                    {RPCResult::Type::STR, "Address", "the address that was restricted"},
+                    {RPCResult::Type::STR, "Asset Name", "the asset that the restriction applies to"},
+                    {RPCResult::Type::STR, "Restricted|Derestricted", "the UTC datetime of the restriction or derestriction (only the most recent event is returned per address)"},
+                }},
+            }
+        },
+        RPCExamples{
+            HelpExampleCli("viewmyrestrictedaddresses", "")
+          + HelpExampleRpc("viewmyrestrictedaddresses", "")
+        },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+        {
+            LOCK(cs_main);
+
+            if (!pmyrestricteddb)
+                throw JSONRPCError(RPC_DATABASE_ERROR, "My restricted database is not available");
+
+            std::vector<std::tuple<std::string, std::string, bool, uint32_t>> myRestrictedAddresses;
+            if (!pmyrestricteddb->LoadMyRestrictedAddresses(myRestrictedAddresses))
+                throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to load my restricted addresses");
+
+            UniValue myRestricted(UniValue::VARR);
+            for (const auto& item : myRestrictedAddresses) {
+                UniValue obj(UniValue::VOBJ);
+                obj.pushKV("Address", std::get<0>(item));
+                obj.pushKV("Asset Name", std::get<1>(item));
+                obj.pushKV(std::get<2>(item) ? "Restricted" : "Derestricted", FormatSpaceDateTime(std::get<3>(item)));
+                myRestricted.push_back(obj);
+            }
+
+            return myRestricted;
+        },
+    };
+}
+
+static RPCHelpMan getsnapshot()
+{    return RPCHelpMan{
         "getsnapshot",
         "Returns an ownership snapshot of an asset at the given block height.\n",
         {
@@ -922,6 +1040,8 @@ void RegisterAssetRPCCommands(CRPCTable& t)
         {"restricted assets", &listglobalrestrictions},
         {"restricted assets", &getverifierstring},
         {"restricted assets", &isvalidverifierstring},
+        {"restricted assets", &viewmytaggedaddresses},
+        {"restricted assets", &viewmyrestrictedaddresses},
     };
     for (const auto& c : commands) {
         t.appendCommand(c.name, &c);

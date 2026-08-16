@@ -46,6 +46,7 @@ target_include_directories(satoxcoin_ethash
     ${CMAKE_CURRENT_SOURCE_DIR}/ethash/lib/support
 )
 target_compile_features(satoxcoin_ethash PRIVATE c_std_99)
+target_link_libraries(satoxcoin_ethash PRIVATE core_interface)
 
 # x16r/x16rv2 algo library — vendored from Ravencoin (sphlib, Projet RNRT SAPHIR).
 # Source files are left unmodified.

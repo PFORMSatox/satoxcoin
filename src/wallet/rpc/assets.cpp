@@ -597,9 +597,10 @@ RPCHelpMan transferfromaddresses()
                 if (!available.mapAssetCoins.count(assetName))
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Wallet doesn't own asset: " + assetName);
                 for (const auto& out : available.mapAssetCoins.at(assetName)) {
-                    CTxDestination dest;
-                    ExtractDestination(out.txout.scriptPubKey, dest);
-                    if (setFrom.count(EncodeDestination(dest)))
+                    ::CAssetOutputEntry assetOut;
+                    if (!GetAssetData(out.txout.scriptPubKey, assetOut) || std::holds_alternative<CNoDestination>(assetOut.destination))
+                        continue;
+                    if (setFrom.count(EncodeDestination(assetOut.destination)))
                         ctrl.SelectAsset(out.outpoint);
                 }
             }
@@ -691,9 +692,10 @@ RPCHelpMan transferfromaddress()
                 if (!available.mapAssetCoins.count(assetName))
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Wallet doesn't own asset: " + assetName);
                 for (const auto& out : available.mapAssetCoins.at(assetName)) {
-                    CTxDestination dest;
-                    ExtractDestination(out.txout.scriptPubKey, dest);
-                    if (fromAddr == EncodeDestination(dest))
+                    ::CAssetOutputEntry assetOut;
+                    if (!GetAssetData(out.txout.scriptPubKey, assetOut) || std::holds_alternative<CNoDestination>(assetOut.destination))
+                        continue;
+                    if (fromAddr == EncodeDestination(assetOut.destination))
                         ctrl.SelectAsset(out.outpoint);
                 }
             }
@@ -1097,7 +1099,7 @@ static UniValue DoUpdateAddressTag(const std::shared_ptr<CWallet>& pwallet,
     // Transfer 1 qualifier token to change address (must be self-transfer)
     // If no change address given, use the first wallet address
     if (chgAddr.empty()) {
-        auto op = pwallet->GetNewDestination(pwallet->m_default_address_type, "");
+        auto op = pwallet->GetNewDestination(OutputType::LEGACY, "");
         if (!op) throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, util::ErrorString(op).original);
         chgAddr = EncodeDestination(*op);
     }
@@ -1155,7 +1157,7 @@ static UniValue DoUpdateAddressRestriction(const std::shared_ptr<CWallet>& pwall
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid asset data hash");
 
     if (chgAddr.empty()) {
-        auto op = pwallet->GetNewDestination(pwallet->m_default_address_type, "");
+        auto op = pwallet->GetNewDestination(OutputType::LEGACY, "");
         if (!op) throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, util::ErrorString(op).original);
         chgAddr = EncodeDestination(*op);
     }
@@ -1208,7 +1210,7 @@ static UniValue DoUpdateGlobalRestrictedAsset(const std::shared_ptr<CWallet>& pw
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid asset data hash");
 
     if (chgAddr.empty()) {
-        auto op = pwallet->GetNewDestination(pwallet->m_default_address_type, "");
+        auto op = pwallet->GetNewDestination(OutputType::LEGACY, "");
         if (!op) throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, util::ErrorString(op).original);
         chgAddr = EncodeDestination(*op);
     }

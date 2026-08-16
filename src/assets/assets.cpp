@@ -956,8 +956,9 @@ bool AssetNullDataFromScript(const CScript& scriptPubKey, CNullAssetTxData& asse
         return false;
     }
 
-    CTxDestination destination;
-    ExtractAssetDestination(scriptPubKey, destination);
+    // The null asset data script is the compact form `OP_SATOX_ASSET <20-byte-hash> <flag> <name>`,
+    // so the destination hash is at bytes [2, 22). Reconstruct a PKHash from it.
+    CTxDestination destination = PKHash(uint160(std::vector<unsigned char>(scriptPubKey.begin() + 2, scriptPubKey.begin() + 22)));
 
     strAddress = EncodeDestination(destination);
 
@@ -4572,6 +4573,12 @@ bool ContextualCheckNullAssetTxOut(const CTxOut& txout, CAssetsCache* assetCache
             strError = "bad-txns-null-asset-data-on-non-restricted-or-qualifier-asset";
             return false;
         }
+    }
+
+    // Record the qualifier/restriction event so the connecting node can persist
+    // it to its "my tagged/restricted addresses" database.
+    if (myNullAssetData) {
+        myNullAssetData->emplace_back(std::make_pair(address, data));
     }
 
     return true;

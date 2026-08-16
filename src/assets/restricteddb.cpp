@@ -24,6 +24,7 @@ CRestrictedDB::CRestrictedDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBW
 bool CRestrictedDB::WriteVerifier(const std::string& assetName, const std::string& verifier)
 {
     Write(std::make_pair(VERIFIER_FLAG, assetName), verifier);
+    return true;
 }
 
 bool CRestrictedDB::ReadVerifier(const std::string& assetName, std::string& verifier)
@@ -34,6 +35,7 @@ bool CRestrictedDB::ReadVerifier(const std::string& assetName, std::string& veri
 bool CRestrictedDB::EraseVerifier(const std::string& assetName)
 {
     Erase(std::make_pair(VERIFIER_FLAG, assetName));
+    return true;
 }
 
 // Address Tags
@@ -41,6 +43,7 @@ bool CRestrictedDB::WriteAddressQualifier(const std::string &address, const std:
 {
     int8_t i = 1;
     Write(std::make_pair(ADDRESS_QULAIFIER_FLAG, std::make_pair(address, tag)), i);
+    return true;
 }
 
 bool CRestrictedDB::ReadAddressQualifier(const std::string &address, const std::string &tag)
@@ -52,6 +55,7 @@ bool CRestrictedDB::ReadAddressQualifier(const std::string &address, const std::
 bool CRestrictedDB::EraseAddressQualifier(const std::string &address, const std::string &tag)
 {
     Erase(std::make_pair(ADDRESS_QULAIFIER_FLAG, std::make_pair(address, tag)));
+    return true;
 }
 
 // Address Tags
@@ -59,6 +63,7 @@ bool CRestrictedDB::WriteQualifierAddress(const std::string &address, const std:
 {
     int8_t i = 1;
     Write(std::make_pair(QULAIFIER_ADDRESS_FLAG, std::make_pair(tag, address)), i);
+    return true;
 }
 
 bool CRestrictedDB::ReadQualifierAddress(const std::string &address, const std::string &tag)
@@ -70,6 +75,7 @@ bool CRestrictedDB::ReadQualifierAddress(const std::string &address, const std::
 bool CRestrictedDB::EraseQualifierAddress(const std::string &address, const std::string &tag)
 {
     Erase(std::make_pair(QULAIFIER_ADDRESS_FLAG, std::make_pair(tag, address)));
+    return true;
 }
 
 
@@ -78,6 +84,7 @@ bool CRestrictedDB::WriteRestrictedAddress(const std::string& address, const std
 {
     int8_t i = 1;
     Write(std::make_pair(RESTRICTED_ADDRESS_FLAG, std::make_pair(address, assetName)), i);
+    return true;
 }
 
 bool CRestrictedDB::ReadRestrictedAddress(const std::string& address, const std::string& assetName)
@@ -89,6 +96,7 @@ bool CRestrictedDB::ReadRestrictedAddress(const std::string& address, const std:
 bool CRestrictedDB::EraseRestrictedAddress(const std::string& address, const std::string& assetName)
 {
     Erase(std::make_pair(RESTRICTED_ADDRESS_FLAG, std::make_pair(address, assetName)));
+    return true;
 }
 
 // Global Restriction
@@ -96,6 +104,7 @@ bool CRestrictedDB::WriteGlobalRestriction(const std::string& assetName)
 {
     int8_t i = 1;
     Write(std::make_pair(GLOBAL_RESTRICTION_FLAG, assetName), i);
+    return true;
 }
 
 bool CRestrictedDB::ReadGlobalRestriction(const std::string& assetName)
@@ -107,11 +116,13 @@ bool CRestrictedDB::ReadGlobalRestriction(const std::string& assetName)
 bool CRestrictedDB::EraseGlobalRestriction(const std::string& assetName)
 {
     Erase(std::make_pair(GLOBAL_RESTRICTION_FLAG, assetName));
+    return true;
 }
 
 bool CRestrictedDB::WriteFlag(const std::string &name, bool fValue)
 {
-    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
+    Write(std::make_pair(DB_FLAG, name), fValue ? static_cast<uint8_t>('1') : static_cast<uint8_t>('0'));
+    return true;
 }
 
 bool CRestrictedDB::ReadFlag(const std::string &name, bool &fValue)

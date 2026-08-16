@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <dbwrapper.h>
+#include <assets/myassetsdb.h>
 #include <test/util/common.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
@@ -421,6 +422,32 @@ BOOST_AUTO_TEST_CASE(unicodepath)
 
     fs::path lockPath = ph / "LOCK";
     BOOST_CHECK(fs::exists(lockPath));
+}
+
+BOOST_AUTO_TEST_CASE(restricteddb_write)
+{
+    // Regression test: the 4.0 port dropped `return true` from the
+    // CMyRestrictedDB Write/Erase wrappers, which was UB and corrupted the
+    // temporary key pair. Verify writes round-trip correctly.
+    CMyRestrictedDB db(1 << 20, /*fMemory=*/true, /*fWipe=*/true);
+
+    BOOST_CHECK(db.WriteFlag("testflag", true));
+    bool fv = false;
+    BOOST_CHECK(db.ReadFlag("testflag", fv));
+    BOOST_CHECK(fv);
+
+    const std::string address{"JJDummyAddress1234567890"};
+    const std::string tag{"#CYA"};
+    BOOST_CHECK(db.WriteTaggedAddress(address, tag, true, 12345));
+    std::vector<std::tuple<std::string, std::string, bool, uint32_t>> vec;
+    BOOST_CHECK(db.LoadMyTaggedAddresses(vec));
+    BOOST_CHECK_EQUAL(vec.size(), 1U);
+    if (!vec.empty()) {
+        BOOST_CHECK_EQUAL(std::get<0>(vec[0]), address);
+        BOOST_CHECK_EQUAL(std::get<1>(vec[0]), tag);
+        BOOST_CHECK(std::get<2>(vec[0]));
+        BOOST_CHECK_EQUAL(std::get<3>(vec[0]), 12345U);
+    }
 }
 
 
