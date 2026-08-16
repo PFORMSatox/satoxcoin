@@ -45,7 +45,7 @@ class RestrictedAssetsTest(BitcoinTestFramework):
         assert_raises_rpc_error(None, "Arguments:", n0.issuerestrictedasset, asset_name, qty, verifier)
 
         # valid params
-        assert_raises_rpc_error(None, "Invalid asset name", n0.issuerestrictedasset, "$!N\/AL!D", qty, verifier, to_address)
+        assert_raises_rpc_error(None, "Invalid asset name", n0.issuerestrictedasset, "$!N/AL!D", qty, verifier, to_address)
         assert_raises_rpc_error(None, "Verifier string can not be empty", n0.issuerestrictedasset, asset_name, qty, "", to_address)
         assert_raises_rpc_error(None, "bad-txns-null-verifier-failed-syntax-check", n0.issuerestrictedasset, asset_name, qty, "false && true", to_address)
         assert_raises_rpc_error(None, "bad-txns-null-verifier-contains-non-issued-qualifier", n0.issuerestrictedasset, asset_name, qty, "#NONEXIZTENT", to_address)
@@ -143,7 +143,7 @@ class RestrictedAssetsTest(BitcoinTestFramework):
         self.generate(n0, 1)
 
         # valid params
-        assert_raises_rpc_error(None, "Invalid asset name", n0.reissuerestrictedasset, "$!N\/AL!D", qty, to_address)
+        assert_raises_rpc_error(None, "Invalid asset name", n0.reissuerestrictedasset, "$!N/AL!D", qty, to_address)
         assert_raises_rpc_error(None, "Wallet doesn't have asset", n0.reissuerestrictedasset, foreign_asset_name, qty, to_address)
         assert_raises_rpc_error(None, "Invalid to_address", n0.reissuerestrictedasset, asset_name, qty, "garbageaddress")
         assert_raises_rpc_error(None, "Invalid change address", n0.reissuerestrictedasset, asset_name, qty, to_address, change_verifier, verifier, "garbagechangeaddress")
@@ -171,8 +171,8 @@ class RestrictedAssetsTest(BitcoinTestFramework):
 
         asset_name = "#IQA"
 
-        assert_raises_rpc_error(None, "Invalid qualifier asset name", n0.issuequalifierasset, "#!N\/AL!D")
-        assert_raises_rpc_error(None, "Invalid qualifier asset name", n0.issuequalifierasset, "N\/AL!D")
+        assert_raises_rpc_error(None, "Invalid qualifier asset name", n0.issuequalifierasset, "#!N/AL!D")
+        assert_raises_rpc_error(None, "Invalid qualifier asset name", n0.issuequalifierasset, "N/AL!D")
 
         # issue
         txid = n0.issuequalifierasset(asset_name)
