@@ -4784,8 +4784,10 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
 
     // Enforce BIP113 (Median Time Past).
     bool enforce_locktime_median_time_past{false};
-    if (DeploymentActiveAfter(pindexPrev, chainman, Consensus::DEPLOYMENT_CSV)) {
-        assert(pindexPrev != nullptr);
+    // The genesis block has no predecessor, so there is no median-time-past to
+    // enforce; CSVHeight=0 (satoxcoin) would otherwise make
+    // DeploymentActiveAfter(nullptr) true and trip the upstream assert.
+    if (pindexPrev != nullptr && DeploymentActiveAfter(pindexPrev, chainman, Consensus::DEPLOYMENT_CSV)) {
         enforce_locktime_median_time_past = true;
     }
 
