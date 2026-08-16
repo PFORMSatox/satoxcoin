@@ -114,6 +114,18 @@ rebase/ph4-btc31            CURRENT (this doc + lineage fix)
   must match the 3.0.x node (`getblockhash` at checkpoints 100–5000+).
 - Gate: golden + kawpow + pow + transaction + net + DoS suites + sync parity.
 
+#### M6 status (2026-08-16) — unit + functional gates GREEN
+- `test_satoxcoin`: full suite 740 cases → **0 errors**.
+- `consensus_golden_tests` + `kawpow_tests` + `pow_tests` + `net_tests` + DoS
+  suites → **0 errors** (mainnet genesis `000000edd81922...` asserted).
+- 7 asset functional tests all pass via `test_runner` (`feature_assets`,
+  `feature_assets_reorg`, `feature_assets_mempool`, `feature_listmyassets`,
+  `feature_unique_assets`, `feature_restricted_assets`, `rpc_assettransfer`).
+- **Sync parity NOT yet re-proven on 4.0** (see risk register). The 3.0.x
+  `rebase-ph3` line already proved checkpoints 100–5000 hash-identical to the
+  golden manifest (commit 47c9d5a38d), but the 4.0 (BTC 31.1) rebuild must
+  re-run that gate against the live network.
+
 ### M7 — Release 4.0.0
 - Bump version, rebrand binaries (`satoxcoind`, `satoxcoin-cli`, `satoxcoin-qt`).
 - Activation runbook (`asset-overflow-activation-runbook.md`) re-verified
@@ -141,6 +153,7 @@ rebase/ph4-btc31            CURRENT (this doc + lineage fix)
 | Risk | Mitigation |
 |---|---|
 | Consensus drift breaks mainnet | M6 golden manifest + full sync parity is non-negotiable gate |
+| Sync parity unverifiable in sandbox | 2026-08-16: satoxcoin seed nodes (`xnode1/2.satoverse.io`) resolve but P2P port 8767 refuses connections → live network offline from this host; all local mainnet block archives are nebula-family (zero magic), NOT satoxcoin Core (SATT magic). Re-run live sync parity on a connected host before 4.0 release. |
 | Asset mempool behavior changes (cluster mempool) | Port ravencoin's mempool-asset indexes (Meowcoin precedent: `1b02ef2b5`) |
 | Soft-fork window expires during port (2027-09-20 timeout) | Re-implement in M4 early; params byte-identical; activation deferred but ready |
 | Descriptor-wallet migration breaks BIP39 wallets | M5 has dedicated migration tests; keep legacy import path where possible |
