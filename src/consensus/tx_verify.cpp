@@ -438,22 +438,22 @@ bool Consensus::CheckTxAssets(const CTransaction& tx, TxValidationState& state, 
                         return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-bad-asset-transaction");
                     }
                 } else {
-                    bool hasMewcAssetOp = false;
+                    bool hasSatoxAssetOp = false;
                     CScript::const_iterator pc = out.scriptPubKey.begin();
                     opcodetype opcode;
                     while (pc < out.scriptPubKey.end()) {
                         if (!out.scriptPubKey.GetOp(pc, opcode))
                             break;
                         if (opcode == OP_SATOX_ASSET) {
-                            hasMewcAssetOp = true;
+                            hasSatoxAssetOp = true;
                             break;
                         }
                     }
-                    if (hasMewcAssetOp) {
+                    if (hasSatoxAssetOp) {
                         if (AreRestrictedAssetsDeployed()) {
                             if (out.scriptPubKey[0] != OP_SATOX_ASSET) {
                                 return state.Invalid(TxValidationResult::TX_CONSENSUS,
-                                                     "bad-txns-op-mewc-asset-not-in-right-script-location");
+                                                     "bad-txns-op-satox-asset-not-in-right-script-location");
                             }
                         } else {
                             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-bad-asset-script");

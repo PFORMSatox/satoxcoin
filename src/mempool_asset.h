@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef MEOWCOIN_MEMPOOL_ASSET_H
-#define MEOWCOIN_MEMPOOL_ASSET_H
+#ifndef SATOXCOIN_MEMPOOL_ASSET_H
+#define SATOXCOIN_MEMPOOL_ASSET_H
 
 #include <cstddef>
 #include <vector>
@@ -39,4 +39,4 @@ void RegisterAssetMempoolTxInputs(CTxMemPool& pool, const CTransaction& tx, cons
 /** Remove all asset-related mempool indexes for this transaction (called from removeUnchecked). */
 void UnregisterAssetMempoolTx(CTxMemPool& pool, const CTransaction& tx) EXCLUSIVE_LOCKS_REQUIRED(pool.cs);
 
-#endif // MEOWCOIN_MEMPOOL_ASSET_H
+#endif // SATOXCOIN_MEMPOOL_ASSET_H
