@@ -125,10 +125,23 @@ rebase/ph4-btc31            CURRENT (this doc + lineage fix)
   line proved checkpoints 100–5000 hash-identical to the golden manifest
   (commit 47c9d5a38d). On 4.0: PROTOCOL_VERSION was 70016 (BTC 31.1 default)
   which the satoxcoin network rejects (needs ≥70025); fixed to 70028
-  (113d3f1632). Live mainnet sync from xnode2.satoverse.io:60777 now runs
-  with full validation (X16R/X16RV2 blocks, genesis
-  `000000edd81922...` confirmed); parity checkpoints 100/500/1500/5000/8000/
-  12000/15000 pending (verify_parity.sh in the sync datadir).
+  (113d3f1632). Live mainnet sync from xnode2.satoverse.io:60777 runs with
+  full validation (X16R/X16RV2 blocks, genesis `000000edd81922...` confirmed).
+  Golden checkpoints **100/500/1500/5000/8000/12000/15000 all MATCH** the
+  verified manifest.
+- **Checkpoints re-added** (ce1c98b0f2): the full official 55-checkpoint set
+  (heights 0–1865353) into `Consensus::Params::mapCheckpoints` with fork
+  rejection below the last checkpoint reached (Bitcoin Core 31.1 had removed
+  the mechanism). Same commit fixed the **index-load PoW gap**: `CDiskBlockIndex`
+  now persists the KAWPOW header fields (nNonce64, mix_hash) so the block
+  hash reconstructs exactly on reload (previously reload failed
+  `CheckProofOfWork` on every KAWPOW block, requiring -reindex).
+- **CSV genesis reindex crash fixed** (8f17834d69): satoxcoin `CSVHeight=0`
+  tripped the upstream `assert(pindexPrev != nullptr)` for the genesis block
+  during `-reindex`; the median-time-past check is skipped when there is no
+  predecessor.
+- Full 55-checkpoint parity check (verify_parity.py in the sync datadir) runs
+  at tip; remaining checkpoints 25000→1865353 pending download.
 
 ### M7 — Release 4.0.0
 - Bump version, rebrand binaries (`satoxcoind`, `satoxcoin-cli`, `satoxcoin-qt`).
