@@ -54,7 +54,6 @@ Satoxcoin Core 4.0 is a major rebase from Bitcoin Core 0.21 (Ravencoin 4.6.1 bas
 | **Block Time** | 60 seconds |
 | **Block Reward** | 90% PoW / 10% P2E Fund |
 | **Halving Interval** | 2,100,000 blocks (~4 years) |
-| **Initial Subsidy** | 430,000,000 SATOX (first 10 blocks) |
 | **Post-halving Subsidy** | 300 SATOX |
 | **Dev / P2E Fund** | 10% of subsidy to `SQ5iQMsmqZiYY96rTx5Hisd7sx5GiGUbbN` |
 | **P2P Port** | 60777 (mainnet) / 7060 (testnet) / 19444 (regtest) |
