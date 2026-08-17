@@ -15,6 +15,8 @@ jobs:
     name: 'Linux x86_64'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,6 +53,8 @@ jobs:
     name: 'macOS Universal'
     runs-on: macos-14
     timeout-minutes: 120
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,6 +87,8 @@ jobs:
     name: 'Windows x86_64'
     runs-on: windows-2022
     timeout-minutes: 120
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
