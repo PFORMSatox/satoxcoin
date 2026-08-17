@@ -67,7 +67,7 @@ The Satoxcoin repo's [root README](/README.md) contains relevant information on 
 
 ### Miscellaneous
 - [Assets Attribution](assets-attribution.md)
-- [satoxcoin.conf Configuration File](bitcoin-conf.md)
+- [satoxcoin.conf Configuration File](satoxcoin-conf.md)
 - [CJDNS Support](cjdns.md)
 - [Files](files.md)
 - [Fuzz-testing](fuzzing.md)

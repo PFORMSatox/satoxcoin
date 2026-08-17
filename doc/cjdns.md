@@ -1,6 +1,6 @@
-# CJDNS support in Bitcoin Core
+# CJDNS support in Satoxcoin Core
 
-It is possible to run Bitcoin Core over CJDNS, an encrypted IPv6 network that
+It is possible to run Satoxcoin Core over CJDNS, an encrypted IPv6 network that
 uses public-key cryptography for address allocation and a distributed hash table
 for routing.
 
@@ -65,19 +65,19 @@ with some additional setup.
 The network connection can be checked by running `./tools/peerStats` from the
 CJDNS directory.
 
-## Run Bitcoin Core with CJDNS
+## Run Satoxcoin Core with CJDNS
 
-Once you are connected to the CJDNS network, the following Bitcoin Core
+Once you are connected to the CJDNS network, the following Satoxcoin Core
 configuration option makes CJDNS peers automatically reachable:
 
 ```
 -cjdnsreachable
 ```
 
-When enabled, this option tells Bitcoin Core that it is running in an
+When enabled, this option tells Satoxcoin Core that it is running in an
 environment where a connection to an `fc00::/8` address will be to the CJDNS
 network instead of to an [RFC4193](https://datatracker.ietf.org/doc/html/rfc4193)
-IPv6 local network. This helps Bitcoin Core perform better address management:
+IPv6 local network. This helps Satoxcoin Core perform better address management:
   - Your node can consider incoming `fc00::/8` connections to be from the CJDNS
     network rather than from an IPv6 private one.
   - If one of your node's local addresses is `fc00::/8`, then it can choose to
@@ -93,8 +93,8 @@ Make automatic outbound connections only to CJDNS addresses. Inbound and manual
 connections are not affected by this option. It can be specified multiple times
 to allow multiple networks, e.g. onlynet=cjdns, onlynet=i2p, onlynet=onion.
 
-CJDNS support was added to Bitcoin Core in version 23.0 and there may be fewer
-CJDNS peers than Tor or IP ones. You can use `bitcoin-cli -addrinfo` to see the
+CJDNS support was added to Satoxcoin Core (inherited from Bitcoin Core 23.0+) and there may be fewer
+CJDNS peers than Tor or IP ones. You can use `satoxcoin-cli -addrinfo` to see the
 number of CJDNS addresses known to your node.
 
 In general, a node can be run with both an onion service and CJDNS (or any/all
@@ -103,15 +103,15 @@ the networks has issues. There are a number of ways to configure this; see
 [doc/tor.md](/doc/tor.md) for
 details.
 
-## CJDNS-related information in Bitcoin Core
+## CJDNS-related information in Satoxcoin Core
 
-There are several ways to see your CJDNS address in Bitcoin Core:
+There are several ways to see your CJDNS address in Satoxcoin Core:
 - in the "Local addresses" output of CLI `-netinfo`
 - in the "localaddresses" output of RPC `getnetworkinfo`
 
-To see which CJDNS peers your node is connected to, use `bitcoin-cli -netinfo 4`
-or the `getpeerinfo` RPC (i.e. `bitcoin-cli getpeerinfo`).
+To see which CJDNS peers your node is connected to, use `satoxcoin-cli -netinfo 4`
+or the `getpeerinfo` RPC (i.e. `satoxcoin-cli getpeerinfo`).
 
-You can use the `getnodeaddresses` RPC to fetch a number of CJDNS peers known to your node; run `bitcoin-cli help getnodeaddresses` for details.
+You can use the `getnodeaddresses` RPC to fetch a number of CJDNS peers known to your node; run `satoxcoin-cli help getnodeaddresses` for details.
 
-`bitcoin rpc` can also be substituted for `bitcoin-cli`.
+`satoxcoin-cli` can also be used for all commands.
