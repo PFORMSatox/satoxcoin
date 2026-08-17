@@ -1855,8 +1855,12 @@ bool CAssetsCache::TrySpendCoin(const COutPoint& out, const CTxOut& txOut)
                 if (mapAssetsAddressAmount.count(pair))
                     mapAssetsAddressAmount.at(pair) -= nAmount;
 
-                if (mapAssetsAddressAmount.at(pair) < 0)
+                if (mapAssetsAddressAmount.at(pair) < 0) {
+                    LogError("%s: asset %s at address %s went negative (%d), possible double-spend or corruption\n",
+                             __func__, assetName.c_str(), address.c_str(), mapAssetsAddressAmount.at(pair));
                     mapAssetsAddressAmount.at(pair) = 0;
+                    return false;
+                }
 
                 // Update the cache so we can save to database
                 vSpentAssets.push_back(spend);
@@ -2051,6 +2055,10 @@ bool CAssetsCache::AddReissueAsset(const CReissueAsset& reissue, const std::stri
 
     // Insert the reissue information into the reissue map
     if (!mapReissuedAssetData.count(reissue.strName)) {
+        if (reissue.nAmount > 0 && asset.nAmount > MAX_MONEY - reissue.nAmount) {
+            LogError("%s: overflow in reissue amount for %s\n", __func__, reissue.strName);
+            return false;
+        }
         asset.nAmount += reissue.nAmount;
         asset.nReissuable = reissue.nReissuable;
         if (reissue.nUnits != -1)
@@ -2062,6 +2070,10 @@ bool CAssetsCache::AddReissueAsset(const CReissueAsset& reissue, const std::stri
         }
         mapReissuedAssetData.insert(make_pair(reissue.strName, asset));
     } else {
+        if (reissue.nAmount > 0 && mapReissuedAssetData.at(reissue.strName).nAmount > MAX_MONEY - reissue.nAmount) {
+            LogError("%s: overflow in reissue amount for %s\n", __func__, reissue.strName);
+            return false;
+        }
         mapReissuedAssetData.at(reissue.strName).nAmount += reissue.nAmount;
         mapReissuedAssetData.at(reissue.strName).nReissuable = reissue.nReissuable;
         if (reissue.nUnits != -1) {
@@ -2105,6 +2117,11 @@ bool CAssetsCache::RemoveReissueAsset(const CReissueAsset& reissue, const std::s
             LogError("%s: Tried undoing reissue of an asset, but that asset didn't exist: %s", __func__, reissue.strName); return false;
         }
     // Change the asset data by undoing what was reissued
+    if (reissue.nAmount > assetData.nAmount) {
+        LogError("%s: underflow in reissue undo for %s (have %d, trying to remove %d)\n",
+                 __func__, reissue.strName, assetData.nAmount, reissue.nAmount);
+        return false;
+    }
     assetData.nAmount -= reissue.nAmount;
     assetData.nReissuable = 1;
 
@@ -3120,8 +3137,26 @@ bool CAssetsCache::Flush()
 //! Get the amount of memory the cache is using
 size_t CAssetsCache::DynamicMemoryUsage() const
 {
-    // TODO make sure this is accurate
-    return memusage::DynamicUsage(mapAssetsAddressAmount) + memusage::DynamicUsage(mapReissuedAssetData);
+    return memusage::DynamicUsage(mapAssetsAddressAmount)
+         + memusage::DynamicUsage(mapReissuedAssetData)
+         + memusage::DynamicUsage(setNewAssetsToAdd)
+         + memusage::DynamicUsage(setNewAssetsToRemove)
+         + memusage::DynamicUsage(setNewReissueToAdd)
+         + memusage::DynamicUsage(setNewReissueToRemove)
+         + memusage::DynamicUsage(setNewOwnerAssetsToAdd)
+         + memusage::DynamicUsage(setNewOwnerAssetsToRemove)
+         + memusage::DynamicUsage(setNewTransferAssetsToAdd)
+         + memusage::DynamicUsage(setNewTransferAssetsToRemove)
+         + memusage::DynamicUsage(setNewQualifierAddressToAdd)
+         + memusage::DynamicUsage(setNewQualifierAddressToRemove)
+         + memusage::DynamicUsage(setNewRestrictedAddressToAdd)
+         + memusage::DynamicUsage(setNewRestrictedAddressToRemove)
+         + memusage::DynamicUsage(setNewRestrictedGlobalToAdd)
+         + memusage::DynamicUsage(setNewRestrictedGlobalToRemove)
+         + memusage::DynamicUsage(setNewRestrictedVerifierToAdd)
+         + memusage::DynamicUsage(setNewRestrictedVerifierToRemove)
+         + memusage::DynamicUsage(vUndoAssetAmount)
+         + memusage::DynamicUsage(vSpentAssets);
 }
 
 //! Get an estimated size of the cache in bytes that will be needed inorder to save to database
@@ -4963,9 +4998,9 @@ bool ContextualCheckReissueAsset(CAssetsCache* assetCache, const CReissueAsset& 
         return false;
     }
 
-    if (prev_asset.nAmount + reissue_asset.nAmount > MAX_MONEY) {
+    if (reissue_asset.nAmount > 0 && prev_asset.nAmount > MAX_MONEY - reissue_asset.nAmount) {
         strError = _("Unable to reissue asset: asset_name '") + reissue_asset.strName +
-                   _("' the amount trying to reissue is to large");
+                   _("' the amount trying to reissue is too large (would overflow)");
         return false;
     }
 
