@@ -560,6 +560,9 @@ void SetupServerArgs(ArgsManager& argsman, bool can_listen_ipc)
     argsman.AddArg("-txindex", strprintf("Maintain a full transaction index, used by the getrawtransaction rpc call (default: %u)", DEFAULT_TXINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-txospenderindex", strprintf("Maintain a transaction output spender index, used by the gettxspendingprevout rpc call (default: %u)", DEFAULT_TXOSPENDERINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-assetindex", "Maintain a full asset index, used to query asset balances by address (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-addressindex", strprintf("Maintain a full address index (default: %u)", fAddressIndex), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-spentindex", strprintf("Maintain a full spent index (default: %u)", fSpentIndex), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-timestampindex", strprintf("Maintain a timestamp index for block hashes (default: %u)", fTimestampIndex), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-blockfilterindex=<type>",
                  strprintf("Maintain an index of compact filters by block (default: %s, values: %s).", DEFAULT_BLOCKFILTERINDEX, ListBlockFilterTypes()) +
                  " If <type> is not supplied or if <type> = 1, indexes for all known types are enabled.",
@@ -1921,6 +1924,27 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     ChainstateManager& chainman = *Assert(node.chainman);
     auto& kernel_notifications{*Assert(node.notifications)};
 
+    // Flag-change detection: if index flags changed since the DB was last
+    // written, require reindex. Read the stored flags before we overwrite
+    // them with the args below.
+    if (!do_reindex) {
+        bool db_addressindex{false}, db_spentindex{false}, db_timestampindex{false};
+        WITH_LOCK(::cs_main,
+            chainman.m_blockman.m_block_tree_db->ReadFlag("addressindex", db_addressindex);
+            chainman.m_blockman.m_block_tree_db->ReadFlag("spentindex", db_spentindex);
+            chainman.m_blockman.m_block_tree_db->ReadFlag("timestampindex", db_timestampindex);
+        );
+        bool arg_addressindex = args.GetBoolArg("-addressindex", fAddressIndex);
+        bool arg_spentindex = args.GetBoolArg("-spentindex", fSpentIndex);
+        bool arg_timestampindex = args.GetBoolArg("-timestampindex", fTimestampIndex);
+        if (db_addressindex != arg_addressindex)
+            return InitError(_("Address index flag changed since last run. Rebuild the database using -reindex."));
+        if (db_spentindex != arg_spentindex)
+            return InitError(_("Spent index flag changed since last run. Rebuild the database using -reindex."));
+        if (db_timestampindex != arg_timestampindex)
+            return InitError(_("Timestamp index flag changed since last run. Rebuild the database using -reindex."));
+    }
+
     assert(!node.peerman);
     node.peerman = PeerManager::make(*node.connman, *node.addrman,
                                      node.banman.get(), chainman,
@@ -1959,6 +1983,18 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
 
         bool fReset = do_reindex;
         fAssetIndex = args.GetBoolArg("-assetindex", true);
+        fAddressIndex = args.GetBoolArg("-addressindex", true);
+        fSpentIndex = args.GetBoolArg("-spentindex", true);
+        fTimestampIndex = args.GetBoolArg("-timestampindex", true);
+
+        // Persist index flags to the block tree DB so they can be
+        // compared against on the next startup.
+        {
+            auto& btdb = chainman.m_blockman.m_block_tree_db;
+            btdb->WriteFlag("addressindex", fAddressIndex);
+            btdb->WriteFlag("spentindex", fSpentIndex);
+            btdb->WriteFlag("timestampindex", fTimestampIndex);
+        }
 
         // Basic assets
         passetsdb = new CAssetsDB(nAssetDBCache, false, fReset);
