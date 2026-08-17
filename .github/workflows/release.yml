@@ -162,7 +162,7 @@ jobs:
 
   create-release:
     name: 'Create GitHub Release'
-    needs: [linux-build, macos-build, windows-build, docker-build]
+    needs: [linux-build, macos-build, windows-build]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
