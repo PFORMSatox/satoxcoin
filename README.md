@@ -1,79 +1,131 @@
-Bitcoin Core integration/staging tree
-=====================================
+<img src="https://www.satoverse.io/wp-content/uploads/2023/06/Satoxcoin-banner-github.png" alt="Satoxcoin - The future of play2earn" title="Satoxcoin - The future of play2earn">
 
-https://bitcoincore.org
+**PS!** This repo ONLY contains the Satoxcoin Core Wallet, <b>NOT</b> the P2E System.
 
-For an immediately usable, binary version of the Bitcoin Core software, see
-https://bitcoincore.org/en/download/.
+<img src="https://img.shields.io/badge/4.0.0-blue?style=flat-square&label=version" alt="Version">
+<img src="https://img.shields.io/badge/-C++-darkorchid?logoColor=white&style=flat-square" alt="C++">
+<img src="https://img.shields.io/badge/-KawPoW-lightcoral?logoColor=white&style=flat-square" alt="KawPoW">
+<img src="https://img.shields.io/badge/-BTC_31.1_rebase-darkorange?logoColor=white&style=flat-square" alt="BTC 31.1">
+<img src="https://img.shields.io/github/commit-activity/m/PFORMSatox/satoxcoin?style=flat-square&logo=github&color=deeppink" alt="Commits"></br>
+<img src="https://img.shields.io/discord/954156720639316028?style=%20flat-square&logo=discord&logoColor=white&label=Discord&color=deeppink&link=https%3A%2F%2Fdiscord.com%2Finvite%2FGFZYFuuHVq" alt="Discord"></a>
+<img src="https://img.shields.io/website?up_message=Online&up_color=deepgreen&down_message=offline&down_color=lightgray&url=https%3A%2F%2Fwww.satoverse.io&style=flat-square&label=satoverse.io"></a>
+<img src="https://img.shields.io/website?up_message=Online&up_color=deepgreen&down_message=offline&down_color=lightgray&url=https%3A%2F%2Fxplore.satoverse.io&style=flat-square&label=Explorer"></a>
+<img src="https://img.shields.io/twitter/follow/Satoverse_io?style=flat-square&logo=twitter&logoColor=deepblue&color=deeppink" alt="Twitter"></img>
 
-What is Bitcoin Core?
----------------------
+## What is Satoxcoin?
 
-Bitcoin Core connects to the Bitcoin peer-to-peer network to download and fully
-validate blocks and transactions. It also includes a wallet and graphical user
-interface, which can be optionally built.
+**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support, designed for Play2Earn gaming. Built on Bitcoin Core 31.1 with KAWPOW consensus, it provides full Ravencoin-compatible asset issuance, transfer, and management while maintaining the security guarantees of the modern Bitcoin codebase.
 
-Further information about Bitcoin Core is available in the [doc folder](/doc).
+## What is Satoxcoin Core 4.0?
 
-License
--------
+Satoxcoin Core 4.0 is a major rebase of the Satoxcoin node from Bitcoin Core 0.21 (Ravencoin 4.6.1 base) to **Bitcoin Core 31.1**, bringing all BTC security fixes through v31.1 (the latest release) while preserving the complete Satoxcoin asset system, KAWPOW consensus, and community fund.
 
-Bitcoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
-information or see https://opensource.org/license/MIT.
+**Key improvements in 4.0:**
+- **BTC 31.1 security base** — 16 CVEs fixed (CVE-2024-52911 through CVE-2025-54605)
+- **C++20 / CMake** — modern build system, faster compilation
+- **55 mainnet checkpoints** — full chain hardening (0→1,865,353)
+- **HIP2 8MB blocks** — satoxcoin-specific block size limit
+- **KAWPOW security hardening** — mix_hash forgery, nHeight forgery, epoch-DoS fixes
+- **Asset system hardening** — 6 critical/high security fixes in ConnectBlock/DisconnectBlock
+- **Full asset index system** — address, spent, and timestamp indexes with 7 RPCs
+- **Asset overflow BIP9** — soft-fork prepared (activation deferred per policy)
 
-Development Process
--------------------
+## Satoxcoin Specification
 
-The `master` branch is regularly built (see `doc/build-*.md` for instructions) and tested, but it is not guaranteed to be
-completely stable. [Tags](https://github.com/bitcoin/bitcoin/tags) are created
-regularly from release branches to indicate new official, stable release versions of Bitcoin Core.
+| Property | Value |
+|----------|-------|
+| **Total Supply** | 8 Billion (minted over ~100 years) |
+| **Algorithm** | KawPoW |
+| **Type** | PoW |
+| **Block Time** | 60 seconds |
+| **Block Reward** | 90% PoW / 10% P2E Fund |
+| **Halving Interval** | 2,100,000 blocks (~4 years) |
+| **Initial Subsidy** | 430,000,000 SATOX (first 10 blocks) |
+| **Post-halving Subsidy** | 300 SATOX |
+| **Community Fund** | 10% of subsidy to `SQ5iQMsmqZiYY96rTx5Hisd7sx5GiGUbbN` |
+| **P2P Port** | 60777 (mainnet) / 7060 (testnet) / 19444 (regtest) |
+| **BIP44 Coin Type** | 1669 |
+| **Base58 Address Prefix** | 63 (S) / 122 (script) / 112 (secret key) |
 
-The https://github.com/bitcoin-core/gui repository is used exclusively for the
-development of the GUI. Its master branch is identical in all monotree
-repositories. Release branches and tags do not exist, so please do not fork
-that repository unless it is for development reasons.
+## What makes Satoxcoin unique?
 
-The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md)
-and useful hints for developers can be found in [doc/developer-notes.md](doc/developer-notes.md).
+- ✅ First P2E without the need for dedicated servers
+- ✅ First P2E that works on 1160+ games on STEAM
+- ✅ First P2E that works with gaming consoles (XBOX, STEAMDECK)
 
-Testing
--------
+## Building from Source
 
-Testing and code review is the bottleneck for development; we get more pull
-requests than we can review and test on short notice. Please be patient and help out by testing
-other people's pull requests, and remember this is a security-critical project where any mistake might cost people
-lots of money.
+### Prerequisites
+
+- C++20 compatible compiler (GCC 13+ / Clang 16+)
+- CMake 3.25+
+- Ninja (recommended)
+- Boost 1.74+
+- libevent
+- BerkeleyDB 4.8 (for legacy wallet)
+
+### Build Commands
+
+```bash
+# Configure and build
+cmake -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_SATOXCOIN_CLI=ON \
+  -DBUILD_SATOXCOIN_TX=ON \
+  -DBUILD_SATOXCOIN_UTIL=ON
+
+cmake --build build -j$(nproc)
+
+# Run tests
+cd build
+ctest -j$(nproc)
+
+# Functional tests (optional)
+python3 test/functional/test_runner.py
+```
+
+See [doc/build-*.md](doc/build-*.md) for platform-specific build instructions.
+
+## Wallets
+
+| Wallet | Platform | Link |
+|--------|----------|------|
+| **Core Wallet** | Desktop (Win/Mac/Linux) | [GitHub Releases](https://github.com/PFORMSatox/satoxcoin/releases) |
+| **Vidulum** | Android | [Play Store](https://play.google.com/store/apps/details?id=com.vidulumwallet.app) |
+| **BeeHive** | Desktop | [beehivewallet.link](https://beehivewallet.link/) |
+| **BeeHive** | Android | [Play Store](https://play.google.com/store/apps/details?id=com.beehive.beehivemulti_coinwallet) |
+| **Paper Wallet** | Web | [walletgenerator](https://walletgenerator-njizr0am7-nao20010128nao.vercel.app) |
+
+## Links
+
+- **Homepage:** https://www.satoverse.io
+- **Explorer:** https://xplore.satoverse.io
+- **Discord:** https://discord.com/invite/GFZYFuuHVq
+- **Documentation:** https://docs.satoverse.io
+- **GitHub:** https://github.com/PFORMSatox/satoxcoin
+
+## Testing
 
 ### Automated Testing
 
-Developers are strongly encouraged to write [unit tests](src/test/README.md) for new code, and to
-submit new unit tests for old code. Unit tests can be compiled and run
-(assuming they weren't disabled during the generation of the build system) with: `ctest`. Further details on running
-and extending unit tests can be found in [/src/test/README.md](/src/test/README.md).
+Run the test suite with:
+```bash
+cd build && ctest -j$(nproc)
+```
 
-There are also [regression and integration tests](/test), written
-in Python.
-These tests can be run (if the [test dependencies](/test) are installed) with: `build/test/functional/test_runner.py`
-(assuming `build` is your build directory).
+### Functional Tests
 
-The CI (Continuous Integration) systems make sure that every pull request is tested on Windows, Linux, and macOS.
-The CI must pass on all commits before merge to avoid unrelated CI failures on new pull requests.
+```bash
+cd test/functional
+python3 test_runner.py
+```
 
-### Manual Quality Assurance (QA) Testing
+The functional test suite includes asset-specific tests: `feature_assets.py`, `feature_assets_reorg.py`, `feature_assets_mempool.py`, `feature_listmyassets.py`, `feature_unique_assets.py`, `feature_restricted_assets.py`, and `rpc_assettransfer.py`.
 
-Changes should be tested by somebody other than the developer who wrote the
-code. This is especially important for large or high-risk changes. It is useful
-to add a test plan to the pull request description if testing the changes is
-not straightforward.
+## License
 
-Translations
-------------
+Satoxcoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more information.
 
-Changes to translations as well as new translations can be submitted to
-[Bitcoin Core's Transifex page](https://explore.transifex.com/bitcoin/bitcoin/).
+## Contributing
 
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
-
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow.
