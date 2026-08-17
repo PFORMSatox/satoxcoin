@@ -1,0 +1,94 @@
+# Copyright (c) 2024-present The Satoxcoin Core developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or https://opensource.org/license/mit.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  linux-build:
+    name: 'Linux Release Build'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build g++ python3 \
+            libboost-dev libevent-dev libsqlite3-dev
+
+      - name: Configure + Build
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SATOXCOIN_CLI=ON \
+            -DBUILD_SATOXCOIN_TX=ON \
+            -DBUILD_SATOXCOIN_UTIL=ON \
+            -DBUILD_SATOXCOIN_WALLET=ON
+          cmake --build build -j$(nproc)
+
+      - name: Run unit tests
+        run: cd build && ctest -j$(nproc)
+
+      - name: Package
+        run: |
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+          cd build
+          tar czf ../satoxcoin-${VERSION}-x86_64-linux.tar.gz \
+            bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: satoxcoin-linux-x86_64
+          path: satoxcoin-*-x86_64-linux.tar.gz
+
+  create-release:
+    name: 'Create GitHub Release'
+    needs: linux-build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Satoxcoin Core ${{ github.ref_name }}"
+          body: |
+            ## Satoxcoin Core ${{ github.ref_name }}
+
+            **Algorithm:** KawPoW
+            **Base:** Bitcoin Core 31.1
+
+            ### What's New
+            - BTC 31.1 security base (16 CVEs fixed)
+            - KAWPOW security hardening (mix_hash forgery, nHeight forgery, epoch-DoS)
+            - Asset system hardening (ConnectBlock/DisconnectBlock non-fatal failures, reissue overflow, flush corruption)
+            - Full address/spent/timestamp index system with 7 RPCs
+            - HIP2 8MB blocks
+            - 55 mainnet checkpoints
+
+            ### Downloads
+            - `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` — Linux x86_64
+
+            See [doc/build-*.md](doc/build-*.md) for build instructions.
+            See [doc/security/audit/cve-audit.md](doc/security/audit/cve-audit.md) for the full CVE audit.
+          files: artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
+          draft: false
