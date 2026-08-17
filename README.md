@@ -163,8 +163,10 @@ Copyright (c) 2022-present The Satoxcoin Core developers
 
 ---
 
-<div align="center">
-
-**[Website](https://www.satoverse.io)** · **[Explorer](https://xplore.satoverse.io)** · **[Discord](https://discord.com/invite/GFZYFuuHVq)** · **[Twitter](https://x.com/Satoverse_io)** · **[Docs](https://docs.satoverse.io)**
-
-</div>
+<p align="center">
+  <a href="https://www.satoverse.io"><b>Website</b></a> · 
+  <a href="https://xplore.satoverse.io"><b>Explorer</b></a> · 
+  <a href="https://discord.com/invite/GFZYFuuHVq"><b>Discord</b></a> · 
+  <a href="https://x.com/Satoverse_io"><b>Twitter</b></a> · 
+  <a href="https://docs.satoverse.io"><b>Docs</b></a>
+</p>
