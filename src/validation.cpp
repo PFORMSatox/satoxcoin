@@ -3131,14 +3131,8 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                     const CTxOut& prevout = txundo.vprevout[j].out;
                     if (prevout.scriptPubKey.IsAssetScript()) {
                         if (!assetsCache->TrySpendCoin(tx.vin[j].prevout, prevout)) {
-                            return false;
-                            return false;
                             LogError("ConnectBlock: Failed to spend asset coin %s\n", tx.vin[j].prevout.ToString());
-
                             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                            return false;
                         }
                     }
                 }
@@ -3150,23 +3144,17 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 CNewAsset asset;
                 std::string strAddress;
                 if (AssetFromTransaction(tx, asset, strAddress)) {
-                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash())) {
                         LogError("ConnectBlock: Failed to add new asset %s\n", asset.strName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                     std::string ownerName;
                     std::string ownerAddress;
                     OwnerFromTransaction(tx, ownerName, ownerAddress);
-                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress)) {
                         LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                 }
             } else if (tx.IsReissueAsset()) {
                 CReissueAsset reissue;
@@ -3207,21 +3195,15 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                         }
                     }
                     if (reissueIndex >= 0) {
-                        if (!assetsCache->AddReissueAsset(reissue, strAddress, COutPoint(tx.GetHash(), reissueIndex)))
+                        if (!assetsCache->AddReissueAsset(reissue, strAddress, COutPoint(tx.GetHash(), reissueIndex))) {
                             LogError("ConnectBlock: Failed to reissue asset %s\n", reissue.strName);
-
                             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                            return false;
+                        }
                         if (fVerifierChanged && !newVerifier.verifier_string.empty()) {
-                            if (!assetsCache->AddRestrictedVerifier(reissue.strName, newVerifier.verifier_string))
+                            if (!assetsCache->AddRestrictedVerifier(reissue.strName, newVerifier.verifier_string)) {
                                 LogError("ConnectBlock: Failed to add restricted verifier for %s\n", reissue.strName);
-
                                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                                return false;
+                            }
                         }
                     }
                 }
@@ -3231,13 +3213,10 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                         CNewAsset asset;
                         std::string strAddress;
                         if (AssetFromScript(tx.vout[j].scriptPubKey, asset, strAddress)) {
-                            if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                            if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash())) {
                                 LogError("ConnectBlock: Failed to add unique asset %s\n", asset.strName);
-
                                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                                return false;
+                            }
                         }
                     }
                 }
@@ -3245,55 +3224,40 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 CNewAsset asset;
                 std::string strAddress;
                 if (MsgChannelAssetFromTransaction(tx, asset, strAddress)) {
-                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash())) {
                         LogError("ConnectBlock: Failed to add msg channel asset %s\n", asset.strName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                     std::string ownerName, ownerAddress;
                     OwnerFromTransaction(tx, ownerName, ownerAddress);
-                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress)) {
                         LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                 }
             } else if (tx.IsNewQualifierAsset()) {
                 CNewAsset asset;
                 std::string strAddress;
                 if (QualifierAssetFromTransaction(tx, asset, strAddress)) {
-                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash())) {
                         LogError("ConnectBlock: Failed to add qualifier asset %s\n", asset.strName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                     std::string ownerName, ownerAddress;
                     OwnerFromTransaction(tx, ownerName, ownerAddress);
-                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                    if (!assetsCache->AddOwnerAsset(ownerName, ownerAddress)) {
                         LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                 }
             } else if (tx.IsNewRestrictedAsset()) {
                 CNewAsset asset;
                 std::string strAddress;
                 if (RestrictedAssetFromTransaction(tx, asset, strAddress)) {
-                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash()))
+                    if (!assetsCache->AddNewAsset(asset, strAddress, pindex->nHeight, pindex->GetBlockHash())) {
                         LogError("ConnectBlock: Failed to add restricted asset %s\n", asset.strName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                     // OwnerFromTransaction uses IsNewAsset() which excludes restricted assets, so
                     // derive the owner name (TOKEN! from $TOKEN) and address from the ROOT! transfer output.
                     std::string ownerName, ownerAddress;
@@ -3311,23 +3275,17 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                             }
                         }
                     }
-                    if (!ownerName.empty() && !assetsCache->AddOwnerAsset(ownerName, ownerAddress))
+                    if (!ownerName.empty() && !assetsCache->AddOwnerAsset(ownerName, ownerAddress)) {
                         LogError("ConnectBlock: Failed to add owner asset %s\n", ownerName);
-
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                        return false;
+                    }
                     CNullAssetTxVerifierString verifier;
                     std::string strError;
                     if (tx.GetVerifierStringFromTx( verifier, strError)) {
-                        if (!assetsCache->AddRestrictedVerifier(asset.strName, verifier.verifier_string))
+                        if (!assetsCache->AddRestrictedVerifier(asset.strName, verifier.verifier_string)) {
                             LogError("ConnectBlock: Failed to add restricted verifier for %s\n", asset.strName);
-
                             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                            return false;
+                        }
                     }
                 }
             }
@@ -3343,13 +3301,10 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                         if (GetAssetData(out.scriptPubKey, assetData)) {
                             CAssetTransfer transfer(assetData.assetName, assetData.nAmount, assetData.message, assetData.expireTime);
                             std::string address = EncodeDestination(assetData.destination);
-                            if (!assetsCache->AddTransferAsset(transfer, address, COutPoint(tx.GetHash(), j), out))
+                            if (!assetsCache->AddTransferAsset(transfer, address, COutPoint(tx.GetHash(), j), out)) {
                                 LogError("ConnectBlock: Failed to add transfer asset %s\n", assetData.assetName);
-
                                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "asset-operation-failed", "asset cache operation failed in ConnectBlock");
-
-
-                                return false;
+                            }
                         }
                     }
                 }
