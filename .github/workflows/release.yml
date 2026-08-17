@@ -95,7 +95,7 @@ jobs:
       - name: Install dependencies (vcpkg)
         run: |
           vcpkg integrate install
-          vcpkg install --triplet x64-windows --x-no-default-features --x-feature=wallet
+          vcpkg install --classic --triplet x64-windows boost libevent sqlite3
 
       - name: Configure + Build
         run: |
