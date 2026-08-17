@@ -2266,6 +2266,11 @@ DisconnectResult Chainstate::DisconnectBlock(const CBlock& block, const CBlockIn
         return DISCONNECT_FAILED;
     }
 
+    // Index vectors for disconnect (reverse the ConnectBlock operations)
+    std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
+    std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>> addressUnspentIndex;
+    std::vector<std::pair<CSpentIndexKey, CSpentIndexValue>> spentIndex;
+
     // Work on a local asset cache so a failed disconnect does not leave
     // partial asset state in the global cache. The local cache starts empty
     // and only accumulates this block's undo changes; Flush() merges it into
@@ -2532,6 +2537,100 @@ DisconnectResult Chainstate::DisconnectBlock(const CBlock& block, const CBlockIn
             // At this point, all of txundo.vprevout should have been moved out.
         }
     }
+
+    // ── Disconnect: reverse address/spent/timestamp indexes ──────────────────
+    // The disconnect reverses the ConnectBlock index operations: erase address
+    // entries, restore addressUnspent UTXOs, erase spent entries.
+    if (fAddressIndex || fSpentIndex) {
+        // Re-iterate in reverse to build reversal vectors
+        for (int i = block.vtx.size() - 1; i >= 0; i--) {
+            const CTransaction& tx = *(block.vtx[i]);
+            Txid txhash = tx.GetHash();
+
+            // Output reversal: erase receive entries and UTXO creation
+            if (fAddressIndex) {
+                for (unsigned int k = tx.vout.size(); k-- > 0;) {
+                    const CTxOut& out = tx.vout[k];
+                    if (out.scriptPubKey.IsPayToScriptHash()) {
+                        std::vector<unsigned char> hb(out.scriptPubKey.begin() + 2, out.scriptPubKey.begin() + 22);
+                        addressIndex.emplace_back(CAddressIndexKey(2, uint160(hb), pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(2, uint160(hb), txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else if (out.scriptPubKey.size() == 25 && out.scriptPubKey[0] == OP_DUP && out.scriptPubKey[1] == OP_HASH160) {
+                        std::vector<unsigned char> hb(out.scriptPubKey.begin() + 3, out.scriptPubKey.begin() + 23);
+                        addressIndex.emplace_back(CAddressIndexKey(1, uint160(hb), pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(1, uint160(hb), txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else if (out.scriptPubKey.size() == 35 && out.scriptPubKey[0] == 0x21) {
+                        uint160 hb;
+                        CHash160{}.Write({out.scriptPubKey.data() + 1, static_cast<size_t>(out.scriptPubKey.size() - 2)}).Finalize(hb);
+                        addressIndex.emplace_back(CAddressIndexKey(1, hb, pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hb, txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else if (out.scriptPubKey.size() == 67 && out.scriptPubKey[0] == 0x41) {
+                        uint160 hb;
+                        CHash160{}.Write({out.scriptPubKey.data() + 1, static_cast<size_t>(out.scriptPubKey.size() - 2)}).Finalize(hb);
+                        addressIndex.emplace_back(CAddressIndexKey(1, hb, pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hb, txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else {
+                        if (AreAssetsDeployed()) {
+                            std::string aName; CAmount aAmt; uint160 hb;
+                            if (ParseAssetScript(out.scriptPubKey, hb, aName, aAmt)) {
+                                addressIndex.emplace_back(CAddressIndexKey(1, hb, aName, pindex->nHeight, i, txhash.ToUint256(), k, false), aAmt);
+                                addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hb, aName, txhash.ToUint256(), k), CAddressUnspentValue());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Input reversal: erase spent entries, restore address entries
+            if (!tx.IsCoinBase() && i < (int)blockUndo.vtxundo.size()) {
+                const CTxUndo& txundo_i = blockUndo.vtxundo[i];
+                for (unsigned int j = 0; j < tx.vin.size(); j++) {
+                    if (fSpentIndex) {
+                        spentIndex.emplace_back(CSpentIndexKey(tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n), CSpentIndexValue());
+                    }
+                    if (fAddressIndex) {
+                        const CTxOut& prevout = txundo_i.vprevout[j].out;
+                        if (prevout.scriptPubKey.IsPayToScriptHash()) {
+                            std::vector<unsigned char> hb(prevout.scriptPubKey.begin() + 2, prevout.scriptPubKey.begin() + 22);
+                            addressIndex.emplace_back(CAddressIndexKey(2, uint160(hb), pindex->nHeight, i, txhash.ToUint256(), j, true), prevout.nValue * -1);
+                            addressUnspentIndex.emplace_back(CAddressUnspentKey(2, uint160(hb), tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                                             CAddressUnspentValue(prevout.nValue, prevout.scriptPubKey, txundo_i.vprevout[j].nHeight));
+                        } else if (prevout.scriptPubKey.size() == 25 && prevout.scriptPubKey[0] == OP_DUP && prevout.scriptPubKey[1] == OP_HASH160) {
+                            std::vector<unsigned char> hb(prevout.scriptPubKey.begin() + 3, prevout.scriptPubKey.begin() + 23);
+                            addressIndex.emplace_back(CAddressIndexKey(1, uint160(hb), pindex->nHeight, i, txhash.ToUint256(), j, true), prevout.nValue * -1);
+                            addressUnspentIndex.emplace_back(CAddressUnspentKey(1, uint160(hb), tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                                             CAddressUnspentValue(prevout.nValue, prevout.scriptPubKey, txundo_i.vprevout[j].nHeight));
+                        } else if (prevout.scriptPubKey.size() == 35 && prevout.scriptPubKey[0] == 0x21) {
+                            uint160 hb;
+                            CHash160{}.Write({prevout.scriptPubKey.data() + 1, static_cast<size_t>(prevout.scriptPubKey.size() - 2)}).Finalize(hb);
+                            addressIndex.emplace_back(CAddressIndexKey(1, hb, pindex->nHeight, i, txhash.ToUint256(), j, false), prevout.nValue);
+                            addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hb, tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n), CAddressUnspentValue());
+                        } else {
+                            if (AreAssetsDeployed()) {
+                                std::string aName; CAmount aAmt; uint160 hb;
+                                if (ParseAssetScript(prevout.scriptPubKey, hb, aName, aAmt)) {
+                                    addressIndex.emplace_back(CAddressIndexKey(1, hb, aName, pindex->nHeight, i, txhash.ToUint256(), j, true), aAmt * -1);
+                                    addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hb, aName, tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                                                     CAddressUnspentValue(aAmt, prevout.scriptPubKey, txundo_i.vprevout[j].nHeight));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (fAddressIndex && !addressIndex.empty()) {
+            m_blockman.m_block_tree_db->EraseAddressIndex(addressIndex);
+        }
+        if (fAddressIndex && !addressUnspentIndex.empty()) {
+            m_blockman.m_block_tree_db->UpdateAddressUnspentIndex(addressUnspentIndex);
+        }
+        if (fSpentIndex && !spentIndex.empty()) {
+            m_blockman.m_block_tree_db->UpdateSpentIndex(spentIndex);
+        }
+    }
+    // ── end disconnect index reversal ────────────────────────────────────────
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
