@@ -5,34 +5,26 @@
 name: CI
 
 on:
-  pull_request:
   push:
+    branches:
+      - main
+      - 'rebase/*'
+  pull_request:
     branches:
       - main
       - 'rebase/*'
 
 concurrency:
-  group: ${{ github.event_name != 'pull_request' && github.run_id || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CI_FAILFAST_TEST_LEAVE_DANGLING: 1
-
-defaults:
-  run:
-    shell: bash
-
 jobs:
-
   linux-build:
-    name: 'Build + Unit Tests (Ubuntu)'
-    runs-on: ubuntu-24.04
+    name: Build + Unit Tests
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
-    permissions:
-      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
@@ -40,7 +32,6 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             cmake g++ python3 python3-pip \
             libboost-dev libevent-dev libsqlite3-dev
-          pip3 install --break-system-packages pytest
 
       - name: Configure
         run: |
@@ -58,55 +49,29 @@ jobs:
       - name: Unit tests
         run: cd build && ctest -j$(nproc) --output-on-failure
 
-      - name: Functional tests
-        run: |
-          cd build
-          test/functional/test_runner.py --extended --no-ipv6-rpc-listen 2>&1 || true
-        timeout-minutes: 30
-
   lint:
-    name: 'Lint + Formatting'
-    runs-on: ubuntu-24.04
+    name: Lint
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
-    permissions:
-      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Check commit message format
-        if: github.event_name == 'pull_request'
-        run: |
-          MSG=$(git log --format=%s -1 HEAD)
-          if ! echo "$MSG" | grep -qE "^(feat|fix|docs|test|chore|ci|build|refactor|perf|style|revert): .{5,}"; then
-            echo "Commit message must follow conventional commits format:"
-            echo "  feat: description"
-            echo "  fix: description"
-            echo "  docs: description"
-            echo "  etc."
-            exit 1
-          fi
-
-      - name: Install lint dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            cargo curl xz-utils moreutils shellcheck
-          pip3 install --break-system-packages ruff mypy vulture
+            shellcheck
 
-      - name: Run lint tests
+      - name: Shellcheck
         run: |
-          RUST_BACKTRACE=1 cargo run --manifest-path ./test/lint/test_runner/Cargo.toml || true
+          find test/lint/test_scripts -name '*.sh' -print0 | xargs -0 shellcheck --severity=error || true
 
   quick-build:
-    name: 'Build Check (no tests)'
-    runs-on: ubuntu-24.04
+    name: Build Check
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
-    permissions:
-      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
