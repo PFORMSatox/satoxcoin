@@ -2818,6 +2818,11 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     std::vector<std::pair<std::string, CBlockAssetUndo>> vUndoAssetData;
     std::set<CMessage> setMessages;
     std::vector<std::pair<std::string, CNullAssetTxData>> myNullAssetData;
+
+    // Index vectors for address/spent/timestamp indexes
+    std::vector<std::pair<CAddressIndexKey, CAmount>> addressIndex;
+    std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>> addressUnspentIndex;
+    std::vector<std::pair<CSpentIndexKey, CSpentIndexValue>> spentIndex;
     // Work on a local asset cache so a failed connect does not leave partial
     // asset state in the global cache. The local cache starts empty and only
     // accumulates the changes from this block; Flush() merges it into the
@@ -2915,6 +2920,107 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             blockundo.vtxundo.emplace_back();
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
+
+        // ── Address / spent / timestamp index collection ──────────────────────
+        // Collect entries for addressindex, addressUnspentIndex, and spentIndex.
+        // The original satoxcoin builds these inline in ConnectBlock; the 4.0 port
+        // deferred the writes until after validation, matching the original's
+        // batch-write pattern.
+        if (AreAssetsDeployed() || fAddressIndex || fSpentIndex) {
+            const Txid txhash = tx.GetHash();
+
+            // --- Output processing: addressIndex + addressUnspentIndex ---
+            if (fAddressIndex) {
+                for (unsigned int k = tx.vout.size(); k-- > 0;) {
+                    const CTxOut& out = tx.vout[k];
+
+                    if (out.scriptPubKey.IsPayToScriptHash()) {
+                        std::vector<unsigned char> hashBytes(out.scriptPubKey.begin() + 2, out.scriptPubKey.begin() + 22);
+                        addressIndex.emplace_back(CAddressIndexKey(2, uint160(hashBytes), pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(2, uint160(hashBytes), txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else if (out.scriptPubKey.size() == 25 && out.scriptPubKey[0] == OP_DUP && out.scriptPubKey[1] == OP_HASH160) {
+                        // P2PKH: bytes [3..23) = address hash
+                        std::vector<unsigned char> hashBytes(out.scriptPubKey.begin() + 3, out.scriptPubKey.begin() + 23);
+                        addressIndex.emplace_back(CAddressIndexKey(1, uint160(hashBytes), pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(1, uint160(hashBytes), txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else if (out.scriptPubKey.size() == 35 && out.scriptPubKey[0] == 0x21) {
+                        // P2PK compressed: hash of bytes [1..33)
+                        uint160 hashBytes;
+                        CHash160{}.Write({out.scriptPubKey.data() + 1, static_cast<size_t>(out.scriptPubKey.size() - 2)}).Finalize(hashBytes);
+                        addressIndex.emplace_back(CAddressIndexKey(1, hashBytes, pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hashBytes, txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else if (out.scriptPubKey.size() == 67 && out.scriptPubKey[0] == 0x41) {
+                        // P2PK uncompressed: hash of bytes [1..65)
+                        uint160 hashBytes;
+                        CHash160{}.Write({out.scriptPubKey.data() + 1, static_cast<size_t>(out.scriptPubKey.size() - 2)}).Finalize(hashBytes);
+                        addressIndex.emplace_back(CAddressIndexKey(1, hashBytes, pindex->nHeight, i, txhash.ToUint256(), k, false), out.nValue);
+                        addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hashBytes, txhash.ToUint256(), k), CAddressUnspentValue());
+                    } else {
+                        // Asset scripts — record under the embedded address
+                        if (AreAssetsDeployed()) {
+                            std::string assetName;
+                            CAmount assetAmount;
+                            uint160 hashBytes;
+                            if (ParseAssetScript(out.scriptPubKey, hashBytes, assetName, assetAmount)) {
+                                addressIndex.emplace_back(
+                                    CAddressIndexKey(1, hashBytes, assetName, pindex->nHeight, i, txhash.ToUint256(), k, false), assetAmount);
+                                addressUnspentIndex.emplace_back(
+                                    CAddressUnspentKey(1, hashBytes, assetName, txhash.ToUint256(), k),
+                                    CAddressUnspentValue());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- Input processing: spentIndex + addressIndex (spending) ---
+            if (!tx.IsCoinBase()) {
+                const CTxUndo& txundo_input = (i == 0) ? undoDummy : blockundo.vtxundo.back();
+                for (unsigned int j = 0; j < tx.vin.size(); j++) {
+                    if (fSpentIndex) {
+                        spentIndex.emplace_back(CSpentIndexKey(tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                               CSpentIndexValue());
+                    }
+
+                    if (fAddressIndex) {
+                        const CTxOut& prevout = txundo_input.vprevout[j].out;
+
+                        if (prevout.scriptPubKey.IsPayToScriptHash()) {
+                            std::vector<unsigned char> hashBytes(prevout.scriptPubKey.begin() + 2, prevout.scriptPubKey.begin() + 22);
+                            addressIndex.emplace_back(CAddressIndexKey(2, uint160(hashBytes), pindex->nHeight, i, txhash.ToUint256(), j, true), prevout.nValue * -1);
+                            addressUnspentIndex.emplace_back(CAddressUnspentKey(2, uint160(hashBytes), tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                                             CAddressUnspentValue(prevout.nValue, prevout.scriptPubKey, txundo_input.vprevout[j].nHeight));
+                        } else if (prevout.scriptPubKey.size() == 25 && prevout.scriptPubKey[0] == OP_DUP && prevout.scriptPubKey[1] == OP_HASH160) {
+                            std::vector<unsigned char> hashBytes(prevout.scriptPubKey.begin() + 3, prevout.scriptPubKey.begin() + 23);
+                            addressIndex.emplace_back(CAddressIndexKey(1, uint160(hashBytes), pindex->nHeight, i, txhash.ToUint256(), j, true), prevout.nValue * -1);
+                            addressUnspentIndex.emplace_back(CAddressUnspentKey(1, uint160(hashBytes), tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                                             CAddressUnspentValue(prevout.nValue, prevout.scriptPubKey, txundo_input.vprevout[j].nHeight));
+                        } else if (prevout.scriptPubKey.size() == 35 && prevout.scriptPubKey[0] == 0x21) {
+                            uint160 hashBytes;
+                            CHash160{}.Write({prevout.scriptPubKey.data() + 1, static_cast<size_t>(prevout.scriptPubKey.size() - 2)}).Finalize(hashBytes);
+                            addressIndex.emplace_back(CAddressIndexKey(1, hashBytes, pindex->nHeight, i, txhash.ToUint256(), j, false), prevout.nValue);
+                            addressUnspentIndex.emplace_back(CAddressUnspentKey(1, hashBytes, tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                                             CAddressUnspentValue());
+                        } else {
+                            // Asset scripts — record spending under the embedded address
+                            if (AreAssetsDeployed()) {
+                                std::string assetName;
+                                CAmount assetAmount;
+                                uint160 hashBytes;
+                                if (ParseAssetScript(prevout.scriptPubKey, hashBytes, assetName, assetAmount)) {
+                                    addressIndex.emplace_back(
+                                        CAddressIndexKey(1, hashBytes, assetName, pindex->nHeight, i, txhash.ToUint256(), j, true), assetAmount * -1);
+                                    addressUnspentIndex.emplace_back(
+                                        CAddressUnspentKey(1, hashBytes, assetName, tx.vin[j].prevout.hash.ToUint256(), tx.vin[j].prevout.n),
+                                        CAddressUnspentValue(assetAmount, prevout.scriptPubKey, txundo_input.vprevout[j].nHeight));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // ── end address / spent index collection ────────────────────────────────
         if (assetsCache && AreAssetsDeployed()) {
             // Spend asset inputs
             if (!tx.IsCoinBase()) {
@@ -3189,6 +3295,30 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             }
         }
     }
+
+    // ── Write address / spent / timestamp indexes to disk ──────────────────────
+    if (!addressIndex.empty() && fAddressIndex) {
+        m_blockman.m_block_tree_db->WriteAddressIndex(addressIndex);
+    }
+    if (!addressUnspentIndex.empty() && fAddressIndex) {
+        m_blockman.m_block_tree_db->UpdateAddressUnspentIndex(addressUnspentIndex);
+    }
+    if (!spentIndex.empty() && fSpentIndex) {
+        m_blockman.m_block_tree_db->UpdateSpentIndex(spentIndex);
+    }
+    if (fTimestampIndex) {
+        unsigned int logicalTS = pindex->nTime;
+        unsigned int prevLogicalTS = 0;
+        if (pindex->pprev) {
+            m_blockman.m_block_tree_db->ReadTimestampBlockIndex(pindex->pprev->GetBlockHash(), prevLogicalTS);
+        }
+        if (logicalTS <= prevLogicalTS) {
+            logicalTS = prevLogicalTS + 1;
+        }
+        m_blockman.m_block_tree_db->WriteTimestampIndex(CTimestampIndexKey(logicalTS, pindex->GetBlockHash()));
+        m_blockman.m_block_tree_db->WriteTimestampBlockIndex(CTimestampBlockIndexKey(pindex->GetBlockHash()), CTimestampBlockIndexValue(logicalTS));
+    }
+    // ── end index writes ───────────────────────────────────────────────────────
 
     const auto time_5{SteadyClock::now()};
     m_chainman.time_undo += time_5 - time_4;
