@@ -60,6 +60,11 @@ static constexpr uint8_t DB_BLOCK_INDEX{'b'};
 static constexpr uint8_t DB_FLAG{'F'};
 static constexpr uint8_t DB_REINDEX_FLAG{'R'};
 static constexpr uint8_t DB_LAST_BLOCK{'l'};
+static constexpr uint8_t DB_ADDRESSINDEX{'a'};
+static constexpr uint8_t DB_ADDRESSUNSPENTINDEX{'u'};
+static constexpr uint8_t DB_TIMESTAMPINDEX{'s'};
+static constexpr uint8_t DB_BLOCKHASHINDEX{'h'};
+static constexpr uint8_t DB_SPENTINDEX{'p'};
 // Keys used in previous version that might still be found in the DB:
 // BlockTreeDB::DB_TXINDEX_BLOCK{'T'};
 // BlockTreeDB::DB_TXINDEX{'t'}
@@ -114,6 +119,211 @@ bool BlockTreeDB::ReadFlag(const std::string& name, bool& fValue)
         return false;
     }
     fValue = ch == uint8_t{'1'};
+    return true;
+}
+
+bool BlockTreeDB::ReadSpentIndex(CSpentIndexKey& key, CSpentIndexValue& value)
+{
+    return Read(std::make_pair(DB_SPENTINDEX, key), value);
+}
+
+bool BlockTreeDB::UpdateSpentIndex(const std::vector<std::pair<CSpentIndexKey, CSpentIndexValue>>& vect)
+{
+    CDBBatch batch(*this);
+    for (const auto& it : vect) {
+        if (it.second.IsNull()) {
+            batch.Erase(std::make_pair(DB_SPENTINDEX, it.first));
+        } else {
+            batch.Write(std::make_pair(DB_SPENTINDEX, it.first), it.second);
+        }
+    }
+    WriteBatch(batch);
+    return true;
+}
+
+bool BlockTreeDB::UpdateAddressUnspentIndex(const std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& vect)
+{
+    CDBBatch batch(*this);
+    for (const auto& it : vect) {
+        if (it.second.IsNull()) {
+            batch.Erase(std::make_pair(DB_ADDRESSUNSPENTINDEX, it.first));
+        } else {
+            batch.Write(std::make_pair(DB_ADDRESSUNSPENTINDEX, it.first), it.second);
+        }
+    }
+    WriteBatch(batch);
+    return true;
+}
+
+bool BlockTreeDB::ReadAddressUnspentIndex(uint160 addressHash, int type, std::string assetName,
+                                          std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& unspentOutputs)
+{
+    std::unique_ptr<CDBIterator> pcursor(NewIterator());
+
+    pcursor->Seek(std::make_pair(DB_ADDRESSUNSPENTINDEX, CAddressIndexIteratorAssetKey(type, addressHash, assetName)));
+
+    while (pcursor->Valid()) {
+
+        std::pair<uint8_t, CAddressUnspentKey> key;
+        if (pcursor->GetKey(key) && key.first == DB_ADDRESSUNSPENTINDEX && key.second.hashBytes == addressHash
+                && (assetName.empty() || key.second.asset == assetName)) {
+            CAddressUnspentValue nValue;
+            if (pcursor->GetValue(nValue)) {
+                unspentOutputs.push_back(std::make_pair(key.second, nValue));
+                pcursor->Next();
+            } else {
+                LogError("%s", "failed to get address unspent value");
+                return false;
+            }
+        } else {
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool BlockTreeDB::ReadAddressUnspentIndex(uint160 addressHash, int type,
+                                          std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& unspentOutputs)
+{
+    std::unique_ptr<CDBIterator> pcursor(NewIterator());
+
+    pcursor->Seek(std::make_pair(DB_ADDRESSUNSPENTINDEX, CAddressIndexIteratorKey(type, addressHash)));
+
+    while (pcursor->Valid()) {
+
+        std::pair<uint8_t, CAddressUnspentKey> key;
+        if (pcursor->GetKey(key) && key.first == DB_ADDRESSUNSPENTINDEX && key.second.hashBytes == addressHash) {
+            CAddressUnspentValue nValue;
+            if (pcursor->GetValue(nValue)) {
+                if (key.second.asset != SATOX) {
+                    unspentOutputs.push_back(std::make_pair(key.second, nValue));
+                }
+                pcursor->Next();
+            } else {
+                LogError("%s", "failed to get address unspent value");
+                return false;
+            }
+        } else {
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool BlockTreeDB::WriteAddressIndex(const std::vector<std::pair<CAddressIndexKey, CAmount>>& vect)
+{
+    CDBBatch batch(*this);
+    for (const auto& it : vect) {
+        batch.Write(std::make_pair(DB_ADDRESSINDEX, it.first), it.second);
+    }
+    WriteBatch(batch);
+    return true;
+}
+
+bool BlockTreeDB::EraseAddressIndex(const std::vector<std::pair<CAddressIndexKey, CAmount>>& vect)
+{
+    CDBBatch batch(*this);
+    for (const auto& it : vect) {
+        batch.Erase(std::make_pair(DB_ADDRESSINDEX, it.first));
+    }
+    WriteBatch(batch);
+    return true;
+}
+
+bool BlockTreeDB::ReadAddressIndex(uint160 addressHash, int type, std::string assetName,
+                                   std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex,
+                                   int start, int end)
+{
+    std::unique_ptr<CDBIterator> pcursor(NewIterator());
+
+    if (!assetName.empty() && start > 0 && end > 0) {
+        pcursor->Seek(std::make_pair(DB_ADDRESSINDEX,
+                                     CAddressIndexIteratorHeightKey(type, addressHash, assetName, start)));
+    } else if (!assetName.empty()) {
+        pcursor->Seek(std::make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorAssetKey(type, addressHash, assetName)));
+    } else {
+        pcursor->Seek(std::make_pair(DB_ADDRESSINDEX, CAddressIndexIteratorKey(type, addressHash)));
+    }
+
+    while (pcursor->Valid()) {
+
+        std::pair<uint8_t, CAddressIndexKey> key;
+        if (pcursor->GetKey(key) && key.first == DB_ADDRESSINDEX && key.second.hashBytes == addressHash
+                && (assetName.empty() || key.second.asset == assetName)) {
+            if (end > 0 && key.second.blockHeight > end) {
+                break;
+            }
+            CAmount nValue;
+            if (pcursor->GetValue(nValue)) {
+                addressIndex.push_back(std::make_pair(key.second, nValue));
+                pcursor->Next();
+            } else {
+                LogError("%s", "failed to get address index value");
+                return false;
+            }
+        } else {
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool BlockTreeDB::ReadAddressIndex(uint160 addressHash, int type,
+                                   std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex,
+                                   int start, int end)
+{
+    return ReadAddressIndex(addressHash, type, "", addressIndex, start, end);
+}
+
+bool BlockTreeDB::WriteTimestampIndex(const CTimestampIndexKey& timestampIndex)
+{
+    CDBBatch batch(*this);
+    batch.Write(std::make_pair(DB_TIMESTAMPINDEX, timestampIndex), uint8_t{0});
+    WriteBatch(batch);
+    return true;
+}
+
+bool BlockTreeDB::ReadTimestampIndex(const unsigned int& high, const unsigned int& low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int>>& hashes)
+{
+    std::unique_ptr<CDBIterator> pcursor(NewIterator());
+
+    pcursor->Seek(std::make_pair(DB_TIMESTAMPINDEX, CTimestampIndexIteratorKey(low)));
+
+    while (pcursor->Valid()) {
+
+        std::pair<uint8_t, CTimestampIndexKey> key;
+        if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high) {
+            // The RPC caller filters by active chain when fActiveOnly is set
+            // (it has access to the ChainstateManager; this DB layer does not).
+            hashes.push_back(std::make_pair(key.second.blockHash, key.second.timestamp));
+            pcursor->Next();
+        } else {
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool BlockTreeDB::WriteTimestampBlockIndex(const CTimestampBlockIndexKey& blockhashIndex, const CTimestampBlockIndexValue& logicalts)
+{
+    CDBBatch batch(*this);
+    batch.Write(std::make_pair(DB_BLOCKHASHINDEX, blockhashIndex), logicalts);
+    WriteBatch(batch);
+    return true;
+}
+
+bool BlockTreeDB::ReadTimestampBlockIndex(const uint256& hash, unsigned int& ltimestamp)
+{
+    CTimestampBlockIndexValue lts;
+    if (!Read(std::make_pair(DB_BLOCKHASHINDEX, hash), lts)) {
+        return false;
+    }
+
+    ltimestamp = lts.ltimestamp;
     return true;
 }
 

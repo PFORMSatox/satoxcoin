@@ -31,6 +31,9 @@ CSnapshotRequestDB *pSnapshotRequestDb = nullptr;
 CDistributeSnapshotRequestDB *pDistributeSnapshotDb = nullptr;
 
 bool fAssetIndex = false;
+bool fAddressIndex = false;
+bool fSpentIndex = false;
+bool fTimestampIndex = false;
 
 CAssetsCache* GetCurrentAssetCache()
 {

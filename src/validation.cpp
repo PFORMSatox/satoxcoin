@@ -4569,8 +4569,9 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Note that witness malleability is checked in ContextualCheckBlock, so no
     // checks that use witness data may be performed here.
 
-    // Size limits
-    if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(TX_NO_WITNESS(block)) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
+    // Size limits (HIP2 8MB for satoxcoin)
+    const unsigned int maxBlockWeight = GetMaxBlockWeight();
+    if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > maxBlockWeight || ::GetSerializeSize(TX_NO_WITNESS(block)) * WITNESS_SCALE_FACTOR > maxBlockWeight)
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-length", "size limits failed");
 
     // First transaction must be coinbase, the rest must not be
@@ -4830,7 +4831,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
     // large by filling up the coinbase witness, which doesn't change
     // the block hash, so we couldn't mark the block as permanently
     // failed).
-    if (GetBlockWeight(block) > MAX_BLOCK_WEIGHT) {
+    if (GetBlockWeight(block) > GetMaxBlockWeight()) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-weight", strprintf("%s : weight limit failed", __func__));
     }
 
@@ -5637,7 +5638,7 @@ void ChainstateManager::LoadExternalBlockFile(
 
     int nLoaded = 0;
     try {
-        BufferedFile blkdat{file_in, 2 * MAX_BLOCK_SERIALIZED_SIZE, MAX_BLOCK_SERIALIZED_SIZE + 8};
+        BufferedFile blkdat{file_in, 2 * GetMaxBlockSerializedSize(), GetMaxBlockSerializedSize() + 8};
         // nRewind indicates where to resume scanning in case something goes wrong,
         // such as a block fails to deserialize.
         uint64_t nRewind = blkdat.GetPos();
@@ -5659,7 +5660,7 @@ void ChainstateManager::LoadExternalBlockFile(
                 }
                 // read size
                 blkdat >> nSize;
-                if (nSize < 80 || nSize > MAX_BLOCK_SERIALIZED_SIZE)
+                if (nSize < 80 || nSize > GetMaxBlockSerializedSize())
                     continue;
             } catch (const std::exception&) {
                 // no valid block header found; don't complain

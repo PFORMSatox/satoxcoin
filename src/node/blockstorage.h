@@ -6,6 +6,7 @@
 #define BITCOIN_NODE_BLOCKSTORAGE_H
 
 #include <attributes.h>
+#include <addressindex.h>
 #include <chain.h>
 #include <dbwrapper.h>
 #include <flatfile.h>
@@ -15,8 +16,10 @@
 #include <kernel/messagestartchars.h>
 #include <primitives/block.h>
 #include <serialize.h>
+#include <spentindex.h>
 #include <streams.h>
 #include <sync.h>
+#include <timestampindex.h>
 #include <uint256.h>
 #include <util/expected.h>
 #include <util/fs.h>
@@ -108,6 +111,33 @@ public:
     bool ReadFlag(const std::string& name, bool& fValue);
     bool LoadBlockIndexGuts(const Consensus::Params& consensusParams, std::function<CBlockIndex*(const uint256&)> insertBlockIndex, const util::SignalInterrupt& interrupt)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    //! Spent index (getspentinfo)
+    bool ReadSpentIndex(CSpentIndexKey& key, CSpentIndexValue& value);
+    bool UpdateSpentIndex(const std::vector<std::pair<CSpentIndexKey, CSpentIndexValue>>& vect);
+
+    //! Address unspent index (getaddressutxos)
+    bool UpdateAddressUnspentIndex(const std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& vect);
+    bool ReadAddressUnspentIndex(uint160 addressHash, int type, std::string assetName,
+                                 std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& vect);
+    bool ReadAddressUnspentIndex(uint160 addressHash, int type,
+                                 std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue>>& vect);
+
+    //! Address index (getaddresstxids / getaddressbalance / getaddressdeltas)
+    bool WriteAddressIndex(const std::vector<std::pair<CAddressIndexKey, CAmount>>& vect);
+    bool EraseAddressIndex(const std::vector<std::pair<CAddressIndexKey, CAmount>>& vect);
+    bool ReadAddressIndex(uint160 addressHash, int type, std::string assetName,
+                          std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex,
+                          int start = 0, int end = 0);
+    bool ReadAddressIndex(uint160 addressHash, int type,
+                          std::vector<std::pair<CAddressIndexKey, CAmount>>& addressIndex,
+                          int start = 0, int end = 0);
+
+    //! Timestamp index (getblockhashes)
+    bool WriteTimestampIndex(const CTimestampIndexKey& timestampIndex);
+    bool ReadTimestampIndex(const unsigned int& high, const unsigned int& low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int>>& vect);
+    bool WriteTimestampBlockIndex(const CTimestampBlockIndexKey& blockhashIndex, const CTimestampBlockIndexValue& logicalts);
+    bool ReadTimestampBlockIndex(const uint256& hash, unsigned int& logicalTS);
 };
 } // namespace kernel
 

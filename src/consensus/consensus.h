@@ -13,6 +13,9 @@
 static const unsigned int MAX_BLOCK_SERIALIZED_SIZE = 4000000;
 /** The maximum allowed weight for a block, see BIP 141 (network rule) */
 static const unsigned int MAX_BLOCK_WEIGHT = 4000000;
+/** satoxcoin HIP2: block weight/size limits after assets activated (8MB) */
+static const unsigned int MAX_BLOCK_WEIGHT_HIP2 = 8000000;
+static const unsigned int MAX_BLOCK_SERIALIZED_SIZE_HIP2 = 8000000;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const int64_t MAX_BLOCK_SIGOPS_COST = 80000;
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
@@ -22,6 +25,16 @@ static const int WITNESS_SCALE_FACTOR = 4;
 
 static const size_t MIN_TRANSACTION_WEIGHT = WITNESS_SCALE_FACTOR * 60; // 60 is the lower bound for the size of a valid serialized CTransaction
 static const size_t MIN_SERIALIZABLE_TRANSACTION_WEIGHT = WITNESS_SCALE_FACTOR * 10; // 10 is the lower bound for the size of a serialized CTransaction
+
+/**
+ * satoxcoin: assets are always active on mainnet, so the HIP2 8MB limits are
+ * used unconditionally for consensus checks (mirrors the original, where
+ * GetMaxBlockWeight/GetMaxBlockSerializedSize always return the HIP2 value
+ * because checking the pre-activation 4MB limit would reject valid blocks
+ * during reindex when the asset-active state isn't yet set).
+ */
+inline unsigned int GetMaxBlockWeight() { return MAX_BLOCK_WEIGHT_HIP2; }
+inline unsigned int GetMaxBlockSerializedSize() { return MAX_BLOCK_SERIALIZED_SIZE_HIP2; }
 
 /** Flags for nSequence and nLockTime locks */
 /** Interpret sequence numbers as relative lock-time constraints. */

@@ -74,6 +74,9 @@ extern CSnapshotRequestDB *pSnapshotRequestDb;
 extern CDistributeSnapshotRequestDB *pDistributeSnapshotDb;
 
 extern bool fAssetIndex;
+extern bool fAddressIndex;
+extern bool fSpentIndex;
+extern bool fTimestampIndex;
 
 CAssetsCache* GetCurrentAssetCache();
 
