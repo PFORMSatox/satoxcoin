@@ -12,7 +12,7 @@ on:
 jobs:
 
   linux-build:
-    name: 'Linux Release Build'
+    name: 'Linux x86_64'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -28,13 +28,7 @@ jobs:
 
       - name: Configure + Build
         run: |
-          cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_IPC=OFF \
-            -DBUILD_SATOXCOIN_CLI=ON \
-            -DBUILD_SATOXCOIN_TX=ON \
-            -DBUILD_SATOXCOIN_UTIL=ON \
-            -DBUILD_SATOXCOIN_WALLET=ON
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_IPC=OFF
           cmake --build build -j$(nproc)
 
       - name: Run unit tests
@@ -53,9 +47,75 @@ jobs:
           name: satoxcoin-linux-x86_64
           path: satoxcoin-*-x86_64-linux.tar.gz
 
+  macos-build:
+    name: 'macOS Universal'
+    runs-on: macos-14
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install cmake boost libevent sqlite
+
+      - name: Configure + Build
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_IPC=OFF \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake --build build -j$(sysctl -n hw.ncpu)
+
+      - name: Package
+        run: |
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+          cd build
+          tar czf ../satoxcoin-${VERSION}-macos-universal.tar.gz \
+            bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: satoxcoin-macos-universal
+          path: satoxcoin-*-macos-universal.tar.gz
+
+  windows-build:
+    name: 'Windows x86_64'
+    runs-on: windows-2022
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (vcpkg)
+        run: |
+          vcpkg integrate install
+          vcpkg install boost libevent sqlite3 --triplet x64-windows
+
+      - name: Configure + Build
+        run: |
+          cmake -B build \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-windows \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_IPC=OFF
+          cmake --build build --config Release -j 4
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $VERSION = "${{ github.ref_name }}" -replace '^v',''
+          Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe -DestinationPath "satoxcoin-${VERSION}-win64.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: satoxcoin-win64
+          path: satoxcoin-*-win64.zip
+
   create-release:
     name: 'Create GitHub Release'
-    needs: linux-build
+    needs: [linux-build, macos-build, windows-build]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -63,7 +123,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
@@ -87,9 +147,17 @@ jobs:
             - 55 mainnet checkpoints
 
             ### Downloads
-            - `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` — Linux x86_64
+
+            | Platform | File |
+            |----------|------|
+            | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` |
+            | macOS Universal | `satoxcoin-${{ github.ref_name }}-macos-universal.tar.gz` |
+            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` |
 
             See [doc/build-*.md](doc/build-*.md) for build instructions.
             See [doc/security/audit/cve-audit.md](doc/security/audit/cve-audit.md) for the full CVE audit.
-          files: artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
+          files: |
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-macos-universal.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-win64.zip
           draft: false
