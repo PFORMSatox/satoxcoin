@@ -2,19 +2,34 @@
 
 ## Supported Versions
 
-See our website for versions of Bitcoin Core that are currently supported with
-security updates: https://bitcoincore.org/en/lifecycle/#schedule
+| Version | Supported |
+|---------|-----------|
+| 4.0.x (BTC 31.1 rebase) | ✅ Active |
+| 3.0.x | ⚠️ Maintenance only — upgrade to 4.0 recommended |
+| 2.x | ❌ Not supported |
 
 ## Reporting a Vulnerability
 
-To report security issues send an email to security@bitcoincore.org (not for support).
+Please report security issues **privately** — do **not** open a public GitHub issue.
 
-The following keys may be used to communicate sensitive information to developers:
+To report a vulnerability, use one of these private channels:
 
-| Name | Fingerprint |
-|------|-------------|
-| Pieter Wuille | 133E AC17 9436 F14A 5CF1  B794 860F EB80 4E66 9320 |
-| Michael Ford | E777 299F C265 DD04 7930  70EB 944D 35F9 AC3D B76A |
-| Ava Chow | 1528 1230 0785 C964 44D3  334D 1756 5732 E08E 5E41 |
+- **Discord DM:** Message the Satoxcoin Core team on our [Discord](https://discord.com/invite/GFZYFuuHVq) DM a core dev)
 
-You can import a key by running the following command with that individual’s fingerprint: `gpg --keyserver hkps://keys.openpgp.org --recv-keys "<fingerprint>"` Ensure that you put quotes around fingerprints containing spaces.
+Please include:
+- Description of the vulnerability
+- Steps to reproduce (if applicable)
+- Potential impact
+- Suggested fix (if you have one)
+
+We will respond within 72 hours and work with you to coordinate disclosure.
+
+## Security Fixes in 4.0
+
+The 4.0 rebase (BTC 31.1 base) includes fixes for all known CVEs through v31.1:
+
+- **KAWPOW hardening**: mix_hash forgery, nHeight forgery, epoch-DoS
+- **Asset system hardening**: ConnectBlock/DisconnectBlock non-fatal asset failures, reissue overflow, flush corruption
+- **BTC 31.1 base**: 16 CVEs natively fixed including script interpreter UAF, compact block stall, headers-spam OOM, log flood DoS, and more
+
+See `doc/security/audit/cve-audit.md` for the full CVE audit.
