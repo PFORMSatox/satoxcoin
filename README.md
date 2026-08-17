@@ -1,6 +1,5 @@
 <div align="center">
 
-<img src="doc/assets/satoxcoin-banner.svg" alt="Satoxcoin" title="Satoxcoin - Play2Earn Blockchain" width="800">
 
 <br>
 
