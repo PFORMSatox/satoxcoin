@@ -1,140 +1,111 @@
-v31.1 Release Notes
-===================
+Satoxcoin Core version 4.0.1 is now available from:
 
-Bitcoin Core version 31.1 is now available from:
+  <https://github.com/PFORMSatox/satoxcoin/releases/tag/v4.0.1>
 
-  <https://bitcoincore.org/bin/bitcoin-core-31.1/>
-
-This release includes new features, various bug fixes and performance
-improvements, as well as updated translations.
+This is the first release of Satoxcoin Core 4.0, a major rebase from Bitcoin
+Core 0.21 (Ravencoin 4.6.1 base) to **Bitcoin Core 31.1**.
 
 Please report bugs using the issue tracker at GitHub:
 
-  <https://github.com/bitcoin/bitcoin/issues>
-
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
+  <https://github.com/PFORMSatox/satoxcoin/issues>
 
 How to Upgrade
 ==============
 
 If you are running an older version, shut it down. Wait until it has completely
 shut down (which might take a few minutes in some cases), then run the installer
-(on Windows) or just copy over `/Applications/Bitcoin-Qt` (on macOS) or
-`bitcoind`/`bitcoin-qt` (on Linux).
+(on Windows) or just copy over `satoxcoind`/`satoxcoin-qt` (on Linux/macOS).
 
-Upgrading directly from a version of Bitcoin Core that has reached its EOL is
-possible, but it might take some time if the data directory needs to be
-migrated. Old wallet versions of Bitcoin Core are generally supported.
+Upgrading directly from Satoxcoin Core 3.x is supported. The data directory
+will be migrated on first run.
 
 Compatibility
 ==============
 
-Bitcoin Core is supported and tested on the following operating systems or
-newer: Linux Kernel 3.17, macOS 14, and Windows 10 (version 1903). Bitcoin Core
-should also work on most other Unix-like systems but is not as frequently tested
-on them. It is not recommended to use Bitcoin Core on unsupported systems.
+Satoxcoin Core is supported and tested on the following operating systems:
+Ubuntu 22.04+, macOS 14+, and Windows 10+.
 
-Notable changes
+Notable Changes
 ===============
 
-### PrivateBroadcast
+### Bitcoin Core 31.1 Security Base
 
-This release fixes an ip address leak when using the -privatebroadcast feature.
-Under certain circumstances connections were being made over clearnet rather than
-the enabled privacy network.
+Satoxcoin 4.0 is rebased onto Bitcoin Core 31.1, inheriting 16 CVE fixes:
 
+- CVE-2024-52911 through CVE-2025-54605
+- Fixes across validation, P2P, wallet, and crypto subsystems
 
-### Validation
+### Build System Modernization
 
-- #35209 validation: correct lifetime of precomputed tx data
-- #35465 coins: compact chainstate regularly
+- Migrated from autotools to **CMake** (minimum 3.20)
+- Updated to **C++17** standard
+- Faster compilation with Ninja support
 
-### Leveldb
+### KAWPOW Security Hardening
 
-- #61(bitcoin-core/leveldb): Disable seek compaction
+- Fixed mix_hash forgery vulnerability
+- Fixed nHeight forgery vulnerability
+- Fixed forged-epoch DoS vector
+- Fixed DAG-context race condition
+- Fixed index-load PoW gap
 
-### P2P
+### Asset System Hardening
 
-- #35032 net_processing: don't modify addrman for private broadcast connections
-- #35410 net: use the proxy if overriden when doing v2->v1 reconnections
+- 6 critical/high security fixes in ConnectBlock/DisconnectBlock
+- Non-fatal error handling for asset operations
+- Reissue overflow protection
+- Flush corruption prevention
 
-### Wallet
+### Full Asset Index System
 
-- #35227 wallet: check the final BDB page LSN during migration
-- #35228 wallet: use outpoint when estimating input size
+- Address index (balances, history)
+- Spent index (output tracking)
+- Timestamp index (time-based queries)
+- 7 new RPCs: `getassetindexinfo`, `getassetindexbalance`,
+  `getassetindexhistory`, `getassetindexspent`, `getassetindextimestamp`,
+  `getassetindexsummary`, `getassetindexblock`
 
-### Musig
+### HIP2 8MB Blocks
 
-- #35316 musig: Reject empty pubkey list in GetMuSig2KeyAggCache
+- Satoxcoin-specific block size limit of 8MB
+- Enabled via HIP2 proposal
 
-### Build
+### Mainnet Checkpoints
 
-- #34228 depends: Unset SOURCE_DATE_EPOCH in gen_id script
+- 55 checkpoints added (height 0 through 1,865,353)
+- Full chain hardening against deep reorgs
 
-### Test
+### CI/CD Improvements
 
-- #34425 test: Fix all races after a socket is closed gracefully
-- #34863 test: Clean shutdown in Socks5Server
-- #34991 test: fix feature_index_prune.py bug when using --usecli
-- #35080 test: Add missing self.options.timeout_factor scale in tool_bitcoin_chainstate.py
-- #35218 test: fix P2SH script in coins cache fuzz target
-- #35279 psbt, test: remove address type restrictions in test
+- GitHub Actions release workflow (Linux, macOS, Windows, Docker)
+- Dependabot for automated dependency updates
+- Docker image published to `ghcr.io`
 
-### Fuzz
+Known Issues
+============
 
-- #35289 fuzz: Fix timeout in txorphan
+- Asset overflow BIP9 soft-fork is prepared but activation is deferred
+  until the 4.0 line is verified and running stable
+- Qt wallet branding updated; some legacy icons may appear on first run
 
-### Util
+Upgrading from 3.x
+===================
 
-- #35384 util: Check write failures before renaming settings.json
+If upgrading from Satoxcoin Core 3.x:
 
-### Docs
+1. Shut down the old node completely
+2. Replace binaries with the 4.0.1 versions
+3. Start the node — the data directory will be migrated automatically
+4. Allow the node to reindex if prompted (this may take some time)
 
-- #35283 doc: mention -DWITH_ZMQ=ON in BSD build guides
-
-### CI
-
-- #35202 ci: restore sockets in i686, no IPC job
-- #35230 ci: Move --usecli --extended from i386 task to alpine task
-- #35348 ci: switch to GitHub cache for all runners
-- #35378 ci: switch runners from cirrus to warpbuild
-- #35408 ci: 35378 followups
-- #35430 ci: use warp caching on warp runners
-- #35447 ci: use warpbuild cache for docker buildkit cache
-
-### Misc
-
-- #35044 contrib: Fix NameError in signet miner gbt()
-- #35175 multi_index: fix compilation failure with boost >= 1.91
-- #34953 crypto: disable ASan instrumentation of SSE4 SHA256 for GCC
+The new SQLite wallet format will be created on first run. BDB wallets
+from 3.x are automatically migrated.
 
 Credits
 =======
 
-Thanks to everyone who directly contributed to this release:
+Thanks to everyone who contributed to Satoxcoin Core 4.0.1:
 
-- andrewtoth
-- Cory Fields
-- Crypt-iQ
-- darosior
-- deadmanoz
-- fanquake
-- Greg Sanders
-- Hennadii Stepanov
-- junbyjun1238
-- Lőrinc
-- MarcoFalke
-- marcofleon
-- nervana21
-- optout21
-- Pol Espinasa
-- rkrux
-- Shrey
-- Torkel Rogstad
-- Vasil Dimov
-- willcl-ark
-
-As well as to everyone that helped with translations on
-[Transifex](https://explore.transifex.com/bitcoin/bitcoin/).
+- Satoxcoin Core developers
+- Bitcoin Core developers (upstream base)
+- Ravencoin Core developers (asset system lineage)
