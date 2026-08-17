@@ -1498,7 +1498,8 @@ bool CTransaction::VerifyNewRestrictedAsset(std::string& strError) const {
         return false;
     }
 
-    // TODO is verifier string valid check, this happen automatically when processing the nullasset tx outputs
+    // Verifier string validity is checked during null asset output processing in ConnectBlock
+    // (ContextualCheckVerifierString), not here in the non-contextual check.
 
     // Loop through all of the vouts and make sure only the expected asset creations are taking place
     int nTransfers = 0;
@@ -4965,7 +4966,9 @@ bool CheckReissueAsset(const CReissueAsset& asset, std::string& strError)
     IsAssetNameValid(asset.strName, type);
 
     if (type == AssetType::RESTRICTED) {
-        // TODO Add checks for restricted asset if we can come up with any
+        // Restricted asset reissue validation is handled in ContextualCheckReissueAsset,
+        // which performs verifier string validation and address restriction checks against
+        // chain state. No additional non-contextual checks needed here.
     }
 
     return true;
@@ -5045,10 +5048,9 @@ bool ContextualCheckReissueAsset(CAssetsCache* assetCache, const CReissueAsset& 
                     if (!ContextualCheckVerifierString(assetCache, current_verifier.verifier_string, strAddress, strError))
                         return false;
                 } else {
-                    // This should happen, but if it does. The wallet needs to shutdown,
-                    // TODO, remove this after restricted assets have been tested in testnet for some time, and this hasn't happened yet. It this has happened. Investigation is required by the dev team
-                    LogError("%s : failed to get verifier string from a restricted asset, this shouldn't happen, database is out of sync. Reindex required. Please report this is to development team asset name: %s, txhash : %s",__func__, reissue_asset.strName, tx.GetHash().GetHex());;
-                    strError = "failed to get verifier string from a restricted asset, database is out of sync. Reindex required. Please report this is to development team";
+                    // Database inconsistency — verifier string should always exist for restricted assets
+                    LogError("%s : failed to get verifier string from a restricted asset, this shouldn't happen, database is out of sync. Reindex required. asset name: %s, txhash : %s",__func__, reissue_asset.strName, tx.GetHash().GetHex());
+                    strError = "failed to get verifier string from a restricted asset, database is out of sync. Reindex required";
                     return false;
                 }
             } else {
