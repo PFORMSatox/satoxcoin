@@ -25,24 +25,6 @@
 
 **Satoxcoin ($SATOX)** is a PoW blockchain with native asset support, designed for Play2Earn gaming. Built on Bitcoin Core 31.1 with KAWPOW consensus, it provides full Ravencoin-compatible asset issuance, transfer, and management while maintaining the security guarantees of the modern Bitcoin codebase.
 
-## Lineage
-
-```
-Bitcoin Core (0.15)
-    └── Ravencoin (v4.6.1 / develop branch)
-          └── Satoxcoin (3.0.0-rebase)
-                └── Satoxcoin 4.0 (rebase to Bitcoin Core 31.1)
-```
-
-| Base | Version | What was taken |
-|------|---------|----------------|
-| **Bitcoin Core** | 31.1 | Consensus kernel, C++17, CMake build, security base, UTXO model, script engine, mempool |
-| **Ravencoin** (develop) | 4.6.1 | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, qualifiers, HIP2 8MB blocks |
-| **Satoxcoin 3.0.0** | 3.0.0-rebase | KAWPOW security fixes, asset-overflow BIP9, community autonomous fund (10% P2E), satoxcoin branding, 55 mainnet checkpoints |
-| **Satoxcoin 4.0** | 4.0 | All above + BTC 31.1 security (16 CVEs), C++17, CMake, modernized asset DB, SQLite wallet, address/spent/timestamp indexes |
-
----
-
 ## What is Satoxcoin Core 4.0?
 
 Satoxcoin Core 4.0 is a major rebase from Bitcoin Core 0.21 (Ravencoin 4.6.1 base) to **Bitcoin Core 31.1**, bringing all BTC security fixes while preserving the complete Satoxcoin asset system, KAWPOW consensus, and community fund.
@@ -83,9 +65,9 @@ Satoxcoin Core 4.0 is a major rebase from Bitcoin Core 0.21 (Ravencoin 4.6.1 bas
 
 ## What Makes Satoxcoin Unique?
 
-- ✅ First P2E without the need for dedicated servers
-- ✅ First P2E that works on 1160+ games on STEAM
-- ✅ First P2E that works with gaming consoles (XBOX, STEAMDECK)
+- First P2E without the need for dedicated servers
+- First P2E that works on 1160+ games on STEAM
+- First P2E that works with gaming consoles (XBOX, STEAMDECK)
 
 ---
 
@@ -120,25 +102,21 @@ See [doc/build-*.md](doc/build-*.md) for platform-specific build instructions.
 
 ---
 
-## Wallets
+## Lineage
 
-| Wallet | Platform | Link |
-|--------|----------|------|
-| Core Wallet | Desktop (Win/Mac/Linux) | [GitHub Releases](https://github.com/PFORMSatox/satoxcoin/releases) |
-| Vidulum | Android | [Play Store](https://play.google.com/store/apps/details?id=com.vidulumwallet.app) |
-| BeeHive | Desktop | [beehivewallet.link](https://beehivewallet.link/) |
-| BeeHive | Android | [Play Store](https://play.google.com/store/apps/details?id=com.beehive.beehivemulti_coinwallet) |
-| Paper Wallet | Web | [walletgenerator](https://walletgenerator-njizr0am7-nao20010128nao.vercel.app) |
+```
+Bitcoin Core (0.15)
+    └── Ravencoin (v4.6.1 / develop branch)
+          └── Satoxcoin (3.0.0-rebase)
+                └── Satoxcoin 4.0 (rebase to Bitcoin Core 31.1)
+```
 
----
-
-## Links
-
-- **Homepage:** https://www.satoverse.io
-- **Explorer:** https://xplore.satoverse.io
-- **Discord:** https://discord.com/invite/GFZYFuuHVq
-- **Documentation:** https://docs.satoverse.io
-- **GitHub:** https://github.com/PFORMSatox/satoxcoin
+| Base | Version | What was taken |
+|------|---------|----------------|
+| **Bitcoin Core** | 31.1 | Consensus kernel, C++17, CMake build, security base, UTXO model, script engine, mempool |
+| **Ravencoin** (develop) | 4.6.1 | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, HIP2 8MB blocks |
+| **Satoxcoin 3.0.0** | 3.0.0-rebase | KAWPOW security fixes, asset-overflow BIP9, community autonomous fund (10% P2E), satoxcoin branding, 55 mainnet checkpoints |
+| **Satoxcoin 4.0** | 4.0 | All above + BTC 31.1 security (16 CVEs), C++17, CMake, modernized asset DB, SQLite wallet, address/spent/timestamp indexes |
 
 ---
 
@@ -149,3 +127,10 @@ Satoxcoin Core is released under the terms of the MIT license. See [COPYING](COP
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow.
+
+## Copyright
+
+Copyright (c) 2013-2022 The Bitcoin Core developers.
+Copyright (c) 2014-2018 The Raven Core developers.
+Copyright (c) 2020-2021 The Satoxcoin Core developers.
+Copyright (c) 2024-present The Satoxcoin Core developers (4.0 rebase).
