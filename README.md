@@ -157,10 +157,9 @@ Satoxcoin Core is released under the [MIT License](COPYING).
 
 ## Copyright
 
-Copyright (c) 2013-2022 The Bitcoin Core developers.
-Copyright (c) 2014-2018 The Raven Core developers.
-Copyright (c) 2020-2021 The Satoxcoin Core developers.
-Copyright (c) 2024-present The Satoxcoin Core developers (4.0 rebase).
+Copyright (c) 2013-2022 The Bitcoin Core developers
+Copyright (c) 2014-2018 The Raven Core developers
+Copyright (c) 2022-present The Satoxcoin Core developers
 
 ---
 
