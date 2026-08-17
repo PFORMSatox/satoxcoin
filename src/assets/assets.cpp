@@ -778,22 +778,14 @@ bool TransferAssetFromScript(const CScript& scriptPubKey, CAssetTransfer& assetT
 
     std::vector<unsigned char> vchTransferAsset;
 
-    if (AreTransferScriptsSizeDeployed()) {
-        // Before kawpow activation we used the hardcoded 31 to find the data
-        // This created a bug where large transfers scripts would fail to serialize.
-        // This fixes that issue (https://github.com/RavenProject/Ravencoin/issues/752)
-        // TODO, after the kawpow fork goes active, we should be able to remove this if/else statement and just use this line.
-        vchTransferAsset.insert(vchTransferAsset.end(), scriptPubKey.begin() + nStartingIndex, scriptPubKey.end());
-    } else {
-        vchTransferAsset.insert(vchTransferAsset.end(), scriptPubKey.begin() + 31, scriptPubKey.end());
-    }
+    vchTransferAsset.insert(vchTransferAsset.end(), scriptPubKey.begin() + nStartingIndex, scriptPubKey.end());
 
     DataStream ssAsset{std::span{vchTransferAsset}};
 
     try {
         ssAsset >> assetTransfer;
     } catch(std::exception& e) {
-        LogError("Failed to get the transfer asset from the stream: %s", e.what());;
+        LogError("Failed to get the transfer asset from the stream: %s", e.what());
         return false;
     }
 
@@ -818,7 +810,7 @@ bool AssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew, std::stri
     try {
         ssAsset >> assetNew;
     } catch(std::exception& e) {
-        LogError("Failed to get the asset from the stream: %s", e.what());;
+        LogError("Failed to get the asset from the stream: %s", e.what());
         return false;
     }
 
@@ -843,7 +835,7 @@ bool MsgChannelAssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew,
     try {
         ssAsset >> assetNew;
     } catch(std::exception& e) {
-        LogError("Failed to get the msg channel asset from the stream: %s", e.what());;
+        LogError("Failed to get the msg channel asset from the stream: %s", e.what());
         return false;
     }
 
@@ -868,7 +860,7 @@ bool QualifierAssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew, 
     try {
         ssAsset >> assetNew;
     } catch(std::exception& e) {
-        LogError("Failed to get the qualifier asset from the stream: %s", e.what());;
+        LogError("Failed to get the qualifier asset from the stream: %s", e.what());
         return false;
     }
 
@@ -893,7 +885,7 @@ bool RestrictedAssetFromScript(const CScript& scriptPubKey, CNewAsset& assetNew,
     try {
         ssAsset >> assetNew;
     } catch(std::exception& e) {
-        LogError("Failed to get the restricted asset from the stream: %s", e.what());;
+        LogError("Failed to get the restricted asset from the stream: %s", e.what());
         return false;
     }
 
@@ -918,7 +910,7 @@ bool OwnerAssetFromScript(const CScript& scriptPubKey, std::string& assetName, s
     try {
         ssOwner >> assetName;
     } catch(std::exception& e) {
-        LogError("Failed to get the owner asset from the stream: %s", e.what());;
+        LogError("Failed to get the owner asset from the stream: %s", e.what());
         return false;
     }
 
@@ -943,7 +935,7 @@ bool ReissueAssetFromScript(const CScript& scriptPubKey, CReissueAsset& reissue,
     try {
         ssReissue >> reissue;
     } catch(std::exception& e) {
-        LogError("Failed to get the reissue asset from the stream: %s", e.what());;
+        LogError("Failed to get the reissue asset from the stream: %s", e.what());
         return false;
     }
 
@@ -969,7 +961,7 @@ bool AssetNullDataFromScript(const CScript& scriptPubKey, CNullAssetTxData& asse
     try {
         ssData >> assetData;
     } catch(std::exception& e) {
-        LogError("Failed to get the null asset tx data from the stream: %s", e.what());;
+        LogError("Failed to get the null asset tx data from the stream: %s", e.what());
         return false;
     }
 
@@ -989,7 +981,7 @@ bool GlobalAssetNullDataFromScript(const CScript& scriptPubKey, CNullAssetTxData
     try {
         ssData >> assetData;
     } catch(std::exception& e) {
-        LogError("Failed to get the global restriction asset tx data from the stream: %s", e.what());;
+        LogError("Failed to get the global restriction asset tx data from the stream: %s", e.what());
         return false;
     }
 
@@ -1009,7 +1001,7 @@ bool AssetNullVerifierDataFromScript(const CScript& scriptPubKey, CNullAssetTxVe
     try {
         ssData >> verifierData;
     } catch(std::exception& e) {
-        LogError("Failed to get the verifier string from the stream: %s", e.what());;
+        LogError("Failed to get the verifier string from the stream: %s", e.what());
         return false;
     }
 
@@ -1174,7 +1166,7 @@ bool CTransaction::VerifyNewAsset(std::string& strError) const {
     std::string address;
     if (!AssetFromScript(vout[vout.size() - 1].scriptPubKey, asset, address)) {
         strError = "bad-txns-issue-serialzation-failed";
-        LogError("%s : Failed to get new asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;;
+        LogError("%s : Failed to get new asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;
     }
 
     AssetType assetType;
@@ -1277,7 +1269,7 @@ bool CTransaction::VerifyNewMsgChannelAsset(std::string &strError) const
     std::string address;
     if (!MsgChannelAssetFromScript(vout[vout.size() - 1].scriptPubKey, asset, address)) {
         strError = "bad-txns-issue-msgchannel-serialzation-failed";
-        LogError("%s : Failed to get new msgchannel asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;;
+        LogError("%s : Failed to get new msgchannel asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;
     }
 
     AssetType assetType;
@@ -1364,7 +1356,7 @@ bool CTransaction::VerifyNewQualfierAsset(std::string &strError) const
     std::string address;
     if (!QualifierAssetFromScript(vout[vout.size() - 1].scriptPubKey, asset, address)) {
         strError = "bad-txns-issue-qualifier-serialzation-failed";
-        LogError("%s : Failed to get new qualifier asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;;
+        LogError("%s : Failed to get new qualifier asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;
     }
 
     AssetType assetType;
@@ -1452,7 +1444,7 @@ bool CTransaction::VerifyNewRestrictedAsset(std::string& strError) const {
     std::string address;
     if (!RestrictedAssetFromScript(vout[vout.size() - 1].scriptPubKey, asset, address)) {
         strError = "bad-txns-issue-restricted-serialization-failed";
-        LogError("%s : Failed to get new restricted asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;;
+        LogError("%s : Failed to get new restricted asset from transaction: %s", __func__, this->GetHash().GetHex()); return false;
     }
 
     AssetType assetType;
@@ -2423,7 +2415,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
 
             if (!prestricteddb->EraseVerifier(newAsset.asset.strName)) {
@@ -2444,7 +2436,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2457,7 +2449,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
 
             if (fAssetIndex) {
@@ -2475,7 +2467,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2493,7 +2485,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                 }
 
                 if (dirty) {
-                    LogError("%s : %s", __func__, message); return false;;
+                    LogError("%s : %s", __func__, message); return false;
                 }
             }
 
@@ -2514,7 +2506,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                     }
 
                     if (dirty) {
-                        LogError("%s : %s", __func__, message); return false;;
+                        LogError("%s : %s", __func__, message); return false;
                     }
                 }
             }
@@ -2538,7 +2530,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                         }
 
                         if (dirty) {
-                            LogError("%s : %s", __func__, message); return false;;
+                            LogError("%s : %s", __func__, message); return false;
                         }
                     } else {
                         if (!passetsdb->WriteAssetAddressQuantity(undoTransfer.transfer.strName,
@@ -2556,7 +2548,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                         }
 
                         if (dirty) {
-                            LogError("%s : %s", __func__, message); return false;;
+                            LogError("%s : %s", __func__, message); return false;
                         }
                     }
                 }
@@ -2581,7 +2573,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                     }
 
                     if (dirty) {
-                        LogError("%s : %s", __func__, message); return false;;
+                        LogError("%s : %s", __func__, message); return false;
                     }
                 }
             }
@@ -2597,7 +2589,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                 }
 
                 if (dirty) {
-                    LogError("%s : %s", __func__, message); return false;;
+                    LogError("%s : %s", __func__, message); return false;
                 }
 
                 passetsCache->Erase(reissue_name);
@@ -2618,7 +2610,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                         }
 
                         if (dirty) {
-                            LogError("%s, %s", __func__, message); return false;;
+                            LogError("%s, %s", __func__, message); return false;
                         }
                     }
                 }
@@ -2672,7 +2664,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                 }
 
                 if (dirty) {
-                    LogError("%s : %s", __func__, message); return false;;
+                    LogError("%s : %s", __func__, message); return false;
                 }
 
                 passetsCache->Erase(reissue_name);
@@ -2688,7 +2680,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
 
             passetsVerifierCache->Erase(assetName);
@@ -2712,7 +2704,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
 
             passetsVerifierCache->Erase(assetName);
@@ -2750,7 +2742,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2786,7 +2778,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2808,7 +2800,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2830,7 +2822,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2852,7 +2844,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2874,7 +2866,7 @@ bool CAssetsCache::DumpCacheToDatabase()
             }
 
             if (dirty) {
-                LogError("%s : %s", __func__, message); return false;;
+                LogError("%s : %s", __func__, message); return false;
             }
         }
 
@@ -2896,7 +2888,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                     }
 
                     if (dirty) {
-                        LogError("%s : %s", __func__, message); return false;;
+                        LogError("%s : %s", __func__, message); return false;
                     }
                 }
             }
@@ -2918,7 +2910,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                         }
 
                         if (dirty) {
-                            LogError("%s : %s", __func__, message); return false;;
+                            LogError("%s : %s", __func__, message); return false;
                         }
                     } else {
                         if (!passetsdb->WriteAssetAddressQuantity(spentAsset.assetName, spentAsset.address,
@@ -2934,7 +2926,7 @@ bool CAssetsCache::DumpCacheToDatabase()
                         }
 
                         if (dirty) {
-                            LogError("%s : %s", __func__, message); return false;;
+                            LogError("%s : %s", __func__, message); return false;
                         }
                     }
                 }
@@ -2945,7 +2937,7 @@ bool CAssetsCache::DumpCacheToDatabase()
 
         return true;
     } catch (const std::runtime_error& e) {
-        LogError("%s : %s ", __func__, std::string("System error while flushing assets: ") + e.what()); return false;;
+        LogError("%s : %s ", __func__, std::string("System error while flushing assets: ") + e.what()); return false;
     }
 }
 
@@ -3131,7 +3123,7 @@ bool CAssetsCache::Flush()
         return true;
 
     } catch (const std::runtime_error& e) {
-        LogError("%s : %s ", __func__, std::string("System error while flushing assets: ") + e.what()); return false;;
+        LogError("%s : %s ", __func__, std::string("System error while flushing assets: ") + e.what()); return false;
     }
 }
 
@@ -3191,7 +3183,15 @@ size_t CAssetsCache::GetCacheSize() const
     size += (80 + 40 + 32 + 32 + sizeof(int)) * setNewReissueToAdd.size(); // CReissueAsset, Address, COutPoint, Block hash, int
     size += (80 + 40 + 32 + 32 + sizeof(int)) * setNewReissueToRemove.size(); // CReissueAsset, Address, COutPoint, Block hash, int
 
-    // TODO add the qualfier, and restricted sets into this calculation
+    // Qualifier and restricted sets
+    size += (72) * setNewQualifierAddressToAdd.size();  // Asset Name, Address
+    size += (72) * setNewQualifierAddressToRemove.size();
+    size += (72) * setNewRestrictedAddressToAdd.size(); // Asset Name, Address
+    size += (72) * setNewRestrictedAddressToRemove.size();
+    size += (40) * setNewRestrictedGlobalToAdd.size();  // Asset Name, RestrictedType
+    size += (40) * setNewRestrictedGlobalToRemove.size();
+    size += (72) * setNewRestrictedVerifierToAdd.size(); // Asset Name, Verifier
+    size += (72) * setNewRestrictedVerifierToRemove.size();
 
     return size;
 }
@@ -4462,7 +4462,7 @@ bool CheckVerifierString(const std::string& verifier, std::set<std::string>& set
             }
         }
         strError = "bad-txns-null-verifier-failed-syntax-check";
-        LogError("%s : Verifier string failed to resolve. Please check string syntax - exception: %s\n", __func__, run_error.what()); return false;;
+        LogError("%s : Verifier string failed to resolve. Please check string syntax - exception: %s\n", __func__, run_error.what()); return false;
     }
 }
 
@@ -4711,7 +4711,7 @@ bool ContextualCheckVerifierString(CAssetsCache* cache, const std::string& verif
                 }
             }
 
-            LogError("%s : The address %s failed to verify against: %s. Is null %d", __func__, check_address, verifier, errorReport ? 0 : 1);;
+            LogError("%s : The address %s failed to verify against: %s. Is null %d", __func__, check_address, verifier, errorReport ? 0 : 1);
             strError = "bad-txns-null-verifier-address-failed-verification";
         }
         return ret;
@@ -4728,7 +4728,7 @@ bool ContextualCheckVerifierString(CAssetsCache* cache, const std::string& verif
         }
 
         strError = "bad-txns-null-verifier-failed-contexual-syntax-check";
-        LogError("%s : Verifier string failed to resolve. Please check string syntax - exception: %s\n", __func__, run_error.what()); return false;;
+        LogError("%s : Verifier string failed to resolve. Please check string syntax - exception: %s\n", __func__, run_error.what()); return false;
     }
 }
 
@@ -4792,7 +4792,7 @@ bool ContextualCheckTransferAsset(CAssetsCache* assetCache, const CAssetTransfer
 
         std::string strError = "";
         if (!transfer.ContextualCheckAgainstVerifyString(assetCache, address, strError)) {
-            LogError("%s : %s", __func__, strError);;
+            LogError("%s : %s", __func__, strError);
             return false;
         }
     }
@@ -5159,7 +5159,7 @@ std::string GetUserErrorString(const ErrorReport& report)
         case ErrorReport::ErrorType::EmptySubExpression: return _("The verifier string has two operators without a tag between them");
         case ErrorReport::ErrorType::UnknownOperator: return _("The symbol: '") + report.vecUserData[0] + _("' is not a valid character in the expression: ") + report.vecUserData[1];
         case ErrorReport::ErrorType::ParenthesisParity: return _("Every '(' must have a corresponding ')' in the expression: ") + report.vecUserData[0];
-        case ErrorReport::ErrorType::VariableNotFound: return _("Variable is not allow in the expression: '") + report.vecUserData[0] + "'";;
+        case ErrorReport::ErrorType::VariableNotFound: return _("Variable is not allow in the expression: '") + report.vecUserData[0] + "'";
         default:
             return _("Error not set");
     }

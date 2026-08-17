@@ -1,11 +1,12 @@
 .git
-build*/
-depends/work
-depends/built
+.build*/
+depends/
 doc/
 test/
 contrib/
 ci/
+.github/
+src/qt/
 *.md
 !README.md
 *.log
@@ -13,6 +14,8 @@ ci/
 *.a
 *.so
 *.pyc
+*.tar.gz
+*.zip
 autom4te.cache/
 config.log
 config.status
@@ -20,3 +23,8 @@ Makefile
 Makefile.in
 aclocal.m4
 libtool
+flake.nix
+flake.lock
+result/
+.opencode/
+.lean-ctx/

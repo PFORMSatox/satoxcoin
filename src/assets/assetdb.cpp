@@ -145,7 +145,7 @@ bool CAssetsDB::LoadAssets()
                 if (passetsCache->Size() == (passetsCache->MaxSize() / 2))
                     break;
             } else {
-                LogError("%s: failed to read asset", __func__); return false;;
+                LogError("%s: failed to read asset", __func__); return false;
             }
         } else {
             break;
@@ -169,7 +169,7 @@ bool CAssetsDB::LoadAssets()
                         break;
                     pcursor3->Next();
                 } else {
-                    LogError("%s: failed to read my address quantity from database", __func__); return false;;
+                    LogError("%s: failed to read my address quantity from database", __func__); return false;
                 }
             } else {
                 break;
@@ -235,7 +235,7 @@ bool CAssetsDB::AssetDir(std::vector<CDatabasedAssetData>& assets, const std::st
                         assets.push_back(data);
                         loaded += 1;
                     } else {
-                        LogError("%s: failed to read asset", __func__); return false;;
+                        LogError("%s: failed to read asset", __func__); return false;
                     }
                 }
             }
@@ -304,7 +304,7 @@ bool CAssetsDB::AddressDir(std::vector<std::pair<std::string, CAmount> >& vecAss
                         vecAssetAmount.emplace_back(std::make_pair(key.second.second, amount));
                         loaded += 1;
                     } else {
-                        LogError("%s: failed to Address Asset Quanity", __func__); return false;;
+                        LogError("%s: failed to Address Asset Quanity", __func__); return false;
                     }
                 }
             pcursor->Next();
@@ -372,7 +372,7 @@ bool CAssetsDB::AssetAddressDir(std::vector<std::pair<std::string, CAmount> >& v
                     vecAddressAmount.emplace_back(std::make_pair(key.second.second, amount));
                     loaded += 1;
                 } else {
-                    LogError("%s: failed to Asset Address Quanity", __func__); return false;;
+                    LogError("%s: failed to Asset Address Quanity", __func__); return false;
                 }
             }
             pcursor->Next();
