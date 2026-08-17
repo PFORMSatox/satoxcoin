@@ -260,6 +260,7 @@ add_library(satoxcoin_node STATIC EXCLUDE_FROM_ALL
   rpc/fees.cpp
   rpc/mempool.cpp
   rpc/mining.cpp
+  rpc/misc.cpp
   rpc/net.cpp
   rpc/node.cpp
   rpc/output_script.cpp
