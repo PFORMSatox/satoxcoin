@@ -12,11 +12,16 @@
 
 Please report security issues **privately** — do **not** open a public GitHub issue.
 
-To report a vulnerability, use one of these private channels:
+### Primary: GitHub Private Vulnerability Reporting
 
-- **Discord DM:** Message the Satoxcoin Core team on our [Discord](https://discord.com/invite/GFZYFuuHVq) DM a core dev)
+Use [GitHub's private vulnerability reporting](https://github.com/PFORMSatox/satoxcoin/security/advisories/new) to submit a report. This is the preferred channel — reports are private and encrypted.
 
-Please include:
+### Alternative: Discord
+
+DM a Satoxcoin Core team member on our [Discord](https://discord.com/invite/GFZYFuuHVq) (use the `#security-disclosure` channel).
+
+### What to include
+
 - Description of the vulnerability
 - Steps to reproduce (if applicable)
 - Potential impact
