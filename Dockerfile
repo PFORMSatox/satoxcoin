@@ -19,12 +19,16 @@ RUN cmake -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DENABLE_IPC=OFF \
     -DENABLE_WALLET=ON \
- && cmake --build build -j$(nproc) \
- && cmake --build build --target satoxcoind \
- && cmake --build build --target satoxcoin-cli
+ && cmake --build build -j$(nproc)
 
 # ── Runtime stage ────────────────────────────────────────────────────────────
 FROM ubuntu:24.04
+
+LABEL org.opencontainers.image.title="Satoxcoin Core" \
+      org.opencontainers.image.description="Satoxcoin Core daemon (satoxcoind)" \
+      org.opencontainers.image.url="https://github.com/PFORMSatox/satoxcoin" \
+      org.opencontainers.image.source="https://github.com/PFORMSatox/satoxcoin" \
+      org.opencontainers.image.licenses="MIT"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-system1.83.0 libboost-filesystem1.83.0 libboost-thread1.83.0 \
@@ -38,12 +42,16 @@ RUN useradd -r -s /bin/false satoxcoin \
 
 COPY --from=builder /src/build/bin/satoxcoind /usr/local/bin/
 COPY --from=builder /src/build/bin/satoxcoin-cli /usr/local/bin/
+COPY --from=builder /src/build/bin/satoxcoin-tx /usr/local/bin/
+COPY --from=builder /src/build/bin/satoxcoin-wallet /usr/local/bin/
 
 VOLUME ["/var/lib/satoxcoin"]
 EXPOSE 60777/tcp
-EXPOSE 18333/tcp
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD satoxcoin-cli -datadir=/var/lib/satoxcoin getblockchaininfo || exit 1
 
 USER satoxcoin
 
 ENTRYPOINT ["satoxcoind"]
-CMD ["-datadir=/var/lib/satoxcoin", "-printtoconsole", "-onlynet=ipv4"]
+CMD ["--datadir=/var/lib/satoxcoin", "--printtoconsole", "--onlynet=ipv4"]
