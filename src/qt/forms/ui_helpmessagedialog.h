@@ -60,7 +60,7 @@ public:
         sizePolicy.setHeightForWidth(aboutLogo->sizePolicy().hasHeightForWidth());
         aboutLogo->setSizePolicy(sizePolicy);
         aboutLogo->setMaximumSize(QSize(100, 100));
-        aboutLogo->setPixmap(QPixmap(QString::fromUtf8(":/icons/bitcoin")));
+        aboutLogo->setPixmap(QPixmap(QString::fromUtf8(":/icons/satoxcoin")));
         aboutLogo->setScaledContents(true);
         aboutLogo->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
 
