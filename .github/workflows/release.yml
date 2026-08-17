@@ -44,7 +44,7 @@ jobs:
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-linux-x86_64
           path: satoxcoin-*-x86_64-linux.tar.gz
@@ -78,7 +78,7 @@ jobs:
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-macos-universal
           path: satoxcoin-*-macos-universal.tar.gz
@@ -114,7 +114,7 @@ jobs:
           Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe -DestinationPath "satoxcoin-${VERSION}-win64.zip"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-win64
           path: satoxcoin-*-win64.zip
