@@ -165,7 +165,7 @@ jobs:
 
   create-release:
     name: 'Create GitHub Release'
-    needs: [linux-build, macos-build, windows-build]
+    needs: [linux-build]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -201,14 +201,12 @@ jobs:
             | Platform | File |
             |----------|------|
             | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` |
-            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` |
-            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` |
-            | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` |
+            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` (coming soon) |
+            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` (coming soon) |
+            | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` (coming soon) |
 
             See [doc/build-*.md](doc/build-*.md) for build instructions.
             See [doc/security/audit/cve-audit.md](doc/security/audit/cve-audit.md) for the full CVE audit.
           files: |
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
-            artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos.tar.gz
-            artifacts/satoxcoin-*/satoxcoin-*-win64.zip
           draft: false
