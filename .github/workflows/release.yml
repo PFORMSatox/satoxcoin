@@ -50,8 +50,8 @@ jobs:
           path: satoxcoin-*-x86_64-linux.tar.gz
 
   macos-build:
-    name: 'macOS Universal'
-    runs-on: macos-14
+    name: 'macOS x86_64'
+    runs-on: macos-13
     timeout-minutes: 120
     permissions:
       contents: read
@@ -66,22 +66,21 @@ jobs:
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_IPC=OFF \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            -DENABLE_IPC=OFF
           cmake --build build -j$(sysctl -n hw.ncpu)
 
       - name: Package
         run: |
           VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
           cd build
-          tar czf ../satoxcoin-${VERSION}-macos-universal.tar.gz \
+          tar czf ../satoxcoin-${VERSION}-x86_64-macos.tar.gz \
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: satoxcoin-macos-universal
-          path: satoxcoin-*-macos-universal.tar.gz
+          name: satoxcoin-x86_64-macos
+          path: satoxcoin-*-x86_64-macos.tar.gz
 
   windows-build:
     name: 'Windows x86_64'
@@ -96,7 +95,7 @@ jobs:
       - name: Install dependencies (vcpkg)
         run: |
           vcpkg integrate install
-          vcpkg install boost libevent sqlite3 --triplet x64-windows
+          vcpkg install --triplet x64-windows --no-default-features --x-feature=wallet
 
       - name: Configure + Build
         run: |
@@ -151,7 +150,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -199,7 +198,7 @@ jobs:
             | Platform | File |
             |----------|------|
             | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` |
-            | macOS Universal | `satoxcoin-${{ github.ref_name }}-macos-universal.tar.gz` |
+            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` |
             | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` |
             | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` |
 
@@ -207,6 +206,6 @@ jobs:
             See [doc/security/audit/cve-audit.md](doc/security/audit/cve-audit.md) for the full CVE audit.
           files: |
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
-            artifacts/satoxcoin-*/satoxcoin-*-macos-universal.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos.tar.gz
             artifacts/satoxcoin-*/satoxcoin-*-win64.zip
           draft: false
