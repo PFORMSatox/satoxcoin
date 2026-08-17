@@ -50,7 +50,8 @@ static RPCHelpMan getaddresstxids()
             {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "The addresses to get the txids for",
                 {{"address", RPCArg::Type::STR, RPCArg::Optional::NO, ""}}},
         },
-        RPCResult{RPCResult::Type::ARR, "", "list of transaction ids"},
+        RPCResult{RPCResult::Type::ARR, "", "list of transaction ids",
+            {{RPCResult::Type::STR_HEX, "", "txid"}}},
         RPCExamples{
             HelpExampleCli("getaddresstxids", "'{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}'")
             + HelpExampleRpc("getaddresstxids", "{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}"),
@@ -127,7 +128,8 @@ static RPCHelpMan getaddressdeltas()
             {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "The addresses to get the deltas for",
                 {{"address", RPCArg::Type::STR, RPCArg::Optional::NO, ""}}},
         },
-        RPCResult{RPCResult::Type::ARR, "", "list of deltas"},
+        RPCResult{RPCResult::Type::ARR, "", "list of deltas",
+            {{RPCResult::Type::OBJ, "", "delta entry"}}},
         RPCExamples{
             HelpExampleCli("getaddressdeltas", "'{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}'")
             + HelpExampleRpc("getaddressdeltas", "{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}"),
@@ -169,7 +171,8 @@ static RPCHelpMan getaddressutxos()
             {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "The addresses to get the utxos for",
                 {{"address", RPCArg::Type::STR, RPCArg::Optional::NO, ""}}},
         },
-        RPCResult{RPCResult::Type::ARR, "", "list of UTXOs"},
+        RPCResult{RPCResult::Type::ARR, "", "list of UTXOs",
+            {{RPCResult::Type::OBJ, "", "UTXO entry"}}},
         RPCExamples{
             HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}'")
             + HelpExampleRpc("getaddressutxos", "{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}"),
@@ -211,7 +214,8 @@ static RPCHelpMan getaddressmempool()
             {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "The addresses to get the mempool for",
                 {{"address", RPCArg::Type::STR, RPCArg::Optional::NO, ""}}},
         },
-        RPCResult{RPCResult::Type::ARR, "", "list of mempool deltas"},
+        RPCResult{RPCResult::Type::ARR, "", "list of mempool deltas",
+            {{RPCResult::Type::OBJ, "", "mempool delta entry"}}},
         RPCExamples{
             HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}'")
             + HelpExampleRpc("getaddressmempool", "{\"addresses\": [\"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX\"]}"),
@@ -232,7 +236,11 @@ static RPCHelpMan getspentinfo()
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The txid of the transaction"},
             {"index", RPCArg::Type::NUM, RPCArg::Optional::NO, "The output index"},
         },
-        RPCResult{RPCResult::Type::OBJ, "", "object with spent info"},
+        RPCResult{RPCResult::Type::OBJ, "", "object with spent info",
+            {{RPCResult::Type::STR_HEX, "txid", "the transaction id"},
+             {RPCResult::Type::NUM, "input", "the spending input index"},
+             {RPCResult::Type::NUM, "blockheight", "the block height of the transaction"},
+             {RPCResult::Type::STR_HEX, "txhash", "the hash of the spending transaction"}}},
         RPCExamples{
             HelpExampleCli("getspentinfo", "'{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}'")
             + HelpExampleRpc("getspentinfo", "{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}"),
@@ -266,7 +274,8 @@ static RPCHelpMan getblockhashes()
             {"high", RPCArg::Type::NUM, RPCArg::Optional::NO, "The high timestamp"},
             {"low", RPCArg::Type::NUM, RPCArg::Optional::NO, "The low timestamp"},
         },
-        RPCResult{RPCResult::Type::ARR, "", "list of block hashes"},
+        RPCResult{RPCResult::Type::ARR, "", "list of block hashes",
+            {{RPCResult::Type::STR_HEX, "", "block hash"}}},
         RPCExamples{
             HelpExampleCli("getblockhashes", "1231614698 1231024505")
             + HelpExampleRpc("getblockhashes", "1231614698, 1231024505"),
