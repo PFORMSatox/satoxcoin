@@ -23,13 +23,14 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            cmake ninja-build g++ python3 \
+            cmake g++ python3 \
             libboost-dev libevent-dev libsqlite3-dev
 
       - name: Configure + Build
         run: |
-          cmake -B build -G Ninja \
+          cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_IPC=OFF \
             -DBUILD_SATOXCOIN_CLI=ON \
             -DBUILD_SATOXCOIN_TX=ON \
             -DBUILD_SATOXCOIN_UTIL=ON \
