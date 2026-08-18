@@ -205,4 +205,6 @@ jobs:
             See [doc/security/audit/cve-audit.md](doc/security/audit/cve-audit.md) for the full CVE audit.
           files: |
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-win64.zip
           draft: false
