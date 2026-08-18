@@ -1,9 +1,6 @@
 .git
 .build*/
 depends/
-doc/
-test/
-contrib/
 ci/
 .github/
 src/qt/
@@ -23,6 +20,7 @@ Makefile
 Makefile.in
 aclocal.m4
 libtool
+configure
 flake.nix
 flake.lock
 result/

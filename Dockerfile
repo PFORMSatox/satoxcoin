@@ -19,6 +19,7 @@ RUN cmake -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DENABLE_IPC=OFF \
     -DENABLE_WALLET=ON \
+    -DBUILD_TESTS=OFF \
  && cmake --build build -j$(nproc)
 
 # ── Runtime stage ────────────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ LABEL org.opencontainers.image.title="Satoxcoin Core" \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-system1.83.0 libboost-filesystem1.83.0 libboost-thread1.83.0 \
-    libevent-2.1-7 libsqlite3-0 \
+    libevent-2.1-7t64 libsqlite3-0 \
  && rm -rf /var/lib/apt/lists/*
 
 # Create service user

@@ -92,17 +92,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies (vcpkg)
-        run: |
-          vcpkg integrate install
-          vcpkg install --classic --triplet x64-windows boost libevent sqlite3
-
       - name: Configure + Build
+        shell: bash
         run: |
           cmake -B build \
-            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON \
+            -DVCPKG_MANIFEST_FEATURES="wallet" \
             -DENABLE_IPC=OFF
           cmake --build build --config Release -j 4
 
