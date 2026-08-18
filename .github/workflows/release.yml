@@ -34,6 +34,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DENABLE_IPC=OFF \
             -DBUILD_TESTS=OFF \
+            -DBUILD_GUI=ON \
             -DBUILD_TX=ON \
             -DBUILD_WALLET_TOOL=ON
           cmake --build build -j$(nproc)
@@ -44,12 +45,20 @@ jobs:
           cd build
           tar czf ../satoxcoin-${VERSION}-x86_64-linux.tar.gz \
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
+          tar czf ../satoxcoin-${VERSION}-x86_64-linux-qt.tar.gz \
+            bin/satoxcoin-qt
 
-      - name: Upload artifact
+      - name: Upload daemon artifact
         uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-linux-x86_64
           path: satoxcoin-*-x86_64-linux.tar.gz
+
+      - name: Upload Qt artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: satoxcoin-linux-x86_64-qt
+          path: satoxcoin-*-x86_64-linux-qt.tar.gz
 
   macos-build:
     name: 'macOS x86_64'
@@ -65,7 +74,7 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_15.2.app
 
       - name: Install dependencies
-        run: brew install cmake boost libevent sqlite
+        run: brew install cmake boost libevent sqlite qt@6
 
       - name: Configure + Build
         run: |
@@ -73,6 +82,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DENABLE_IPC=OFF \
             -DBUILD_TESTS=OFF \
+            -DBUILD_GUI=ON \
             -DBUILD_TX=ON \
             -DBUILD_WALLET_TOOL=ON
           cmake --build build -j$(sysctl -n hw.ncpu)
@@ -83,12 +93,20 @@ jobs:
           cd build
           tar czf ../satoxcoin-${VERSION}-x86_64-macos.tar.gz \
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
+          tar czf ../satoxcoin-${VERSION}-x86_64-macos-qt.tar.gz \
+            bin/satoxcoin-qt
 
-      - name: Upload artifact
+      - name: Upload daemon artifact
         uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-x86_64-macos
           path: satoxcoin-*-x86_64-macos.tar.gz
+
+      - name: Upload Qt artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: satoxcoin-x86_64-macos-qt
+          path: satoxcoin-*-x86_64-macos-qt.tar.gz
 
   windows-build:
     name: 'Windows x86_64'
@@ -203,17 +221,19 @@ jobs:
 
             ### Downloads
 
-            | Platform | File |
-            |----------|------|
-            | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` |
-            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` |
-            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` |
-            | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` |
+            | Platform | Daemon | GUI |
+            |----------|--------|-----|
+            | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` | `satoxcoin-${{ github.ref_name }}-x86_64-linux-qt.tar.gz` |
+            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` | `satoxcoin-${{ github.ref_name }}-x86_64-macos-qt.tar.gz` |
+            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` | — |
+            | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` | — |
 
             See [doc/build-unix.md](doc/build-unix.md) (Linux/macOS) and [doc/build-windows-msvc.md](doc/build-windows-msvc.md) (Windows) for build instructions.
             See [doc/security/audit/phase5-btc31-rebase-plan.md](doc/security/audit/phase5-btc31-rebase-plan.md) for the full audit and CVE analysis.
           files: |
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux-qt.tar.gz
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos-qt.tar.gz
             artifacts/satoxcoin-*/satoxcoin-*-win64.zip
           draft: false
