@@ -106,10 +106,9 @@ jobs:
           cmake -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows \
-            -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON \
-            -DVCPKG_MANIFEST_FEATURES="wallet" \
             -DENABLE_IPC=OFF \
             -DBUILD_TESTS=OFF \
+            -DBUILD_GUI=OFF \
             -DBUILD_TX=ON \
             -DBUILD_WALLET_TOOL=ON
           cmake --build build --config Release -j 4
