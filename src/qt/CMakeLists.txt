@@ -64,21 +64,21 @@ if("-Wtrailing-whitespace=any" IN_LIST warn_flags)
 endif()
 unset(warn_flags)
 
-# The bitcoinqt sources have to include headers in
+# The satoxcoinqt sources have to include headers in
 # order to parse them to collect translatable strings.
-add_library(bitcoinqt STATIC EXCLUDE_FROM_ALL
+add_library(satoxcoinqt STATIC EXCLUDE_FROM_ALL
   bantablemodel.cpp
   bantablemodel.h
   satoxcoin.cpp
   satoxcoin.h
-  bitcoinaddressvalidator.cpp
-  bitcoinaddressvalidator.h
-  bitcoinamountfield.cpp
-  bitcoinamountfield.h
-  bitcoingui.cpp
-  bitcoingui.h
-  bitcoinunits.cpp
-  bitcoinunits.h
+  satoxcoinaddressvalidator.cpp
+  satoxcoinaddressvalidator.h
+  satoxcoinamountfield.cpp
+  satoxcoinamountfield.h
+  satoxcoingui.cpp
+  satoxcoingui.h
+  satoxcoinunits.cpp
+  satoxcoinunits.h
   clientmodel.cpp
   clientmodel.h
   csvmodelwriter.cpp
@@ -130,12 +130,12 @@ add_library(bitcoinqt STATIC EXCLUDE_FROM_ALL
   ${SATOXCOIN_QRC}
   ${SATOXCOIN_LOCALE_QRC}
 )
-target_compile_definitions(bitcoinqt
+target_compile_definitions(satoxcoinqt
   PUBLIC
     QT_NO_KEYWORDS
     QT_USE_QSTRINGBUILDER
 )
-target_include_directories(bitcoinqt
+target_include_directories(satoxcoinqt
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 )
@@ -143,7 +143,7 @@ set_property(SOURCE macnotificationhandler.mm
   # Ignore warnings "'NSUserNotificationCenter' is deprecated: first deprecated in macOS 11.0".
   APPEND PROPERTY COMPILE_OPTIONS -Wno-deprecated-declarations
 )
-target_link_libraries(bitcoinqt
+target_link_libraries(satoxcoinqt
   PUBLIC
     Qt6::Widgets
   PRIVATE
@@ -157,7 +157,7 @@ target_link_libraries(bitcoinqt
 )
 
 if(ENABLE_WALLET)
-  target_sources(bitcoinqt
+  target_sources(satoxcoinqt
     PRIVATE
       addressbookpage.cpp
       addressbookpage.h
@@ -220,7 +220,7 @@ if(ENABLE_WALLET)
       walletview.cpp
       walletview.h
   )
-  target_link_libraries(bitcoinqt
+  target_link_libraries(satoxcoinqt
     PRIVATE
       satoxcoin_wallet
       Qt6::Network
@@ -228,13 +228,13 @@ if(ENABLE_WALLET)
 endif()
 
 if(WITH_DBUS)
-  target_link_libraries(bitcoinqt PRIVATE Qt6::DBus)
+  target_link_libraries(satoxcoinqt PRIVATE Qt6::DBus)
 endif()
 
 if(qt_lib_type STREQUAL "STATIC_LIBRARY")
   # We want to define static plugins to link ourselves, thus preventing
   # automatic linking against a "sane" set of default static plugins.
-  qt6_import_plugins(bitcoinqt
+  qt6_import_plugins(satoxcoinqt
     EXCLUDE_BY_TYPE
       accessiblebridge
       platforms
@@ -265,7 +265,7 @@ add_windows_application_manifest(satoxcoin-qt)
 
 target_link_libraries(satoxcoin-qt
   core_interface
-  bitcoinqt
+  satoxcoinqt
   satoxcoin_node
 )
 
@@ -282,7 +282,7 @@ if(ENABLE_IPC)
   )
   target_link_libraries(satoxcoin-gui
     core_interface
-    bitcoinqt
+    satoxcoinqt
     satoxcoin_node
     satoxcoin_ipc
   )

@@ -18,7 +18,7 @@ add_windows_application_manifest(test_satoxcoin-qt)
 
 target_link_libraries(test_satoxcoin-qt
   core_interface
-  bitcoinqt
+  satoxcoinqt
   test_util
   satoxcoin_node
   Boost::headers

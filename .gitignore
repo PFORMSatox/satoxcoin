@@ -45,3 +45,9 @@ wallet.sqlite
 db.log
 peers.dat
 banlist.json
+*.o
+*.Po
+*.moc
+*.a
+.deps/
+.dirstamp

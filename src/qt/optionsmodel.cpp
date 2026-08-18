@@ -6,7 +6,7 @@
 
 #include <qt/optionsmodel.h>
 
-#include <qt/bitcoinunits.h>
+#include <qt/satoxcoinunits.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 
@@ -187,15 +187,15 @@ bool OptionsModel::Init(bilingual_str& error)
     fMinimizeOnClose = settings.value("fMinimizeOnClose").toBool();
 
     // Display
-    if (!settings.contains("DisplayBitcoinUnit")) {
-        settings.setValue("DisplayBitcoinUnit", QVariant::fromValue(BitcoinUnit::BTC));
+    if (!settings.contains("DisplaySatoxcoinUnit")) {
+        settings.setValue("DisplaySatoxcoinUnit", QVariant::fromValue(SatoxcoinUnit::BTC));
     }
-    QVariant unit = settings.value("DisplayBitcoinUnit");
-    if (unit.canConvert<BitcoinUnit>()) {
-        m_display_bitcoin_unit = unit.value<BitcoinUnit>();
+    QVariant unit = settings.value("DisplaySatoxcoinUnit");
+    if (unit.canConvert<SatoxcoinUnit>()) {
+        m_display_satoxcoin_unit = unit.value<SatoxcoinUnit>();
     } else {
-        m_display_bitcoin_unit = BitcoinUnit::BTC;
-        settings.setValue("DisplayBitcoinUnit", QVariant::fromValue(m_display_bitcoin_unit));
+        m_display_satoxcoin_unit = SatoxcoinUnit::BTC;
+        settings.setValue("DisplaySatoxcoinUnit", QVariant::fromValue(m_display_satoxcoin_unit));
     }
 
     if (!settings.contains("strThirdPartyTxUrls"))
@@ -451,7 +451,7 @@ QVariant OptionsModel::getOption(OptionID option, const std::string& suffix) con
         return m_sub_fee_from_amount;
 #endif
     case DisplayUnit:
-        return QVariant::fromValue(m_display_bitcoin_unit);
+        return QVariant::fromValue(m_display_satoxcoin_unit);
     case ThirdPartyTxUrls:
         return strThirdPartyTxUrls;
     case Language:
@@ -695,11 +695,11 @@ bool OptionsModel::setOption(OptionID option, const QVariant& value, const std::
 
 void OptionsModel::setDisplayUnit(const QVariant& new_unit)
 {
-    if (new_unit.isNull() || new_unit.value<BitcoinUnit>() == m_display_bitcoin_unit) return;
-    m_display_bitcoin_unit = new_unit.value<BitcoinUnit>();
+    if (new_unit.isNull() || new_unit.value<SatoxcoinUnit>() == m_display_satoxcoin_unit) return;
+    m_display_satoxcoin_unit = new_unit.value<SatoxcoinUnit>();
     QSettings settings;
-    settings.setValue("DisplayBitcoinUnit", QVariant::fromValue(m_display_bitcoin_unit));
-    Q_EMIT displayUnitChanged(m_display_bitcoin_unit);
+    settings.setValue("DisplaySatoxcoinUnit", QVariant::fromValue(m_display_satoxcoin_unit));
+    Q_EMIT displayUnitChanged(m_display_satoxcoin_unit);
 }
 
 void OptionsModel::setRestartRequired(bool fRequired)
