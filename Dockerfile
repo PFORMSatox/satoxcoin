@@ -8,7 +8,7 @@
 FROM ubuntu:24.04 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    cmake g++ make python3 \
+    cmake g++ make python3 pkg-config \
     libboost-dev libevent-dev libsqlite3-dev \
  && rm -rf /var/lib/apt/lists/*
 
