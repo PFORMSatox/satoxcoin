@@ -25,12 +25,17 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            cmake g++ python3 \
-            libboost-dev libevent-dev libsqlite3-dev
+            cmake g++ python3 pkg-config \
+            libboost-dev libevent-dev libsqlite3-dev \
+            qt6-base-dev qt6-tools-dev qt6-l10n-tools qt6-tools-dev-tools libgl-dev
 
       - name: Configure + Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_IPC=OFF
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_IPC=OFF \
+            -DBUILD_GUI=ON \
+            -DBUILD_TESTS=OFF
           cmake --build build -j$(nproc)
 
       - name: Package
@@ -39,12 +44,20 @@ jobs:
           cd build
           tar czf ../satoxcoin-${VERSION}-x86_64-linux.tar.gz \
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
+          tar czf ../satoxcoin-${VERSION}-x86_64-linux-qt.tar.gz \
+            bin/satoxcoin-qt
 
-      - name: Upload artifact
+      - name: Upload daemon artifact
         uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-linux-x86_64
           path: satoxcoin-*-x86_64-linux.tar.gz
+
+      - name: Upload Qt artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: satoxcoin-linux-x86_64-qt
+          path: satoxcoin-*-x86_64-linux-qt.tar.gz
 
   macos-build:
     name: 'macOS x86_64'
@@ -60,13 +73,15 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_15.2.app
 
       - name: Install dependencies
-        run: brew install cmake boost libevent sqlite
+        run: brew install cmake boost libevent sqlite qt@6
 
       - name: Configure + Build
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_IPC=OFF
+            -DENABLE_IPC=OFF \
+            -DBUILD_GUI=ON \
+            -DBUILD_TESTS=OFF
           cmake --build build -j$(sysctl -n hw.ncpu)
 
       - name: Package
@@ -75,12 +90,20 @@ jobs:
           cd build
           tar czf ../satoxcoin-${VERSION}-x86_64-macos.tar.gz \
             bin/satoxcoind bin/satoxcoin-cli bin/satoxcoin-tx bin/satoxcoin-wallet
+          tar czf ../satoxcoin-${VERSION}-x86_64-macos-qt.tar.gz \
+            bin/satoxcoin-qt
 
-      - name: Upload artifact
+      - name: Upload daemon artifact
         uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-x86_64-macos
           path: satoxcoin-*-x86_64-macos.tar.gz
+
+      - name: Upload Qt artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: satoxcoin-x86_64-macos-qt
+          path: satoxcoin-*-x86_64-macos-qt.tar.gz
 
   windows-build:
     name: 'Windows x86_64'
@@ -99,9 +122,10 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows \
             -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON \
-            -DVCPKG_MANIFEST_FEATURES="wallet" \
+            -DVCPKG_MANIFEST_FEATURES="wallet,qt" \
             -DENABLE_IPC=OFF \
-            -DBUILD_TESTS=OFF
+            -DBUILD_TESTS=OFF \
+            -DBUILD_GUI=ON
           cmake --build build --config Release -j 4
 
       - name: Package
@@ -109,12 +133,19 @@ jobs:
         run: |
           $VERSION = "${{ github.ref_name }}" -replace '^v',''
           Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe -DestinationPath "satoxcoin-${VERSION}-win64.zip"
+          Compress-Archive -Path build/bin/Release/satoxcoin-qt.exe -DestinationPath "satoxcoin-${VERSION}-win64-qt.zip"
 
-      - name: Upload artifact
+      - name: Upload daemon artifact
         uses: actions/upload-artifact@v7
         with:
           name: satoxcoin-win64
           path: satoxcoin-*-win64.zip
+
+      - name: Upload Qt artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: satoxcoin-win64-qt
+          path: satoxcoin-*-win64-qt.zip
 
   docker-build:
     name: 'Docker Image (linux/amd64)'
@@ -194,17 +225,20 @@ jobs:
 
             ### Downloads
 
-            | Platform | File |
-            |----------|------|
-            | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` |
-            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` (coming soon) |
-            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` (coming soon) |
-            | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` (coming soon) |
+            | Platform | Daemon | GUI |
+            |----------|--------|-----|
+            | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` | `satoxcoin-${{ github.ref_name }}-x86_64-linux-qt.tar.gz` |
+            | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` | `satoxcoin-${{ github.ref_name }}-x86_64-macos-qt.tar.gz` |
+            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` | `satoxcoin-${{ github.ref_name }}-win64-qt.zip` |
+            | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` | — |
 
-            See [doc/build-*.md](doc/build-*.md) for build instructions.
-            See [doc/security/audit/cve-audit.md](doc/security/audit/cve-audit.md) for the full CVE audit.
+            See [doc/build-unix.md](doc/build-unix.md) (Linux/macOS) and [doc/build-windows-msvc.md](doc/build-windows-msvc.md) (Windows) for build instructions.
+            See [doc/security/audit/phase5-btc31-rebase-plan.md](doc/security/audit/phase5-btc31-rebase-plan.md) for the full audit and CVE analysis.
           files: |
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-linux-qt.tar.gz
             artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos.tar.gz
+            artifacts/satoxcoin-*/satoxcoin-*-x86_64-macos-qt.tar.gz
             artifacts/satoxcoin-*/satoxcoin-*-win64.zip
+            artifacts/satoxcoin-*/satoxcoin-*-win64-qt.zip
           draft: false

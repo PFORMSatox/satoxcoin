@@ -21,6 +21,7 @@ RUN cmake -B build \
     -DENABLE_WALLET=ON \
     -DBUILD_TESTS=OFF \
     -DBUILD_WALLET_TOOL=ON \
+    -DBUILD_TX=ON \
  && cmake --build build -j$(nproc)
 
 # ── Runtime stage ────────────────────────────────────────────────────────────

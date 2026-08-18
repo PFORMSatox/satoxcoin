@@ -253,10 +253,10 @@ Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxc
 
 ```bash
 gh release create v4.1.0 \
-  --title "Satoxcoin Core v4.1.0" \
-  --notes-file release-notes.md \
+  --title "v4.1.0" \
+  --notes-file doc/release-notes.md \
   satoxcoin-${VERSION}-x86_64-linux.tar.gz \
-  satoxcoin-${VERSION}-macos-universal.tar.gz \
+  satoxcoin-${VERSION}-x86_64-macos.tar.gz \
   satoxcoin-${VERSION}-win64.zip
 ```
 
