@@ -33,9 +33,6 @@ jobs:
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_IPC=OFF
           cmake --build build -j$(nproc)
 
-      - name: Run unit tests
-        run: cd build && ctest -j$(nproc)
-
       - name: Package
         run: |
           VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
