@@ -10,7 +10,7 @@ This workflow uses [Partially Signed Bitcoin Transactions](/doc/psbt.md) (PSBTs)
 > While this tutorial demonstrates the process using `signet` network, you should omit the `-signet` flag in the provided commands when working with `mainnet`.
 
 ## Overview
-In this tutorial we have two hosts, both running Bitcoin v25.0
+In this tutorial we have two hosts, both running Satoxcoin Core v4.0.1
 
 * `offline` host which is disconnected from all networks (internet, Tor, wifi, bluetooth etc.) and does not have, or need, a copy of the blockchain.
 * `online` host which is a regular online node with a synced blockchain.
