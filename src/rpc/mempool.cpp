@@ -952,7 +952,7 @@ static RPCHelpMan gettxspendingprevout()
 
             struct Entry {
                 const COutPoint prevout;
-                const UniValue& input;
+                size_t input_index;
                 UniValue output;
             };
             std::vector<Entry> prevouts;
@@ -972,7 +972,7 @@ static RPCHelpMan gettxspendingprevout()
                 if (nOutput < 0) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout cannot be negative");
                 }
-                prevouts.emplace_back(COutPoint{txid, uint32_t(nOutput)}, o, UniValue{});
+                prevouts.emplace_back(COutPoint{txid, uint32_t(nOutput)}, idx, UniValue{});
             }
 
             // search the mempool first
@@ -983,7 +983,7 @@ static RPCHelpMan gettxspendingprevout()
                 for (auto& entry : prevouts) {
                     const CTransaction* spendingTx = mempool.GetConflictTx(entry.prevout);
                     if (spendingTx != nullptr) {
-                        UniValue o{entry.input};
+                        UniValue o{output_params[entry.input_index].get_obj()};
                         o.pushKV("spendingtxid", spendingTx->GetHash().ToString());
                         if (return_spending_tx) {
                             o.pushKV("spendingtx", EncodeHexTx(*spendingTx));
@@ -1003,7 +1003,7 @@ static RPCHelpMan gettxspendingprevout()
                     result.push_back(std::move(entry.output));
                     continue;
                 }
-                UniValue o{entry.input};
+                UniValue o{output_params[entry.input_index].get_obj()};
                 if (mempool_only) {
                     // do nothing, caller has selected to only query the mempool
                 } else if (!txospenderindex_ready) {
