@@ -954,6 +954,8 @@ static RPCHelpMan gettxspendingprevout()
                 COutPoint prevout;
                 size_t input_index;
                 UniValue output;
+                Entry(COutPoint prevout_, size_t input_index_, UniValue output_)
+                    : prevout(std::move(prevout_)), input_index(input_index_), output(std::move(output_)) {}
             };
             std::vector<Entry> prevouts;
             prevouts.reserve(output_params.size());
