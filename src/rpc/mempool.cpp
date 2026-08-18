@@ -951,7 +951,7 @@ static RPCHelpMan gettxspendingprevout()
             const bool return_spending_tx{options.exists("return_spending_tx") ? options["return_spending_tx"].get_bool() : false};
 
             struct Entry {
-                const COutPoint prevout;
+                COutPoint prevout;
                 size_t input_index;
                 UniValue output;
             };
