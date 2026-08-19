@@ -13,7 +13,7 @@
 
 #include <crypto/ethash/include/ethash/ethash.hpp>
 
-#if _WIN32
+#ifdef _WIN32
 
 #include <stdlib.h>
 
@@ -25,14 +25,14 @@
 #define __BIG_ENDIAN 4321
 #define __BYTE_ORDER __LITTLE_ENDIAN
 
-#elif __APPLE__
+#elif defined(__APPLE__)
 
 #include <machine/endian.h>
 
 #define bswap32 __builtin_bswap32
 #define bswap64 __builtin_bswap64
 
-#elif __FreeBSD__
+#elif defined(__FreeBSD__)
 
 #include <sys/endian.h>
 
