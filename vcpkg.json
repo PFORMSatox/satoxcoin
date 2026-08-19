@@ -5,6 +5,7 @@
   "dependencies": [
     "boost-multi-index",
     "boost-signals2",
+    "boost-thread",
     "libevent"
   ],
   "default-features": [
