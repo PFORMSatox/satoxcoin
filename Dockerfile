@@ -19,6 +19,7 @@ RUN cmake -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DENABLE_IPC=OFF \
     -DENABLE_WALLET=ON \
+    -DBUILD_GUI=OFF \
     -DBUILD_TESTS=OFF \
     -DBUILD_WALLET_TOOL=ON \
     -DBUILD_TX=ON \

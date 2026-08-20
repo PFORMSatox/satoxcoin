@@ -137,7 +137,11 @@ jobs:
         shell: pwsh
         run: |
           $VERSION = "${{ github.ref_name }}" -replace '^v',''
-          Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe,build/bin/Release/satoxcoin-qt.exe -DestinationPath "satoxcoin-${VERSION}-win64.zip"
+          New-Item -ItemType Directory -Path "pkg/satoxcoin-$VERSION-win64/platforms" -Force | Out-Null
+          Copy-Item build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe,build/bin/Release/satoxcoin-qt.exe -Destination "pkg/satoxcoin-$VERSION-win64/"
+          Copy-Item build/vcpkg_installed/x64-windows/bin/*.dll -Destination "pkg/satoxcoin-$VERSION-win64/"
+          Copy-Item build/vcpkg_installed/x64-windows/Qt6/plugins/platforms/qwindows.dll -Destination "pkg/satoxcoin-$VERSION-win64/platforms/"
+          Compress-Archive -Path "pkg/satoxcoin-$VERSION-win64" -DestinationPath "satoxcoin-${VERSION}-win64.zip"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

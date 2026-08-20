@@ -31,6 +31,12 @@ function(add_boost_if_needed)
 
   find_package(Boost 1.74.0 REQUIRED CONFIG)
   mark_as_advanced(Boost_INCLUDE_DIR boost_headers_DIR)
+  if(MSVC)
+    # Use boost as DLLs with dynamic triplets (e.g. vcpkg x64-windows);
+    # otherwise MSVC auto-linking requests static import names
+    # (libboost_thread-...) that the triplet does not provide.
+    add_compile_definitions(BOOST_ALL_DYN_LINK)
+  endif()
   # Workaround for a bug in NetBSD pkgsrc.
   # See https://gnats.netbsd.org/59856.
   if(CMAKE_SYSTEM_NAME STREQUAL "NetBSD")

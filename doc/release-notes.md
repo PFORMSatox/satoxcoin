@@ -63,6 +63,14 @@ A new operations runbook (`doc/security/audit/testnet-bootstrap-runbook.md`)
 documents how to bootstrap the public testnet: chain parameters, first-block
 mining, peer discovery via `-addnode`, and reset policy.
 
+### Release Infrastructure Fixes
+
+- Windows: fixed the release build (boost.thread now links as a DLL with
+  dynamic vcpkg triplets) and the win64 zip now ships the required runtime
+  DLLs plus the Qt windowing plugin, so the binaries run out of the box
+- Docker: the daemon-only image builds again (GUI disabled in the image
+  build; it never shipped any GUI binary)
+
 Known Issues
 ============
 
