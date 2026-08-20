@@ -1360,6 +1360,10 @@ static void SoftForkDescPushBack(const CBlockIndex* blockindex, UniValue& softfo
     softforks.pushKV(DeploymentName(id), std::move(rv));
 }
 
+namespace {
+UniValue DeploymentInfo(const CBlockIndex* blockindex, const ChainstateManager& chainman);
+}
+
 // used by rest.cpp:rest_chaininfo, so cannot be static
 RPCHelpMan getblockchaininfo()
 {
@@ -1441,6 +1445,7 @@ RPCHelpMan getblockchaininfo()
 
     NodeContext& node = EnsureAnyNodeContext(request.context);
     obj.pushKV("warnings", node::GetWarningsForRpc(*CHECK_NONFATAL(node.warnings), IsDeprecatedRPCEnabled("warnings")));
+    obj.pushKV("softforks", DeploymentInfo(&tip, chainman));
     return obj;
 },
     };
@@ -1482,6 +1487,12 @@ UniValue DeploymentInfo(const CBlockIndex* blockindex, const ChainstateManager& 
     SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_SEGWIT);
     SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_TESTDUMMY);
     SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_TAPROOT);
+    SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_ASSETS);
+    SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_MSG_REST_ASSETS);
+    SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_TRANSFER_SCRIPT_SIZE);
+    SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_ENFORCE_VALUE);
+    SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_COINBASE_ASSETS);
+    SoftForkDescPushBack(blockindex, softforks, chainman, Consensus::DEPLOYMENT_TRANSFER_OVERFLOW);
     return softforks;
 }
 } // anon namespace
