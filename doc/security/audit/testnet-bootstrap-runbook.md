@@ -16,7 +16,7 @@ the asset-overflow soft-fork in production, as described in
 
 ## Which chain to use
 
-Use **testnet v3** (`-testnet`), not testnet4.
+Use **testnet v3** (`-testnet`).
 
 - Testnet v3 is fully kawpow-enabled: it defines `consensus.kawpowLimit` and
   `nKAWPOWActivationTime`, pays the 15% community fund, and includes the full
@@ -24,10 +24,9 @@ Use **testnet v3** (`-testnet`), not testnet4.
   enforce-value, coinbase-assets — bits 6-10) have start times in the past, so
   they activate automatically as the bootstrap miner signals started BIP9
   bits during the first retarget windows (see "Mine the first blocks").
-- Testnet4 is leftover from the Bitcoin v31.1 upstream (Bitcoin's own testnet4)
-  and is not usable: it has `nKAWPOWActivationTime` but **no `kawpowLimit`**,
-  so its first 180 kawpow blocks have an unmineable target
-  (`src/pow.cpp:81`), and `nCommunityAutonomousAmount` is 0.
+- The Bitcoin-testnet4 chain that came over with the v31.1 rebase was removed:
+  it was unusable (no `kawpowLimit`, so unmineable first 180 kawpow blocks).
+  Satoxcoin has exactly one testnet.
 
 ### Required code fix (already applied)
 
@@ -46,7 +45,6 @@ Every network must have a distinct magic:
 |------------|-------------|--------|
 | mainnet    | 63 56 65 65 | 60777  |
 | testnet v3 | 74 53 41 54 | 7060   |
-| testnet4   | 1c 16 3f 28 | 48333  |
 | regtest    | 44 52 4f 57 | 19444  |
 
 ## Testnet vs mainnet vs regtest

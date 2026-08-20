@@ -128,8 +128,7 @@ struct Params {
     uint256 kawpowLimit;
     bool fPowAllowMinDifficultyBlocks;
     /**
-      * Enforce BIP94 timewarp attack mitigation. On testnet4 this also enforces
-      * the block storm mitigation.
+      * Enforce BIP94 timewarp attack mitigation.
       */
     bool enforce_BIP94;
     bool fPowNoRetargeting;

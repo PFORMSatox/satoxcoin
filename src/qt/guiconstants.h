@@ -50,7 +50,6 @@ static const int TOOLTIP_WRAP_THRESHOLD = 80;
 #define QAPP_ORG_DOMAIN "satoverse.io"
 #define QAPP_APP_NAME_DEFAULT "Satoxcoin-Qt"
 #define QAPP_APP_NAME_TESTNET "Satoxcoin-Qt-testnet"
-#define QAPP_APP_NAME_TESTNET4 "Satoxcoin-Qt-testnet4"
 #define QAPP_APP_NAME_SIGNET "Satoxcoin-Qt-signet"
 #define QAPP_APP_NAME_REGTEST "Satoxcoin-Qt-regtest"
 
