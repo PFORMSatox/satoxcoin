@@ -188,7 +188,7 @@ bool CreateAssetTransaction(
     if (!RequireAssetLegacyDestination(address, error))
         return false;
 
-    LOCK2(cs_main, wallet.cs_wallet);
+    LOCK2(wallet.cs_wallet, cs_main);
 
     // Build recipient list
     std::vector<CRecipient> vecSend;
@@ -377,7 +377,7 @@ bool CreateTransferAssetTransaction(
         return false;
     }
 
-    LOCK2(cs_main, wallet.cs_wallet);
+    LOCK2(wallet.cs_wallet, cs_main);
 
     // Collect required asset amounts and build transfer outputs
     std::map<std::string, CAmount> mapAssetTargets;
@@ -677,7 +677,7 @@ bool CreateReissueAssetTransaction(
         return false;
     }
 
-    LOCK2(cs_main, wallet.cs_wallet);
+    LOCK2(wallet.cs_wallet, cs_main);
 
     // Verify ownership
     std::string stripped_asset_name = asset_name.substr(1, asset_name.size() - 1);
