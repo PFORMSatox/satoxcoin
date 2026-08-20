@@ -38,6 +38,7 @@ jobs:
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Debug \
             -DENABLE_IPC=OFF \
+            -DBUILD_GUI=OFF \
             -DBUILD_SATOXCOIN_CLI=ON \
             -DBUILD_SATOXCOIN_TX=ON \
             -DBUILD_SATOXCOIN_UTIL=ON \
@@ -81,5 +82,5 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_IPC=OFF
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_IPC=OFF -DBUILD_GUI=OFF
           cmake --build build -j$(nproc)
