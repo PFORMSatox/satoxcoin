@@ -211,6 +211,10 @@ bool OptionsModel::Init(bilingual_str& error)
     }
     m_enable_psbt_controls = settings.value("enable_psbt_controls", false).toBool();
 
+    if (!settings.contains("fDarkModeEnabled"))
+        settings.setValue("fDarkModeEnabled", false);
+    m_dark_mode_enabled = settings.value("fDarkModeEnabled", false).toBool();
+
     // These are shared with the core or have a command-line parameter
     // and we want command-line parameters to overwrite the GUI settings.
     for (OptionID option : {DatabaseCache, ThreadsScriptVerif, SpendZeroConfChange, ExternalSignerPath,
@@ -478,6 +482,8 @@ QVariant OptionsModel::getOption(OptionID option, const std::string& suffix) con
         return SettingToBool(setting(), false);
     case MaskValues:
         return m_mask_values;
+    case DarkModeEnabled:
+        return m_dark_mode_enabled;
     default:
         return QVariant();
     }
@@ -685,6 +691,13 @@ bool OptionsModel::setOption(OptionID option, const QVariant& value, const std::
     case MaskValues:
         m_mask_values = value.toBool();
         settings.setValue("mask_values", m_mask_values);
+        break;
+    case DarkModeEnabled:
+        if (m_dark_mode_enabled != value.toBool()) {
+            m_dark_mode_enabled = value.toBool();
+            settings.setValue("fDarkModeEnabled", m_dark_mode_enabled);
+            Q_EMIT darkModeEnabledChanged(m_dark_mode_enabled);
+        }
         break;
     default:
         break;

@@ -121,6 +121,16 @@ QIcon PlatformStyle::TextColorIcon(const QIcon& icon) const
     return ColorizeIcon(icon, TextColor());
 }
 
+QColor PlatformStyle::LightBlueColor() const
+{
+    return QColor("#0d1e35");
+}
+
+QColor PlatformStyle::DarkBlueColor() const
+{
+    return QColor("#020710");
+}
+
 const PlatformStyle *PlatformStyle::instantiate(const QString &platformId)
 {
     for (const auto& platform_style : platform_styles) {

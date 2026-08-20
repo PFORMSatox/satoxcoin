@@ -113,11 +113,11 @@ static int AppInitRawTx(int argc, char* argv[])
             strUsage += FormatParagraph(LicenseInfo());
         } else {
             strUsage += "\n"
-                "The bitcoin-tx tool is used for creating and modifying bitcoin transactions.\n\n"
-                "bitcoin-tx can be used with \"<hex-tx> [commands]\" to update a hex-encoded bitcoin transaction, or with \"-create [commands]\" to create a hex-encoded bitcoin transaction.\n"
+                "The satoxcoin-tx tool is used for creating and modifying satoxcoin transactions.\n\n"
+                "satoxcoin-tx can be used with \"<hex-tx> [commands]\" to update a hex-encoded satoxcoin transaction, or with \"-create [commands]\" to create a hex-encoded satoxcoin transaction.\n"
                 "\n"
-                "Usage: bitcoin-tx [options] <hex-tx> [commands]\n"
-                "or:    bitcoin-tx [options] -create [commands]\n"
+                "Usage: satoxcoin-tx [options] <hex-tx> [commands]\n"
+                "or:    satoxcoin-tx [options] -create [commands]\n"
                 "\n";
             strUsage += gArgs.GetHelpMessage();
         }

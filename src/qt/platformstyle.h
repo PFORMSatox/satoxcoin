@@ -24,6 +24,11 @@ public:
     QColor TextColor() const;
     QColor SingleColor() const;
 
+    /** Top color of the branded toolbar gradient */
+    QColor LightBlueColor() const;
+    /** Bottom color of the branded toolbar gradient */
+    QColor DarkBlueColor() const;
+
     /** Colorize an image (given filename) with the icon color */
     QImage SingleColorImage(const QString& filename) const;
 

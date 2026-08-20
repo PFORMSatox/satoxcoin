@@ -63,11 +63,11 @@ SplashScreen::SplashScreen(const NetworkStyle* networkStyle)
     QRect rGradient(QPoint(0,0), splashSize);
     pixPaint.fillRect(rGradient, gradient);
 
-    // draw the bitcoin icon, expected size of PNG: 1024x1024
-    QRect rectIcon(QPoint(-150,-122), QSize(430,430));
+    // draw the satoxcoin icon, expected size of PNG: 1024x1024
+    QRect rectIcon(QPoint(-40,0), QSize(310,310));
 
     const QSize requiredSize(1024,1024);
-    QPixmap icon(networkStyle->getAppIcon().pixmap(requiredSize));
+    QPixmap icon(networkStyle->getSplashIcon().pixmap(requiredSize));
 
     pixPaint.drawPixmap(rectIcon, icon);
 

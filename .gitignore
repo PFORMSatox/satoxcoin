@@ -51,3 +51,4 @@ banlist.json
 *.a
 .deps/
 .dirstamp
+assets/

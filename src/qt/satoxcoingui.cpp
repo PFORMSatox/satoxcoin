@@ -49,6 +49,7 @@
 #include <QDateTime>
 #include <QDragEnterEvent>
 #include <QInputDialog>
+#include <QImage>
 #include <QKeySequence>
 #include <QListWidget>
 #include <QMenu>
@@ -263,7 +264,7 @@ void SatoxcoinGUI::createActions()
     tabGroup->addAction(overviewAction);
 
     sendCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/send"), tr("&Send"), this);
-    sendCoinsAction->setStatusTip(tr("Send coins to a Bitcoin address"));
+    sendCoinsAction->setStatusTip(tr("Send coins to a Satoxcoin address"));
     sendCoinsAction->setToolTip(sendCoinsAction->statusTip());
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(QStringLiteral("Alt+2")));
@@ -320,13 +321,13 @@ void SatoxcoinGUI::createActions()
     changePassphraseAction = new QAction(tr("&Change Passphrase…"), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
     signMessageAction = new QAction(tr("Sign &message…"), this);
-    signMessageAction->setStatusTip(tr("Sign messages with your Bitcoin addresses to prove you own them"));
+    signMessageAction->setStatusTip(tr("Sign messages with your Satoxcoin addresses to prove you own them"));
     verifyMessageAction = new QAction(tr("&Verify message…"), this);
-    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Bitcoin addresses"));
+    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Satoxcoin addresses"));
     m_load_psbt_action = new QAction(tr("&Load PSBT from file…"), this);
-    m_load_psbt_action->setStatusTip(tr("Load Partially Signed Bitcoin Transaction"));
+    m_load_psbt_action->setStatusTip(tr("Load Partially Signed Satoxcoin Transaction"));
     m_load_psbt_clipboard_action = new QAction(tr("Load PSBT from &clipboard…"), this);
-    m_load_psbt_clipboard_action->setStatusTip(tr("Load Partially Signed Bitcoin Transaction from clipboard"));
+    m_load_psbt_clipboard_action->setStatusTip(tr("Load Partially Signed Satoxcoin Transaction from clipboard"));
 
     openRPCConsoleAction = new QAction(tr("Node window"), this);
     openRPCConsoleAction->setStatusTip(tr("Open node debugging and diagnostic console"));
@@ -370,7 +371,7 @@ void SatoxcoinGUI::createActions()
 
     showHelpMessageAction = new QAction(tr("&Command-line options"), this);
     showHelpMessageAction->setMenuRole(QAction::NoRole);
-    showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Bitcoin command-line options").arg(CLIENT_NAME));
+    showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Satoxcoin command-line options").arg(CLIENT_NAME));
 
     m_mask_values_action = new QAction(tr("&Mask values"), this);
     m_mask_values_action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M));
@@ -633,6 +634,23 @@ void SatoxcoinGUI::createToolBars()
         appToolBar = toolbar;
         toolbar->setMovable(false);
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+        // SATOXCOIN branding: navy gradient toolbar with coin+text logo
+        QLabel* satoxcoinLabel = new QLabel();
+        satoxcoinLabel->setPixmap(QPixmap::fromImage(QImage(":/icons/satoxcoincointext")));
+        satoxcoinLabel->setStyleSheet(".QLabel{background-color: transparent;}");
+        toolbar->addWidget(satoxcoinLabel);
+
+        QString tbStyleSheet = ".QToolBar {background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 %1, stop: 1 %2); border-color: transparent; } "
+                               ".QToolButton {background-color: transparent; border: none; color: %3; } "
+                               ".QToolButton:checked {color: %4; } "
+                               ".QToolButton:hover {color: %4; } "
+                               ".QToolButton:disabled {color: gray;}";
+        toolbar->setStyleSheet(tbStyleSheet.arg(platformStyle->LightBlueColor().name(),
+                                                platformStyle->DarkBlueColor().name(),
+                                                QString("#ffffff"),
+                                                QString("#d10669")));
+
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);

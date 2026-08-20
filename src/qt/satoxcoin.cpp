@@ -26,6 +26,7 @@
 #include <qt/intro.h>
 #include <qt/networkstyle.h>
 #include <qt/optionsmodel.h>
+#include <qt/darkstyle.h>
 #include <qt/platformstyle.h>
 #include <qt/splashscreen.h>
 #include <qt/utilitydialog.h>
@@ -651,6 +652,10 @@ int GuiMain(int argc, char* argv[])
     // Load GUI settings from QSettings
     if (!app.createOptionsModel(gArgs.GetBoolArg("-resetguisettings", false))) {
         return EXIT_FAILURE;
+    }
+
+    if (app.getOptionsModel()->getDarkModeEnabled()) {
+        app.setStyle(new DarkStyle);
     }
 
     if (did_show_intro) {

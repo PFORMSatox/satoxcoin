@@ -83,6 +83,8 @@ add_library(satoxcoinqt STATIC EXCLUDE_FROM_ALL
   clientmodel.h
   csvmodelwriter.cpp
   csvmodelwriter.h
+  darkstyle.cpp
+  darkstyle.h
   freespacechecker.cpp
   freespacechecker.h
   guiutil.cpp

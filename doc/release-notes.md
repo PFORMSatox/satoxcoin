@@ -1,9 +1,9 @@
-Satoxcoin Core version 4.0.1 is now available from:
+Satoxcoin Core version 4.0.2 is now available from:
 
-  <https://github.com/PFORMSatox/satoxcoin/releases/tag/v4.0.1>
+  <https://github.com/PFORMSatox/satoxcoin/releases/tag/v4.0.2>
 
-This is the first release of Satoxcoin Core 4.0, a major rebase from Bitcoin
-Core 0.21 (Ravencoin 4.6.1 base) to **Bitcoin Core 31.1**.
+This release fixes the peer-discovery and disk-space reporting issues found
+after the 4.0 rebase, and completes the Satoxcoin branding and asset GUI work.
 
 Please report bugs using the issue tracker at GitHub:
 
@@ -28,73 +28,65 @@ Ubuntu 22.04+, macOS 14+, and Windows 10+.
 Notable Changes
 ===============
 
-### Bitcoin Core 31.1 Security Base
+### Peer Discovery Fix (DNS Seeds)
 
-Satoxcoin 4.0 is rebased onto Bitcoin Core 31.1, inheriting 16 CVE fixes:
+Fixed a regression from the Bitcoin Core 31.1 rebase where the mainnet seed
+hostnames (`xnode1.satoverse.io`, `xnode2.satoverse.io`) were stored as empty
+strings, so nodes could never discover peers. Fresh nodes now resolve the seed
+nodes and connect to the network on first start.
 
-- CVE-2024-52911 through CVE-2025-54605
-- Fixes across validation, P2P, wallet, and crypto subsystems
+### Disk-Space Warning Fix
 
-### Build System Modernization
+The mainnet assumed blockchain size still carried the upstream Bitcoin value
+(856 GB). It now reflects the real Satoxcoin chain size (~5 GB), so the
+disk-space warning and the Qt intro wizard show correct values.
 
-- Migrated from autotools to **CMake** (minimum 3.20)
-- Updated to **C++17** standard
-- Faster compilation with Ninja support
+### Satoxcoin Branding
 
-### KAWPOW Security Hardening
+- Ticker updated to `SATOX` / `mSATOX` / `µSATOX` throughout the Qt wallet
+- All wallet dialog strings, status tips, and forms rebranded from Bitcoin
+  to Satoxcoin
+- All 101 locale translation files updated
+- Executables and helper binaries renamed to `satoxcoin-*`
+  (`satoxcoin-node`, `satoxcoin-gui`, `satoxcoin-qt`, `satoxcoin-cli`,
+  `satoxcoin-wallet`, `satoxcoin-tx`, `satoxcoin-util`, `satoxcoin-chainstate`)
+- `satoxcoin:` URI scheme used consistently
 
-- Fixed mix_hash forgery vulnerability
-- Fixed nHeight forgery vulnerability
-- Fixed forged-epoch DoS vector
-- Fixed DAG-context race condition
-- Fixed index-load PoW gap
+### Asset GUI
 
-### Asset System Hardening
+- Asset creation, reissue, and restricted-asset dialogs
+- Asset control tree widget and send-assets entry
+- Asset management views in the wallet UI
 
-- 6 critical/high security fixes in ConnectBlock/DisconnectBlock
-- Non-fatal error handling for asset operations
-- Reissue overflow protection
-- Flush corruption prevention
+### Dark Mode
 
-### Full Asset Index System
+- Optional dark theme for the Qt wallet
 
-- Address index (balances, history)
-- Spent index (output tracking)
-- Timestamp index (time-based queries)
-- 7 new RPCs: `getassetindexinfo`, `getassetindexbalance`,
-  `getassetindexhistory`, `getassetindexspent`, `getassetindextimestamp`,
-  `getassetindexsummary`, `getassetindexblock`
+### Additional Fixes
 
-### HIP2 8MB Blocks
-
-- Satoxcoin-specific block size limit of 8MB
-- Enabled via HIP2 proposal
-
-### Mainnet Checkpoints
-
-- 55 checkpoints added (height 0 through 1,865,353)
-- Full chain hardening against deep reorgs
-
-### CI/CD Improvements
-
-- GitHub Actions release workflow (Linux, macOS, Windows, Docker)
-- Dependabot for automated dependency updates
-- Docker image published to `ghcr.io`
+- `wallet`: value-initialize `CRecipient::scriptOverride`
+- `sign`: treat `RESTRICTED_ASSET_DATA` as non-signable in `SignStep`
+- `qt`: reference `SatoxcoinAmountField` (actual class name) in the amount
+  field `.ui` forms
+- `build`: guard undefined-macro checks with `defined()` for C preprocessor
+  portability
+- `build`: add `boost-thread` to Windows vcpkg dependencies for
+  `assetsnapshotdb`
 
 Known Issues
 ============
 
 - Asset overflow BIP9 soft-fork is prepared but activation is deferred
   until the 4.0 line is verified and running stable
-- Qt wallet branding updated; some legacy icons may appear on first run
+- New checkpoints will be added on upcoming releases as the chain advances
 
 Upgrading from 3.x
-===================
+==================
 
 If upgrading from Satoxcoin Core 3.x:
 
 1. Shut down the old node completely
-2. Replace binaries with the 4.0.1 versions
+2. Replace binaries with the 4.0.2 versions
 3. Start the node — the data directory will be migrated automatically
 4. Allow the node to reindex if prompted (this may take some time)
 
@@ -104,7 +96,7 @@ from 3.x are automatically migrated.
 Credits
 =======
 
-Thanks to everyone who contributed to Satoxcoin Core 4.0.1:
+Thanks to everyone who contributed to Satoxcoin Core 4.0.2:
 
 - Satoxcoin Core developers
 - Bitcoin Core developers (upstream base)

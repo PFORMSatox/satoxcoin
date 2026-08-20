@@ -225,8 +225,8 @@ public:
         pchMessageStart[3] = 0x65; // T
         nDefaultPort = 60777;
         nPruneAfterHeight = 100000;
-        m_assumed_blockchain_size = 856;
-        m_assumed_chain_state_size = 14;
+        m_assumed_blockchain_size = 5;
+        m_assumed_chain_state_size = 1;
 
         uint32_t nGenesisTime = 1661730843;
         genesis = CreateGenesisBlock(nGenesisTime, 351574, 0x1e00ffff, 4, 5000 * COIN);
@@ -234,8 +234,8 @@ public:
         assert(consensus.hashGenesisBlock == uint256{"000000edd819220359469c54f2614b5602ebc775ea67a64602f354bdaa320f70"});
         assert(genesis.hashMerkleRoot == uint256{"e8916cf6592c8433d598c3a5fe60a9741fd2a997b39d93af2d789cdd9d9a7390"});
 
-        vSeeds.emplace_back("xnode1.satoverse.io", false);
-        vSeeds.emplace_back("xnode2.satoverse.io", false);
+        vSeeds.emplace_back("xnode1.satoverse.io");
+        vSeeds.emplace_back("xnode2.satoverse.io");
 
         // Address start with S
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);
