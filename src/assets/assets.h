@@ -12,6 +12,9 @@
 #include "assettypes.h"
 #include <univalue.h>
 
+class CBlockIndex;
+class ChainstateManager;
+
 #include <string>
 #include <set>
 #include <map>
@@ -605,6 +608,13 @@ bool AreTransferScriptsSizeDeployed();
 bool AreEnforcedValuesDeployed();
 bool IsMessagingActive(unsigned int nBlockNumber);
 bool IsRestrictedActive(unsigned int nBlockNumber);
+
+//! Whether the asset transfer overflow check (BIP9 DEPLOYMENT_TRANSFER_OVERFLOW,
+//! bit 11) is active. Gates the overflow soft-fork: pre-activation the check only
+//! logs (Input Overflow Check-*); post-activation it rejects overflowing txs.
+//! pindexPrev is the block before the one being validated (the active tip for
+//! mempool acceptance).
+bool IsTransferOverflowCheckDeployed(const CBlockIndex* pindexPrev, const ChainstateManager& chainman);
 
 //! Format an asset amount for display, using the asset's `units` decimal places.
 UniValue UnitValueFromAmount(const CAmount& amount, int8_t units);

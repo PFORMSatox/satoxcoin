@@ -921,7 +921,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
         CAssetsCache* currentAssetCache = GetCurrentAssetCache();
         if (currentAssetCache) {
             std::vector<std::pair<std::string, uint256>> vReissueAssets;
-            if (!Consensus::CheckTxAssets(tx, state, m_view, currentAssetCache, &m_pool, vReissueAssets)) {
+            const bool fTransferOverflowDeployed = IsTransferOverflowCheckDeployed(m_active_chainstate.m_chain.Tip(), m_active_chainstate.m_chainman);
+            if (!Consensus::CheckTxAssets(tx, state, m_view, currentAssetCache, &m_pool, vReissueAssets, false, nullptr, 0, nullptr, fTransferOverflowDeployed)) {
                 return false; // state filled in by CheckTxAssets
             }
             // A reissue transaction locks the asset against further reissues until
@@ -2977,7 +2978,8 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         if (assetsCache && AreAssetsDeployed() && !tx.IsCoinBase()) {
             std::vector<std::pair<std::string, uint256>> vReissueAssets;
             TxValidationState asset_state;
-            if (!Consensus::CheckTxAssets(tx, asset_state, view, assetsCache, nullptr, vReissueAssets, false, &setMessages, block.nTime, &myNullAssetData)) {
+            const bool fTransferOverflowDeployed = IsTransferOverflowCheckDeployed(pindex->pprev, m_chainman);
+            if (!Consensus::CheckTxAssets(tx, asset_state, view, assetsCache, nullptr, vReissueAssets, false, &setMessages, block.nTime, &myNullAssetData, fTransferOverflowDeployed)) {
                 state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                               asset_state.GetRejectReason(),
                               asset_state.GetDebugMessage() + " in transaction " + tx.GetHash().ToString());

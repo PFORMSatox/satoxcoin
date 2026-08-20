@@ -15,6 +15,7 @@
 #include <consensus/validation.h>
 #include <primitives/transaction.h>
 #include <key_io.h>
+#include <limits>
 #include <logging.h>
 #include <tinyformat.h>
 #include <util/time.h>
@@ -24,6 +25,17 @@
 
 //!< Whether messaging (RIP5) is enabled. Always on for Satoxcoin.
 bool fMessaging = true;
+
+namespace {
+// Defined two's-complement wrapping addition. Pre-activation the overflow
+// check reproduces the legacy (wrapping) per-asset accumulation so nodes make
+// exactly the same accept/reject decision; the wrap must not rely on
+// signed-overflow UB, which aborts under -ftrapv in debug builds.
+CAmount WrappedAdd(const CAmount a, const CAmount b) noexcept
+{
+    return static_cast<CAmount>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
+}
+} // namespace
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
@@ -229,7 +241,8 @@ bool Consensus::CheckTxAssets(const CTransaction& tx, TxValidationState& state, 
                               std::vector<std::pair<std::string, uint256>>& vPairReissueAssets,
                               const bool fRunningUnitTests, std::set<CMessage>* setMessages,
                               int64_t nBlocktime,
-                              std::vector<std::pair<std::string, CNullAssetTxData>>* myNullAssetData)
+                              std::vector<std::pair<std::string, CNullAssetTxData>>* myNullAssetData,
+                              const bool fTransferOverflowDeployed)
 {
     if (!inputs.HaveInputs(tx)) {
         return state.Invalid(TxValidationResult::TX_MISSING_INPUTS, "bad-txns-inputs-missing-or-spent",
@@ -249,10 +262,29 @@ bool Consensus::CheckTxAssets(const CTransaction& tx, TxValidationState& state, 
             if (!GetAssetData(coin.out.scriptPubKey, data))
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-failed-to-get-asset-from-script");
 
-            if (totalInputs.count(data.assetName))
-                totalInputs.at(data.assetName) += data.nAmount;
-            else
+            if (totalInputs.count(data.assetName)) {
+                const CAmount nPrev = totalInputs.at(data.assetName);
+                if (data.nAmount < 0) {
+                    if (fTransferOverflowDeployed)
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-input-asset-amount-negative");
+                    LogInfo("Input Overflow Check: negative input asset amount in tx %s, asset %s\n",
+                              tx.GetHash().ToString(), data.assetName);
+                } else if (nPrev > std::numeric_limits<CAmount>::max() - data.nAmount) {
+                    if (fTransferOverflowDeployed)
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-input-asset-amount-toolarge");
+                    LogInfo("Input Overflow Check: input asset amount overflow in tx %s, asset %s\n",
+                              tx.GetHash().ToString(), data.assetName);
+                }
+                totalInputs.at(data.assetName) = WrappedAdd(totalInputs.at(data.assetName), data.nAmount);
+            } else {
+                if (data.nAmount < 0) {
+                    if (fTransferOverflowDeployed)
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-input-asset-amount-negative");
+                    LogInfo("Input Overflow Check: negative input asset amount in tx %s, asset %s\n",
+                              tx.GetHash().ToString(), data.assetName);
+                }
                 totalInputs.insert(make_pair(data.assetName, data.nAmount));
+            }
 
             if (AreMessagesDeployed()) {
                 mapAddresses.insert(make_pair(data.assetName, EncodeDestination(data.destination)));
@@ -310,10 +342,29 @@ bool Consensus::CheckTxAssets(const CTransaction& tx, TxValidationState& state, 
             if (!ContextualCheckTransferAsset(assetCache, transfer, address, strError))
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, strError);
 
-            if (totalOutputs.count(transfer.strName))
-                totalOutputs.at(transfer.strName) += transfer.nAmount;
-            else
+            if (totalOutputs.count(transfer.strName)) {
+                const CAmount nPrev = totalOutputs.at(transfer.strName);
+                if (transfer.nAmount < 0) {
+                    if (fTransferOverflowDeployed)
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-transfer-asset-amount-negative");
+                    LogInfo("Input Overflow Check: negative output asset amount in tx %s, asset %s\n",
+                              tx.GetHash().ToString(), transfer.strName);
+                } else if (nPrev > std::numeric_limits<CAmount>::max() - transfer.nAmount) {
+                    if (fTransferOverflowDeployed)
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-transfer-asset-amount-toolarge");
+                    LogInfo("Input Overflow Check: output asset amount overflow in tx %s, asset %s\n",
+                              tx.GetHash().ToString(), transfer.strName);
+                }
+                totalOutputs.at(transfer.strName) = WrappedAdd(totalOutputs.at(transfer.strName), transfer.nAmount);
+            } else {
+                if (transfer.nAmount < 0) {
+                    if (fTransferOverflowDeployed)
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-transfer-asset-amount-negative");
+                    LogInfo("Input Overflow Check: negative output asset amount in tx %s, asset %s\n",
+                              tx.GetHash().ToString(), transfer.strName);
+                }
                 totalOutputs.insert(make_pair(transfer.strName, transfer.nAmount));
+            }
 
             if (!fRunningUnitTests) {
                 if (IsAssetNameAnOwner(transfer.strName)) {

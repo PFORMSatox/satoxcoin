@@ -42,7 +42,8 @@ bool CheckTxAssets(const CTransaction& tx, TxValidationState& state, const CCoin
                    const bool fRunningUnitTests = false,
                    std::set<CMessage>* setMessages = nullptr,
                    int64_t nBlocktime = 0,
-                   std::vector<std::pair<std::string, CNullAssetTxData>>* myNullAssetData = nullptr);
+                   std::vector<std::pair<std::string, CNullAssetTxData>>* myNullAssetData = nullptr,
+                   const bool fTransferOverflowDeployed = false);
 } // namespace Consensus
 
 /** Auxiliary functions for transaction validation (ideally should not be exposed) */

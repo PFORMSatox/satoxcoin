@@ -77,6 +77,11 @@ bool AreEnforcedValuesDeployed()
     return true;
 }
 
+bool IsTransferOverflowCheckDeployed(const CBlockIndex* pindexPrev, const ChainstateManager& chainman)
+{
+    return pindexPrev && DeploymentActiveAfter(pindexPrev, chainman, Consensus::DEPLOYMENT_TRANSFER_OVERFLOW);
+}
+
 bool IsMessagingActive(unsigned int nBlockNumber)
 {
     if (GetParams().MessagingActivationBlock()) {
