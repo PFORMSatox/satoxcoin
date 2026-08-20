@@ -89,12 +89,17 @@ satoxcoind -testnet -server -listen -daemon
 
 ```bash
 satoxcoin-cli -testnet getblockchaininfo
-# chain: "test", bestblockhash: 000000eaab417d... (genesis)
+# chain: "test", bestblockhash: 000000b0a696734e... (genesis)
 ```
 
 The genesis hash is fixed:
-`000000eaab417d6dfe9bd75119972e1d07ecfe8ff655bef7c2acb3d9a0eeed81`.
+`000000b0a696734e3c0849dd835048cf3645e94ffc4bd20f4f8d7108c6146e33`.
 If a node reports any other best block, it is on the wrong chain.
+
+> The testnet genesis is unique to satoxcoin (own coinbase timestamp
+> string, mined 2026-08-21). It is deliberately NOT the meowcoin/ravencoin
+> lineage genesis (`000000eaab41...`) that the old, never-launched testnet
+> reused.
 
 ### 2. Mine the first blocks
 
@@ -192,8 +197,8 @@ mainnet peers (distinct message-start magic) and vice versa.
 | Parameter              | Value                                        |
 |------------------------|----------------------------------------------|
 | Chain id               | `test`                                       |
-| Genesis hash           | `000000eaab417d6dfe9bd75119972e1d07ecfe8ff655bef7c2acb3d9a0eeed81` |
-| Genesis time           | 1661734222                                   |
+| Genesis hash           | `000000b0a696734e3c0849dd835048cf3645e94ffc4bd20f4f8d7108c6146e33` |
+| Genesis time           | 1661780000 (nonce 479207, X16R, bits 0x1e00ffff) |
 | PoW                    | KAWPOW (after `nKAWPOWActivationTime`)       |
 | kawpowLimit            | `00ffffffff...` (minimum difficulty start)   |
 | Block time / retarget  | 60 s / 2016 blocks                           |

@@ -72,6 +72,12 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
 
+static CBlock CreateGenesisBlock(const char* pszTimestamp, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+{
+    const CScript genesisOutputScript = CScript() << "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f"_hex << OP_CHECKSIG;
+    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
+}
+
 /**
  * Main network on which people trade goods and services.
  */
@@ -385,7 +391,7 @@ public:
         consensus.nMinimumChainWork = uint256{"0000000000000000000000000000000000000000000000000000000000100010"};
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256{"000000eaab417d6dfe9bd75119972e1d07ecfe8ff655bef7c2acb3d9a0eeed81"};
+        consensus.defaultAssumeValid = uint256{"000000b0a696734e3c0849dd835048cf3645e94ffc4bd20f4f8d7108c6146e33"};
 
         pchMessageStart[0] = 0x74; // t
         pchMessageStart[1] = 0x53; // S
@@ -396,11 +402,15 @@ public:
         m_assumed_blockchain_size = 245;
         m_assumed_chain_state_size = 19;
 
-        uint32_t nGenesisTime = 1661734222;
-        genesis = CreateGenesisBlock(nGenesisTime, 7680541, 0x1e00ffff, 4, 5000 * COIN);
+        // Unique satoxcoin testnet genesis (not shared with meowcoin/ravencoin
+        // lineage): own coinbase timestamp string, mined 2026-08-21.
+        // X16R, nBits 0x1e00ffff, nonce 479207.
+        uint32_t nGenesisTime = 1661780000;
+        genesis = CreateGenesisBlock("Satoxcoin Public Testnet Launch 08/21/2026 - Satoverse tSAT",
+                                     nGenesisTime, 479207, 0x1e00ffff, 4, 5000 * COIN);
         consensus.hashGenesisBlock = genesis.GetX16RHash();
-        assert(consensus.hashGenesisBlock == uint256{"000000eaab417d6dfe9bd75119972e1d07ecfe8ff655bef7c2acb3d9a0eeed81"});
-        assert(genesis.hashMerkleRoot == uint256{"e8916cf6592c8433d598c3a5fe60a9741fd2a997b39d93af2d789cdd9d9a7390"});
+        assert(consensus.hashGenesisBlock == uint256{"000000b0a696734e3c0849dd835048cf3645e94ffc4bd20f4f8d7108c6146e33"});
+        assert(genesis.hashMerkleRoot == uint256{"f0e647306362bcb57122d8d2b9374f665fb170b8405d1997883a09afc9b33388"});
 
         vFixedSeeds.clear();
         vSeeds.clear();
