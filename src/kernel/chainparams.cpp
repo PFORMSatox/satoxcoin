@@ -387,10 +387,10 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256{"000000eaab417d6dfe9bd75119972e1d07ecfe8ff655bef7c2acb3d9a0eeed81"};
 
-        pchMessageStart[0] = 0x63; // S
-        pchMessageStart[1] = 0x56; // A
-        pchMessageStart[2] = 0x65; // T
-        pchMessageStart[3] = 0x65; // T
+        pchMessageStart[0] = 0x74; // t
+        pchMessageStart[1] = 0x53; // S
+        pchMessageStart[2] = 0x41; // A
+        pchMessageStart[3] = 0x54; // T
         nDefaultPort = 7060;
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 245;
