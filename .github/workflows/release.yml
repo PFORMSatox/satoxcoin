@@ -128,7 +128,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-windows \
             -DENABLE_IPC=OFF \
             -DBUILD_TESTS=OFF \
-            -DBUILD_GUI=OFF \
+            -DBUILD_GUI=ON \
             -DBUILD_TX=ON \
             -DBUILD_WALLET_TOOL=ON
           cmake --build build --config Release -j 4
@@ -137,7 +137,7 @@ jobs:
         shell: pwsh
         run: |
           $VERSION = "${{ github.ref_name }}" -replace '^v',''
-          Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe -DestinationPath "satoxcoin-${VERSION}-win64.zip"
+          Compress-Archive -Path build/bin/Release/satoxcoind.exe,build/bin/Release/satoxcoin-cli.exe,build/bin/Release/satoxcoin-tx.exe,build/bin/Release/satoxcoin-wallet.exe,build/bin/Release/satoxcoin-qt.exe -DestinationPath "satoxcoin-${VERSION}-win64.zip"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -227,7 +227,7 @@ jobs:
             |----------|--------|-----|
             | Linux x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-linux.tar.gz` | `satoxcoin-${{ github.ref_name }}-x86_64-linux-qt.tar.gz` |
             | macOS x86_64 | `satoxcoin-${{ github.ref_name }}-x86_64-macos.tar.gz` | `satoxcoin-${{ github.ref_name }}-x86_64-macos-qt.tar.gz` |
-            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` | — |
+            | Windows x86_64 | `satoxcoin-${{ github.ref_name }}-win64.zip` | `satoxcoin-${{ github.ref_name }}-win64.zip` (includes satoxcoin-qt.exe) |
             | Docker | `ghcr.io/${{ github.repository }}/satoxcoind:${{ github.ref_name }}` | — |
 
             See [doc/build-unix.md](doc/build-unix.md) (Linux/macOS) and [doc/build-windows-msvc.md](doc/build-windows-msvc.md) (Windows) for build instructions.
