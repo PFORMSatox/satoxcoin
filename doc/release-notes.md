@@ -1,9 +1,11 @@
-Satoxcoin Core version 4.0.2 is now available from:
+Satoxcoin Core version 4.0.3 is now available from:
 
-  <https://github.com/PFORMSatox/satoxcoin/releases/tag/v4.0.2>
+  <https://github.com/PFORMSatox/satoxcoin/releases/tag/v4.0.3>
 
-This release fixes the peer-discovery and disk-space reporting issues found
-after the 4.0 rebase, and completes the Satoxcoin branding and asset GUI work.
+This release prepares the public launch of the Satoxcoin testnet: it gives
+testnet its own peer-to-peer network identity, removes the unusable Bitcoin
+testnet4 chain that came over with the upstream rebase, and mints a fresh,
+satoxcoin-specific testnet genesis block. Mainnet is unaffected.
 
 Please report bugs using the issue tracker at GitHub:
 
@@ -16,11 +18,11 @@ If you are running an older version, shut it down. Wait until it has completely
 shut down (which might take a few minutes in some cases), then run the installer
 (on Windows) or just copy over `satoxcoind`/`satoxcoin-qt` (on Linux/macOS).
 
-Upgrading directly from Satoxcoin Core 3.x is supported. The data directory
-will be migrated on first run.
+Mainnet users upgrading from 4.0.x can upgrade directly; no reindex or
+migration is needed.
 
 Compatibility
-==============
+=============
 
 Satoxcoin Core is supported and tested on the following operating systems:
 Ubuntu 22.04+, macOS 14+, and Windows 10+.
@@ -28,50 +30,38 @@ Ubuntu 22.04+, macOS 14+, and Windows 10+.
 Notable Changes
 ===============
 
-### Peer Discovery Fix (DNS Seeds)
+### Testnet P2P Magic Fix
 
-Fixed a regression from the Bitcoin Core 31.1 rebase where the mainnet seed
-hostnames (`xnode1.satoverse.io`, `xnode2.satoverse.io`) were stored as empty
-strings, so nodes could never discover peers. Fresh nodes now resolve the seed
-nodes and connect to the network on first start.
+Testnet v3 inherited the same p2p message-start bytes as mainnet from the 2.x
+lineage, so testnet nodes could connect to mainnet peers. Testnet now uses its
+own magic (`tSAT`, `0x74 0x53 0x41 0x54`). The mainnet magic is unchanged.
 
-### Disk-Space Warning Fix
+### Bitcoin Testnet4 Removed
 
-The mainnet assumed blockchain size still carried the upstream Bitcoin value
-(856 GB). It now reflects the real Satoxcoin chain size (~5 GB), so the
-disk-space warning and the Qt intro wizard show correct values.
+The Bitcoin-testnet4 chain that came over with the Bitcoin Core 31.1 rebase was
+never a usable Satoxcoin network (its first kawpow blocks had no mineable
+target) and has been removed. The `-testnet4` option, `[testnet4]` config
+section, and all related GUI/test scaffolding are gone. Satoxcoin has exactly
+one testnet, selected with `-testnet`.
 
-### Satoxcoin Branding
+### New Unique Testnet Genesis
 
-- Ticker updated to `SATOX` / `mSATOX` / `µSATOX` throughout the Qt wallet
-- All wallet dialog strings, status tips, and forms rebranded from Bitcoin
-  to Satoxcoin
-- All 101 locale translation files updated
-- Executables and helper binaries renamed to `satoxcoin-*`
-  (`satoxcoin-node`, `satoxcoin-gui`, `satoxcoin-qt`, `satoxcoin-cli`,
-  `satoxcoin-wallet`, `satoxcoin-tx`, `satoxcoin-util`, `satoxcoin-chainstate`)
-- `satoxcoin:` URI scheme used consistently
+Because the previous testnet never worked, its genesis block — which was shared
+with another network — has been replaced with a fresh satoxcoin-specific one:
 
-### Asset GUI
+- Genesis hash: `000000b0a696734e3c0849dd835048cf3645e94ffc4bd20f4f8d7108c6146e33`
+- Coinbase string: `Satoxcoin Public Testnet Launch 08/21/2026 - Satoverse tSAT`
 
-- Asset creation, reissue, and restricted-asset dialogs
-- Asset control tree widget and send-assets entry
-- Asset management views in the wallet UI
+Any old testnet data directories must be deleted before running this version;
+the new chain starts from height 0. See
+`doc/security/audit/testnet-bootstrap-runbook.md` for the full bootstrap
+procedure.
 
-### Dark Mode
+### Testnet Bootstrap Runbook
 
-- Optional dark theme for the Qt wallet
-
-### Additional Fixes
-
-- `wallet`: value-initialize `CRecipient::scriptOverride`
-- `sign`: treat `RESTRICTED_ASSET_DATA` as non-signable in `SignStep`
-- `qt`: reference `SatoxcoinAmountField` (actual class name) in the amount
-  field `.ui` forms
-- `build`: guard undefined-macro checks with `defined()` for C preprocessor
-  portability
-- `build`: add `boost-thread` to Windows vcpkg dependencies for
-  `assetsnapshotdb`
+A new operations runbook (`doc/security/audit/testnet-bootstrap-runbook.md`)
+documents how to bootstrap the public testnet: chain parameters, first-block
+mining, peer discovery via `-addnode`, and reset policy.
 
 Known Issues
 ============
@@ -80,23 +70,10 @@ Known Issues
   until the 4.0 line is verified and running stable
 - New checkpoints will be added on upcoming releases as the chain advances
 
-Upgrading from 3.x
-==================
-
-If upgrading from Satoxcoin Core 3.x:
-
-1. Shut down the old node completely
-2. Replace binaries with the 4.0.2 versions
-3. Start the node — the data directory will be migrated automatically
-4. Allow the node to reindex if prompted (this may take some time)
-
-The new SQLite wallet format will be created on first run. BDB wallets
-from 3.x are automatically migrated.
-
 Credits
 =======
 
-Thanks to everyone who contributed to Satoxcoin Core 4.0.2:
+Thanks to everyone who contributed to Satoxcoin Core 4.0.3:
 
 - Satoxcoin Core developers
 - Bitcoin Core developers (upstream base)
