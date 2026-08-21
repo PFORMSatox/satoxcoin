@@ -5,8 +5,7 @@
 | Version | Supported |
 |---------|-----------|
 | 4.0.x (BTC 31.1 rebase) | ✅ Active |
-| 3.0.x | ⚠️ Maintenance only — upgrade to 4.0 recommended |
-| 2.x | ❌ Not supported |
+| < 4.0 (incl. last public 2.x) | ❌ End-of-life — upgrade to 4.0.x |
 
 ## Reporting a Vulnerability
 
@@ -18,7 +17,7 @@ Use [GitHub's private vulnerability reporting](https://github.com/PFORMSatox/sat
 
 ### Alternative: Discord
 
-DM a Satoxcoin Core team member on our [Discord](https://discord.com/invite/GFZYFuuHVq) (use the `#security-disclosure` channel).
+DM a Satoxcoin Core team member on our [Discord](https://discord.com/invite/GFZYFuuHVq).
 
 ### What to include
 
