@@ -103,8 +103,13 @@ Satoxcoin Core 4.0 is a major rebase from the last public release **2.1.0** (Bit
 | libevent | **2.1.8+** | `libevent-dev` |
 | SQLite | **3.7.17+** | `libsqlite3-dev` (wallet) — **replaces BerkeleyDB** from 2.1.0 |
 
-> **No auto-install:** `cmake` will error if deps are missing — it does not `sudo apt install` for you.
-> Install manually per [`doc/build-unix.md`](doc/build-unix.md) (`sudo apt install build-essential cmake libboost-dev libevent-dev libsqlite3-dev` etc.)
+> **Quick install (Ubuntu/Debian, prompted sudo):**
+> ```bash
+> contrib/install-dependencies.sh          # core + wallet, no GUI
+> contrib/install-dependencies.sh --with-gui  # + Qt6 / qrencode
+> contrib/install-dependencies.sh --dry-run   # preview, no sudo
+> ```
+> Or install manually per [`doc/build-unix.md`](doc/build-unix.md) (`sudo apt install build-essential cmake libboost-dev libevent-dev libsqlite3-dev` …)
 > or self-compile everything via the [`depends` system](depends/README.md) (`make -C depends -j$(nproc)`), which needs no `sudo`.
 
 ### Build

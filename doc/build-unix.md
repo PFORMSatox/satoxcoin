@@ -17,9 +17,18 @@ cmake --build build    # Append "-j N" for N parallel jobs
 cmake --install build  # Optional
 ```
 
+Quick start (Ubuntu/Debian, prompts before `sudo`):
+
+```bash
+contrib/install-dependencies.sh          # core + wallet
+contrib/install-dependencies.sh --with-gui  # + Qt6 / qrencode
+contrib/install-dependencies.sh --dry-run   # preview only
+```
+
 See below for instructions on how to [install the dependencies on popular Linux
 distributions](#linux-distribution-specific-instructions), or the
 [dependencies](#dependencies) section for a complete overview.
+Alternatively, self-compile everything without `sudo` via [`depends`](../depends/README.md): `make -C depends -j$(nproc)`.
 
 ## Memory Requirements
 

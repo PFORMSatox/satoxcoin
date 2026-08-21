@@ -154,6 +154,11 @@ if(WITH_QRENCODE)
   set(USE_QRCODE TRUE)
 endif()
 
+# Hint for missing system deps — does not auto-install; see contrib/install-dependencies.sh
+if(UNIX AND NOT APPLE)
+  message(STATUS "Tip: missing deps? Run contrib/install-dependencies.sh [--with-gui] (prompts for sudo) or make -C depends")
+endif()
+
 cmake_dependent_option(WITH_DBUS "Enable DBus support." ON "NOT CMAKE_SYSTEM_NAME MATCHES \"(Windows|Darwin)\" AND BUILD_GUI" OFF)
 
 cmake_dependent_option(ENABLE_IPC "Build multiprocess satoxcoin-node and satoxcoin-gui executables in addition to monolithic satoxcoind and satoxcoin-qt executables." ON "NOT WIN32" OFF)
