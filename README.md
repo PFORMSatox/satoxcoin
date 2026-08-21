@@ -24,7 +24,7 @@
 
 ---
 
-> **Note:** This repo contains **Satoxcoin Core** (the wallet & node) only. The Play2Earn system is not included.
+> **Note:** This repo contains **Satoxcoin Core** (the wallet & node) only.
 
 ## Table of Contents
 
@@ -42,7 +42,7 @@
 
 ## About
 
-**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support (KawPoW, Ravencoin-compatible assets). Built on **Bitcoin Core 31.1** with KAWPOW consensus, it provides full asset issuance, transfer, and management. The Play2Earn system is built on top of this chain and is **not included** here.
+**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support (KawPoW, Ravencoin-compatible assets). Built on **Bitcoin Core 31.1** with KAWPOW consensus, it provides full asset issuance, transfer, and management.
 
 **Satoxcoin Core 4.0** is a major rebase from the last public release **2.1.0** (Bitcoin 0.21 / Ravencoin 4.6.1, autotools + BerkeleyDB) to **Bitcoin Core 31.1**. The intermediate `3.0.x` line was internal/private and never publicly released. See [Lineage](#lineage) for the full history.
 
