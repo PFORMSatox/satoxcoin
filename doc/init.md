@@ -1,4 +1,4 @@
-Sample init scripts and service configuration for bitcoind
+Sample init scripts and service configuration for satoxcoind
 ==========================================================
 
 Sample scripts and configuration files for systemd, Upstart and OpenRC
@@ -13,19 +13,19 @@ can be found in the contrib/init folder.
 Service User
 ---------------------------------
 
-All three Linux startup configurations assume the existence of a "bitcoin" user
+All three Linux startup configurations assume the existence of a "satoxcoin" user
 and group.  They must be created before attempting to use these scripts.
-The macOS configuration assumes bitcoind will be set up for the current user.
+The macOS configuration assumes satoxcoind will be set up for the current user.
 
 Configuration
 ---------------------------------
 
-Running bitcoind as a daemon does not require any manual configuration. You may
-set the `rpcauth` setting in the `bitcoin.conf` configuration file to override
+Running satoxcoind as a daemon does not require any manual configuration. You may
+set the `rpcauth` setting in the `satoxcoin.conf` configuration file to override
 the default behaviour of using a special cookie for authentication.
 
 This password does not have to be remembered or typed as it is mostly used
-as a fixed token that bitcoind and client programs read from the configuration
+as a fixed token that satoxcoind and client programs read from the configuration
 file, however it is recommended that a strong and secure password be used
 as this password is security critical to securing the wallet should the
 wallet be enabled.
