@@ -736,7 +736,7 @@ public:
 #endif // QT_NO_TOOLTIP
         currencyUnitIndexLabel->setText(QApplication::translate("OptionsDialog", "&Currency Unit:", nullptr));
 #ifndef QT_NO_TOOLTIP
-        currencyUnitIndex->setToolTip(QApplication::translate("OptionsDialog", "Choose which currency to display the realtime value of RVN in (ie: BTC/RVN).", nullptr));
+        currencyUnitIndex->setToolTip(QApplication::translate("OptionsDialog", "Choose which currency to display the realtime value of SATOX in (ie: BTC/SATOX).", nullptr));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
         thirdPartyTxUrlsLabel->setToolTip(QApplication::translate("OptionsDialog", "Third party URLs (e.g. a block explorer) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.", nullptr));
