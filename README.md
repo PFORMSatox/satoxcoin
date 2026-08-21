@@ -3,9 +3,7 @@
 
 <br>
 
-**Satoxcoin Core**
-
-<br>
+<h1 align="center">Satoxcoin Core</h1>
 
 ![Version](https://img.shields.io/github/v/release/PFORMSatox/satoxcoin?style=flat-square&label=version)
 ![C++](https://img.shields.io/badge/-C++17-darkorchid?style=flat-square)
