@@ -128,18 +128,20 @@ See [`doc/build-*.md`](doc/build-*.md) for platform-specific instructions.
 ## Lineage
 
 ```
-Bitcoin Core (0.15)
+Bitcoin Core (0.15 → 0.21)
   └── Ravencoin (v4.6.1 / develop)
-        └── Satoxcoin (3.0.0-rebase)
-              └── Satoxcoin 4.0 (rebase → Bitcoin Core 31.1)
+        └── Satoxcoin 2.1.0 (last public, autotools/BDB)
+              └── Satoxcoin 4.0 (main → Bitcoin Core 31.1 rebase)
+                    └── patch/frozen: asset-overflow soft-fork (BIP9 bit 11) + remaining hardening — on top of 4.0
+                        branch `consensus/asset-overflow` (tag `asset-overflow-frozen`)
 ```
 
 | Base | Version | What was taken |
 |:-----|:--------|:---------------|
-| **Bitcoin Core** | 31.1 | Consensus kernel, C++17, CMake build, security base, UTXO model, script engine, mempool |
-| **Ravencoin** | 4.6.1 | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, HIP2 8MB blocks |
-| **Satoxcoin 3.0.0** | 3.0.0-rebase *(internal, frozen)* | KAWPOW security fixes, asset-overflow soft-fork (BIP9 bit 11, frozen), community fund (10% P2E), branding, 55 checkpoints — **not merged into 4.0** |
-| **Satoxcoin 4.0** | 4.0 | KAWPOW fixes (cherry-picked) + BTC 31.1 security (16 CVEs), C++17, CMake, modernized asset DB, SQLite wallet, indexes — **overflow fork stays on its branch per release policy** |
+| **Ravencoin** | 4.6.1 (Bitcoin 0.21 base) | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, HIP2 8MB blocks |
+| **Satoxcoin 2.1.0** | last public | Community fund (10% P2E), branding, DGW |
+| **Satoxcoin 4.0** | 4.0.x (main) | Full rebase to **Bitcoin Core 31.1** — 16 CVEs, C++17/CMake, SQLite/descriptor wallets, cherry-picked KAWPOW hardening, 55 checkpoints, indexes, assumeUTXO — **overflow soft-fork NOT included** |
+| **Frozen patch** | `consensus/asset-overflow` | Asset-transfer overflow check (BIP9 bit 11) + wallet lock fix — **built on top of 4.0**, activation is slow/per-policy |
 
 ---
 
