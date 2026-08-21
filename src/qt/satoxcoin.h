@@ -30,7 +30,7 @@ class Init;
 } // namespace interfaces
 
 
-/** Main Bitcoin application object */
+/** Main Satoxcoin application object */
 class SatoxcoinApplication: public QApplication
 {
     Q_OBJECT

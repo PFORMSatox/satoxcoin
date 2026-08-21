@@ -26,7 +26,7 @@
 #define THIN_SP_UTF8 REAL_THIN_SP_UTF8
 #define THIN_SP_HTML HTML_HACK_SP
 
-/** Bitcoin unit definitions. Encapsulates parsing and formatting
+/** Satoxcoin unit definitions. Encapsulates parsing and formatting
    and serves as list model for drop-down selection boxes.
 */
 class SatoxcoinUnits: public QAbstractListModel
@@ -36,7 +36,7 @@ class SatoxcoinUnits: public QAbstractListModel
 public:
     explicit SatoxcoinUnits(QObject *parent);
 
-    /** Bitcoin units.
+    /** Satoxcoin units.
       @note Source: https://en.bitcoin.it/wiki/Units . Please add only sensible ones
      */
     enum class Unit {

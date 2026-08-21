@@ -88,7 +88,7 @@ SatoxcoinAddressCheckValidator::SatoxcoinAddressCheckValidator(QObject *parent) 
 QValidator::State SatoxcoinAddressCheckValidator::validate(QString &input, int &pos) const
 {
     Q_UNUSED(pos);
-    // Validate the passed Bitcoin address
+    // Validate the passed Satoxcoin address
     if (IsValidDestinationString(input.toStdString())) {
         return QValidator::Acceptable;
     }
