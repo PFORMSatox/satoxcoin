@@ -9,7 +9,7 @@ for routing.
 CJDNS is like a distributed, shared VPN with multiple entry points where every
 participant can reach any other participant. All participants use addresses from
 the `fc00::/8` network (reserved IPv6 range). Installation and configuration is
-done outside of Bitcoin Core, similarly to a VPN (either in the host/OS or on
+done outside of Satoxcoin Core, similarly to a VPN (either in the host/OS or on
 the network router). See https://github.com/cjdelisle/cjdns#readme and
 https://github.com/hyperboria/docs#hyperboriadocs for more information.
 
@@ -30,7 +30,7 @@ To install and set up CJDNS, follow the instructions at
 https://github.com/cjdelisle/cjdns#how-to-install-cjdns.
 
 You need to initiate an outbound connection to a peer on the CJDNS network
-before it will work with your Bitcoin Core node. This is described in steps
+before it will work with your Satoxcoin Core node. This is described in steps
 ["2. Find a friend"](https://github.com/cjdelisle/cjdns#2-find-a-friend) and
 ["3. Connect your node to your friend's
 node"](https://github.com/cjdelisle/cjdns#3-connect-your-node-to-your-friends-node)
@@ -93,7 +93,7 @@ Make automatic outbound connections only to CJDNS addresses. Inbound and manual
 connections are not affected by this option. It can be specified multiple times
 to allow multiple networks, e.g. onlynet=cjdns, onlynet=i2p, onlynet=onion.
 
-CJDNS support was added to Satoxcoin Core (inherited from Bitcoin Core 23.0+) and there may be fewer
+CJDNS support was added to Satoxcoin Core (inherited from Satoxcoin Core 23.0+) and there may be fewer
 CJDNS peers than Tor or IP ones. You can use `satoxcoin-cli -addrinfo` to see the
 number of CJDNS addresses known to your node.
 
