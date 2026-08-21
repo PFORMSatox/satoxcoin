@@ -1,4 +1,4 @@
-BIPs that are implemented by Bitcoin Core:
+BIPs that are implemented by Satoxcoin Core (inherited via Bitcoin Core 31.1 rebase):
 
 * [`BIP 9`](https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki): The changes allowing multiple soft-forks to be deployed in parallel have been implemented since **v0.12.1**  ([PR #7575](https://github.com/bitcoin/bitcoin/pull/7575))
 * [`BIP 11`](https://github.com/bitcoin/bips/blob/master/bip-0011.mediawiki): Multisig outputs are standard since **v0.6.0** ([PR #669](https://github.com/bitcoin/bitcoin/pull/669)).
@@ -77,3 +77,13 @@ BIPs that are implemented by Bitcoin Core:
 * [`BIP 390`](https://github.com/bitcoin/bips/blob/master/bip-0390.mediawiki): MuSig2 Descriptor parsing is implemented in **v30.0** ([PR 31244](https://github.com/bitcoin/bitcoin/pull/31244)) and signing in **v31.0** ([PR 29675](https://github.com/bitcoin/bitcoin/pull/29675))
 * [`BIP 431`](https://github.com/bitcoin/bips/blob/master/bip-0431.mediawiki): transactions with nVersion=3 are standard and treated as Topologically Restricted Until Confirmation as of **v28.0** ([PR 29496](https://github.com/bitcoin/bitcoin/pull/29496)).
 * [`BIP 433`](https://github.com/bitcoin/bips/blob/master/bip-0433.mediawiki): Spending of Pay to Anchor (P2A) outputs is standard as of **v28.0** ([PR 30352](https://github.com/bitcoin/bitcoin/pull/30352)).
+
+Satoxcoin-specific deployments (BIP9 versionbits, inherited from Ravencoin 4.6.1):
+
+* **HIP2 — Assets** (bit 6): Asset issuance and transfer. Active via BIP9, start 1653004800, threshold 1814/2016 (≈80%).
+* **HIP5 — Restricted assets** (bit 7): Messaging + restricted assets (RIP5). Threshold 1714/2016 (≈85%).
+* **Transfer script size** (bit 8): Enforces transfer script size limits. Threshold 1714/2016.
+* **Enforce value** (bit 9): Enforces asset value checks. Threshold 1411/2016 (≈70%).
+* **Coinbase assets** (bit 10): Coinbase asset handling. Threshold 1411/2016.
+* **Transfer overflow** (bit 11): Asset-transfer quantity overflow check — **frozen** on branch `consensus/asset-overflow` (tag `asset-overflow-frozen`), not active on `main`. Start 1789862400 (2026-09-20) when activated.
+* **testdummy** (bit 28): Test deployment, never active on mainnet.

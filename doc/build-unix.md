@@ -1,6 +1,6 @@
 UNIX BUILD NOTES
 ====================
-Some notes on how to build Bitcoin Core in Unix.
+Some notes on how to build Satoxcoin Core in Unix.
 
 (For BSD specific instructions, see `build-*bsd.md` in this directory.)
 
@@ -219,11 +219,11 @@ Setup and Build Example: Arch Linux
 This example lists the steps necessary to setup and build a command line only distribution of the latest changes on Arch Linux:
 
     pacman --sync --needed capnproto cmake boost gcc git libevent make python sqlite
-    git clone https://github.com/bitcoin/bitcoin.git
-    cd bitcoin/
+    git clone https://github.com/satoverse/satoxcoin.git
+    cd satoxcoin/
     cmake -B build
     cmake --build build
     ctest --test-dir build
-    ./build/bin/bitcoind
-    ./build/bin/bitcoin help
+    ./build/bin/satoxcoind
+    ./build/bin/satoxcoin help
 

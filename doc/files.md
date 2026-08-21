@@ -1,4 +1,4 @@
-# Bitcoin Core file system
+# Satoxcoin Core file system
 
 **Contents**
 
@@ -22,19 +22,19 @@
 
 ## Data directory location
 
-The data directory is the default location where the Bitcoin Core files are stored.
+The data directory is the default location where the Satoxcoin Core files are stored.
 
 1. The default data directory paths for supported platforms are:
 
 Platform | Data directory path
 ---------|--------------------
-Linux    | `$HOME/.bitcoin/`
-macOS    | `$HOME/Library/Application Support/Bitcoin/`
-Windows  | `%LOCALAPPDATA%\Bitcoin\` <sup>[\[1\]](#note1)</sup>
+Linux    | `$HOME/.satoxcoin/`
+macOS    | `$HOME/Library/Application Support/Satoxcoin/`
+Windows  | `%LOCALAPPDATA%\Satoxcoin\` <sup>[\[1\]](#note1)</sup>
 
 2. A custom data directory path can be specified with the `-datadir` option.
 
-3. All content of the data directory, except for `bitcoin.conf` file, is chain-specific. This means the actual data directory paths for non-mainnet cases differ:
+3. All content of the data directory, except for `satoxcoin.conf` file, is chain-specific. This means the actual data directory paths for non-mainnet cases differ:
 
 Chain option                     | Data directory path
 ---------------------------------|------------------------------
@@ -49,7 +49,7 @@ Subdirectory       | File(s)               | Description
 -------------------|-----------------------|------------
 `blocks/`          |                       | Blocks directory; can be specified by `-blocksdir` option (except for `blocks/index/`)
 `blocks/index/`    | LevelDB database      | Block index; `-blocksdir` option does not affect this path
-`blocks/`          | `blkNNNNN.dat`<sup>[\[2\]](#note2)</sup> | Actual Bitcoin blocks (dumped in network format, 128 MiB per file)
+`blocks/`          | `blkNNNNN.dat`<sup>[\[2\]](#note2)</sup> | Actual Satoxcoin blocks (dumped in network format, 128 MiB per file)
 `blocks/`          | `revNNNNN.dat`<sup>[\[2\]](#note2)</sup> | Block undo data (custom format)
 `blocks/`          | `xor.dat`             | Rolling XOR pattern for block and undo data files
 `chainstate/`      | LevelDB database      | Blockchain state (a compact representation of all currently unspent transaction outputs (UTXOs) and metadata about the transactions they are from)
@@ -99,11 +99,11 @@ Subdirectory | File                 | Description
 
 ## GUI settings
 
-`bitcoin-qt` uses [`QSettings`](https://doc.qt.io/qt-6/qsettings.html) class; this implies platform-specific [locations where application settings are stored](https://doc.qt.io/qt-6/qsettings.html#locations-where-application-settings-are-stored).
+`satoxcoin-qt` uses [`QSettings`](https://doc.qt.io/qt-6/qsettings.html) class; this implies platform-specific [locations where application settings are stored](https://doc.qt.io/qt-6/qsettings.html#locations-where-application-settings-are-stored).
 
 ## Legacy subdirectories and files
 
-These subdirectories and files are no longer used by Bitcoin Core:
+These subdirectories and files are no longer used by Satoxcoin Core:
 
 Path           | Description | Repository notes
 ---------------|-------------|-----------------
@@ -159,10 +159,10 @@ This table describes the files installed by Satoxcoin Core across different plat
 ### Notes
 
 - *Italicized* files are only installed in source builds if relevant CMake options are enabled. They are not included in binary releases.
-- README and bitcoin.conf files are included in binary releases but not installed in source builds.
-- On Windows, binaries have a `.exe` suffix (e.g., `bitcoin-cli.exe`).
+- README and satoxcoin.conf files are included in binary releases but not installed in source builds.
+- On Windows, binaries have a `.exe` suffix (e.g., `satoxcoin-cli.exe`).
 
 ## Filesystem recommendations
 
 When choosing a filesystem for the data directory (`datadir`) or blocks directory (`blocksdir`) on **macOS**,the `exFAT` filesystem should be avoided.
-There have been multiple reports of database corruption and data loss when using this filesystem with Bitcoin Core, see [Issue #31454](https://github.com/bitcoin/bitcoin/issues/31454) for more details.
+There have been multiple reports of database corruption and data loss when using this filesystem with Satoxcoin Core, see [Issue #31454](https://github.com/bitcoin/bitcoin/issues/31454) for more details.

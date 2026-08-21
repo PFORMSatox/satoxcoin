@@ -2,7 +2,7 @@
 
 **Updated for MacOS [26](https://www.apple.com/os/macos/)**
 
-This guide describes how to build bitcoind, command-line utilities, and GUI on macOS.
+This guide describes how to build satoxcoind, command-line utilities, and GUI on macOS.
 
 ## Preparation
 
@@ -71,7 +71,7 @@ Now that all the required dependencies are installed, let's clone the Bitcoin Co
 All build scripts and commands will run from this directory.
 
 ``` bash
-git clone https://github.com/bitcoin/bitcoin.git
+git clone https://github.com/satoverse/satoxcoin.git
 ```
 
 ### 5. Install Optional Dependencies
@@ -183,12 +183,12 @@ cmake --build build --target deploy
 
 ## Running Bitcoin Core
 
-Bitcoin Core should now be available at `./build/bin/bitcoind`.
+Satoxcoin Core should now be available at `./build/bin/satoxcoind`.
 If you compiled support for the GUI, it should be available at `./build/bin/bitcoin-qt`.
 
 There is also a multifunction command line interface at `./build/bin/bitcoin`
-supporting subcommands like `bitcoin node`, `bitcoin gui`, `bitcoin rpc`, and
-others that can be listed with `bitcoin help`.
+supporting subcommands like `satoxcoin node`, `satoxcoin gui`, `satoxcoin rpc`, and
+others that can be listed with `satoxcoin help`.
 
 The first time you run `bitcoind` or `bitcoin-qt`, it will start downloading the blockchain.
 This process could take many hours, or even days on slower than average systems.
@@ -196,7 +196,7 @@ This process could take many hours, or even days on slower than average systems.
 By default, blockchain and wallet data files will be stored in:
 
 ``` bash
-/Users/${USER}/Library/Application Support/Bitcoin/
+/Users/${USER}/Library/Application Support/Satoxcoin/
 ```
 
 Before running, you may create an empty configuration file:
@@ -204,9 +204,9 @@ Before running, you may create an empty configuration file:
 ```shell
 mkdir -p "/Users/${USER}/Library/Application Support/Bitcoin"
 
-touch "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+touch "/Users/${USER}/Library/Application Support/Satoxcoin/satoxcoin.conf"
 
-chmod 600 "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+chmod 600 "/Users/${USER}/Library/Application Support/Satoxcoin/satoxcoin.conf"
 ```
 
 You can monitor the download process by looking at the debug.log file:
@@ -218,8 +218,8 @@ tail -f $HOME/Library/Application\ Support/Bitcoin/debug.log
 ## Other commands:
 
 ```shell
-./build/bin/bitcoind -daemon      # Starts the bitcoin daemon.
-./build/bin/bitcoin-cli --help    # Outputs a list of command-line options.
-./build/bin/bitcoin-cli help      # Outputs a list of RPC commands when the daemon is running.
-./build/bin/bitcoin-qt -server # Starts the bitcoin-qt server mode, allows bitcoin-cli control
+./build/bin/satoxcoind -daemon      # Starts the bitcoin daemon.
+./build/bin/satoxcoin-cli --help    # Outputs a list of command-line options.
+./build/bin/satoxcoin-cli help      # Outputs a list of RPC commands when the daemon is running.
+./build/bin/satoxcoin-qt -server # Starts the bitcoin-qt server mode, allows satoxcoin-cli control
 ```

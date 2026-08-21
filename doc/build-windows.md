@@ -1,7 +1,7 @@
 WINDOWS BUILD NOTES
 ====================
 
-Below are some notes on how to build Bitcoin Core for Windows.
+Below are some notes on how to build Satoxcoin Core for Windows.
 
 The options known to work for building Bitcoin Core on Windows are:
 
