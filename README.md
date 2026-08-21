@@ -7,7 +7,7 @@
 
 <br>
 
-![Version](https://img.shields.io/badge/4.0.0-blue?style=flat-square&label=version)
+![Version](https://img.shields.io/badge/4.0.3-blue?style=flat-square&label=version)
 ![C++](https://img.shields.io/badge/-C++17-darkorchid?style=flat-square)
 ![KawPoW](https://img.shields.io/badge/-KawPoW-lightcoral?style=flat-square)
 ![BTC 31.1](https://img.shields.io/badge/-BTC_31.1_rebase-darkorange?style=flat-square)

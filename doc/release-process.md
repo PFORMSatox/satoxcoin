@@ -321,7 +321,6 @@ To calculate `m_assumed_blockchain_size`, take the size in GiB of these director
 To calculate `m_assumed_chain_state_size`, take the size in GiB of these directories:
 - For `mainnet` -> `/chainstate`
 - For `testnet` -> `/testnet3/chainstate`
-- For `testnet4` -> `/testnet4/chainstate`
 - For `signet` -> `/signet/chainstate`
 
 Notes:
