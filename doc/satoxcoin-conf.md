@@ -88,5 +88,5 @@ To use the generated configuration file, copy the example file into your data di
 
 ```
 # example copy command for linux user
-cp share/examples/satoxcoin.conf ~/.satoxcoin
+cp share/examples/satoxcoin.conf ~/.satoxcoin/satoxcoin.conf
 ```

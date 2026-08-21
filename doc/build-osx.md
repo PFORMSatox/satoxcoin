@@ -186,11 +186,11 @@ cmake --build build --target deploy
 Satoxcoin Core should now be available at `./build/bin/satoxcoind`.
 If you compiled support for the GUI, it should be available at `./build/bin/satoxcoin-qt`.
 
-There is also a multifunction command line interface at `./build/bin/bitcoin`
+There is also a multifunction command line interface at `./build/bin/satoxcoin`
 supporting subcommands like `satoxcoin node`, `satoxcoin gui`, `satoxcoin rpc`, and
 others that can be listed with `satoxcoin help`.
 
-The first time you run `bitcoind` or `bitcoin-qt`, it will start downloading the blockchain.
+The first time you run `satoxcoind` or `satoxcoin-qt`, it will start downloading the blockchain.
 This process could take many hours, or even days on slower than average systems.
 
 By default, blockchain and wallet data files will be stored in:

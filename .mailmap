@@ -1,0 +1,12 @@
+# Mailmap — canonical names for git shortlog / log --use-mailmap
+# Keeps automation bots from appearing as human contributors.
+# GitHub's Contributors graph still counts commit authors; this file only affects local `git shortlog`/`git log --use-mailmap`.
+
+# Dependabot — map to neutral bot identity (keeps history intact, groups under one name)
+Dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+# GitHub Actions bot (future, if used)
+github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com> github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+
+# Example: coalesce duplicate human names here (add as needed)
+# Satoxcoin Core <noreply@satoverse.io> PFORMSatox <pform.satox@protonmail.com>
