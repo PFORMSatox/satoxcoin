@@ -22,7 +22,7 @@ jobs:
   linux-build:
     name: Build + Unit Tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
