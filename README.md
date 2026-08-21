@@ -7,7 +7,7 @@
 
 <br>
 
-![Version](https://img.shields.io/badge/4.0.3-blue?style=flat-square&label=version)
+![Version](https://img.shields.io/github/v/release/PFORMSatox/satoxcoin?style=flat-square&label=version)
 ![C++](https://img.shields.io/badge/-C++17-darkorchid?style=flat-square)
 ![KawPoW](https://img.shields.io/badge/-KawPoW-lightcoral?style=flat-square)
 ![BTC 31.1](https://img.shields.io/badge/-BTC_31.1_rebase-darkorange?style=flat-square)
@@ -20,7 +20,7 @@
 
 <br>
 
-<a href="#what-is-satoxcoin">About</a> · <a href="#specification">Specification</a> · <a href="#building-from-source">Build</a> · <a href="#lineage">Lineage</a> · <a href="https://discord.com/invite/GFZYFuuHVq">Discord</a> · <a href="https://xplore.satoverse.io">Explorer</a>
+<a href="#about">About</a> · <a href="#features">Features</a> · <a href="#specification">Spec</a> · <a href="#quick-start">Quick Start</a> · <a href="#building-from-source">Build</a> · <a href="https://discord.com/invite/GFZYFuuHVq">Discord</a> · <a href="https://xplore.satoverse.io">Explorer</a>
 
 </div>
 
@@ -30,38 +30,41 @@
 
 ## Table of Contents
 
-- [What is Satoxcoin?](#what-is-satoxcoin)
-- [What is Satoxcoin Core 4.0?](#what-is-satoxcoin-core-40)
-- [Key Improvements](#key-improvements)
+- [About](#about)
+- [Features](#features)
 - [Specification](#specification)
-- [What Makes Satoxcoin Unique?](#what-makes-satoxcoin-unique)
+- [Quick Start](#quick-start)
 - [Building from Source](#building-from-source)
+- [Documentation](#documentation)
 - [Lineage](#lineage)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## What is Satoxcoin?
+## About
 
-**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support, designed for Play2Earn gaming. Built on Bitcoin Core 31.1 with KAWPOW consensus, it provides full Ravencoin-compatible asset issuance, transfer, and management while maintaining the security guarantees of the modern Bitcoin codebase.
+**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support, designed for Play2Earn gaming. Built on **Bitcoin Core 31.1** with KAWPOW consensus, it provides full Ravencoin-compatible asset issuance, transfer, and management while maintaining the security guarantees of the modern Bitcoin codebase.
 
-## What is Satoxcoin Core 4.0?
+**Satoxcoin Core 4.0** is a major rebase from the last public release **2.1.0** (Bitcoin 0.21 / Ravencoin 4.6.1, autotools + BerkeleyDB) to **Bitcoin Core 31.1**. The intermediate `3.0.x` line was internal/private and never publicly released. See [Lineage](#lineage) for the full history.
 
-Satoxcoin Core 4.0 is a major rebase from the last public release **2.1.0** (Bitcoin 0.21 / Ravencoin 4.6.1 base, autotools + BerkeleyDB) to **Bitcoin Core 31.1**, bringing all BTC security fixes while preserving the complete Satoxcoin asset system, KAWPOW consensus, and community fund. The intermediate `3.0.x` line was internal/private and never publicly released.
+---
 
-### Key Improvements over 2.1.0
+## Features
 
-| Area | 2.1.0 (last public) | 4.0.x (this release) |
-|:-----|:--------------------|:---------------------|
-| Bitcoin base | 0.21 (Ravencoin 4.6.1) | **31.1** — 16 CVEs fixed (CVE-2024-52911 → CVE-2025-54605) |
-| Build / language | autotools, **C++11**, BerkeleyDB (BDB) wallets | **CMake**, **C++17**, **SQLite** + descriptor wallets |
-| KAWPOW | unhardened (mix\_hash/nHeight/epoch-DoS open) | **hardened** — 3 fixes from `security/kawpow-hardening` |
-| Asset system | height-activated (`nAssetActivationHeight=1`), no overflow check | **BIP9** bits 6–10, **6 hardening fixes** (ConnectBlock/DisconnectBlock, reissue overflow, flush corruption). Overflow soft-fork (bit 11) is on frozen branch `security/kawpow-hardening` — **not in this release**, activation is slow/per-policy |
-| Block size | 4 MB serial / 8 MB HIP2 already present | **retained 8 MB HIP2** |
-| Checkpoints | 1 (genesis only) | **55** (height 0 → 1,865,353) |
-| Indexes / RPCs | none (no address/spent/timestamp) | **full index system** — `addressindex`, `spentindex`, `timestampindex` + 7 RPCs, `getaddressdeltas` etc. |
-| AssumeUTXO | absent | present (header sync + snapshot load) |
+- **Bitcoin 31.1 base** — 16 CVEs fixed, C++17/CMake, SQLite + descriptor wallets (replaces C++11/autotools/BerkeleyDB)
+- **KAWPOW hardened** — 3 fixes (mix_hash, nHeight, epoch-DoS) from `security/kawpow-hardening`
+- **Asset system hardened** — 6 fixes (ConnectBlock/DisconnectBlock, reissue overflow, flush corruption); 55 checkpoints (0 → 1,865,353); full `addressindex`/`spentindex`/`timestampindex` + 7 RPCs
+- **8 MB blocks (HIP2)** retained; 10% P2E community fund retained
+
+> Full 2.1.0 → 4.0 comparison and derivation history: [`doc/lineage.md`](doc/lineage.md).
+> Overflow soft-fork (BIP9 bit 11) lives on frozen branch `consensus/asset-overflow` — **not in this release**.
+
+## What Makes Satoxcoin Unique?
+
+- **No dedicated servers** — First P2E that works without infrastructure overhead
+- **1,160+ Steam games** — Native support across the Steam catalog
+- **Console support** — Works with Xbox and Steam Deck
 
 ---
 
@@ -77,17 +80,31 @@ Satoxcoin Core 4.0 is a major rebase from the last public release **2.1.0** (Bit
 | **Halving Interval** | 2,100,000 blocks (~4 years) |
 | **Post-halving Subsidy** | 300 SATOX |
 | **Dev / P2E Fund** | 10% of subsidy to `SQ5iQMsmqZiYY96rTx5Hisd7sx5GiGUbbN` |
-| **P2P Port** | 60777 (mainnet) · 7060 (testnet) · 19444 (regtest) |
+| **P2P Port** | **60777** (mainnet) |
 | **BIP44 Coin Type** | 1669 |
 | **Base58 Prefix** | 63 (S) · 122 (script) · 112 (secret key) |
 
+> Testnet and regtest ports/magic are documented in [`doc/security/audit/testnet-bootstrap-runbook.md`](doc/security/audit/testnet-bootstrap-runbook.md) and [`doc/files.md`](doc/files.md), not here.
+
 ---
 
-## What Makes Satoxcoin Unique?
+## Quick Start
 
-- **No dedicated servers** — First P2E that works without infrastructure overhead
-- **1,160+ Steam games** — Native support across the Steam catalog
-- **Console support** — Works with Xbox and Steam Deck
+After [building](#building-from-source):
+
+```bash
+# mainnet (syncs from network)
+satoxcoind -daemon
+satoxcoin-cli getblockchaininfo
+
+# regtest — local, no network, instant blocks (for development)
+satoxcoind -regtest -daemon
+satoxcoin-cli -regtest createwallet test
+satoxcoin-cli -regtest generatetoaddress 1 $(satoxcoin-cli -regtest getnewaddress)
+satoxcoin-cli -regtest getblockchaininfo
+```
+
+For public testnet setup, see [`doc/security/audit/testnet-bootstrap-runbook.md`](doc/security/audit/testnet-bootstrap-runbook.md).
 
 ---
 
@@ -133,6 +150,15 @@ See [`doc/build-*.md`](doc/build-*.md) for platform-specific instructions.
 
 ---
 
+## Documentation
+
+- Build: [`doc/build-unix.md`](doc/build-unix.md), [`doc/build-osx.md`](doc/build-osx.md), [`doc/build-windows-msvc.md`](doc/build-windows-msvc.md), [`depends/README.md`](depends/README.md)
+- Testnet: [`doc/security/audit/testnet-bootstrap-runbook.md`](doc/security/audit/testnet-bootstrap-runbook.md)
+- Security: [`SECURITY.md`](SECURITY.md), [`doc/security/audit/`](doc/security/audit/)
+- Release: [`doc/release-notes.md`](doc/release-notes.md), [`doc/release-process.md`](doc/release-process.md)
+
+---
+
 ## Lineage
 
 ```
@@ -140,16 +166,9 @@ Bitcoin Core (0.15 → 0.21)
   └── Ravencoin (v4.6.1 / develop, autotools + BerkeleyDB)
         └── Satoxcoin 2.1.0 (last public, autotools + BerkeleyDB)
               └── Satoxcoin 4.0 (main → Bitcoin Core 31.1, CMake + SQLite)
-                    └── patch/frozen: asset-overflow soft-fork (BIP9 bit 11) — on top of 4.0
-                        branch `consensus/asset-overflow` (tag `asset-overflow-frozen`)
 ```
 
-| Base | Version | What was taken |
-|:-----|:--------|:---------------|
-| **Ravencoin** | 4.6.1 (Bitcoin 0.21 base) | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, HIP2 8MB blocks |
-| **Satoxcoin 2.1.0** | last public | Community fund (10% P2E), branding, DGW |
-| **Satoxcoin 4.0** | 4.0.x (main) | Full rebase to **Bitcoin Core 31.1** — 16 CVEs, C++17/CMake, SQLite/descriptor wallets, cherry-picked KAWPOW hardening, 55 checkpoints, indexes, assumeUTXO — **overflow soft-fork NOT included** |
-| **Frozen patch** | `consensus/asset-overflow` | Asset-transfer overflow check (BIP9 bit 11) + wallet lock fix — **built on top of 4.0**, activation is slow/per-policy |
+Full derivation, what was taken from each base, and the frozen `consensus/asset-overflow` patch: [`doc/lineage.md`](doc/lineage.md).
 
 ---
 
