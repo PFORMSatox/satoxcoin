@@ -14,7 +14,7 @@ Bitcoin Core (0.15 → 0.21)
 | Base | Version | What was taken |
 |:-----|:--------|:---------------|
 | **Ravencoin** | 4.6.1 (Bitcoin 0.21 base) | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, HIP2 8MB blocks |
-| **Satoxcoin 2.1.0** | last public | Community fund (10% P2E), branding, DGW |
+| **Satoxcoin 2.1.0** | last public | Dev fund / P2E fund (10%), branding, DGW |
 | **Satoxcoin 4.0** | 4.0.x (main) | Full rebase to **Bitcoin Core 31.1** — 16 CVEs, C++17/CMake, SQLite/descriptor wallets, cherry-picked KAWPOW hardening, 55 checkpoints, indexes, assumeUTXO — **overflow soft-fork NOT included** |
 | **Frozen patch** | `consensus/asset-overflow` | Asset-transfer overflow check (BIP9 bit 11) + wallet lock fix — **built on top of 4.0**, activation is slow/per-policy |
 

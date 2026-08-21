@@ -42,7 +42,7 @@
 
 ## About
 
-**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support, designed for Play2Earn gaming. Built on **Bitcoin Core 31.1** with KAWPOW consensus, it provides full Ravencoin-compatible asset issuance, transfer, and management while maintaining the security guarantees of the modern Bitcoin codebase.
+**Satoxcoin ($SATOX)** is a PoW blockchain with native asset support (KawPoW, Ravencoin-compatible assets). Built on **Bitcoin Core 31.1** with KAWPOW consensus, it provides full asset issuance, transfer, and management. The Play2Earn system is built on top of this chain and is **not included** here.
 
 **Satoxcoin Core 4.0** is a major rebase from the last public release **2.1.0** (Bitcoin 0.21 / Ravencoin 4.6.1, autotools + BerkeleyDB) to **Bitcoin Core 31.1**. The intermediate `3.0.x` line was internal/private and never publicly released. See [Lineage](#lineage) for the full history.
 
@@ -53,16 +53,10 @@
 - **Bitcoin 31.1 base** — 16 CVEs fixed, C++17/CMake, SQLite + descriptor wallets (replaces C++11/autotools/BerkeleyDB)
 - **KAWPOW hardened** — 3 fixes (mix_hash, nHeight, epoch-DoS) from `security/kawpow-hardening`
 - **Asset system hardened** — 6 fixes (ConnectBlock/DisconnectBlock, reissue overflow, flush corruption); 55 checkpoints (0 → 1,865,353); full `addressindex`/`spentindex`/`timestampindex` + 7 RPCs
-- **8 MB blocks (HIP2)** retained; 10% P2E community fund retained
+- **8 MB blocks (HIP2)** retained; **10% Dev fund / P2E fund** retained (see Specification)
 
 > Full 2.1.0 → 4.0 comparison and derivation history: [`doc/lineage.md`](doc/lineage.md).
 > Overflow soft-fork (BIP9 bit 11) lives on frozen branch `consensus/asset-overflow` — **not in this release**.
-
-## What Makes Satoxcoin Unique?
-
-- **No dedicated servers** — First P2E that works without infrastructure overhead
-- **1,160+ Steam games** — Native support across the Steam catalog
-- **Console support** — Works with Xbox and Steam Deck
 
 ---
 
