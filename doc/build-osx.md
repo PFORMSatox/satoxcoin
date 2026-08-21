@@ -16,7 +16,7 @@ macOS comes with a built-in Terminal located in:
 ### 1. Xcode Command Line Tools
 
 The Xcode Command Line Tools are a collection of build tools for macOS.
-These tools must be installed in order to build Bitcoin Core from source.
+These tools must be installed in order to build Satoxcoin Core from source.
 
 To install, run the following command from your terminal:
 
@@ -64,10 +64,10 @@ install anything.
 If you do not need IPC functionality (see [multiprocess.md](multiprocess.md))
 you can omit `capnp` and use `-DENABLE_IPC=OFF` in the `cmake -B` step below.
 
-### 4. Clone Bitcoin repository
+### 4. Clone Satoxcoin Repository
 
 `git` should already be installed by default on your system.
-Now that all the required dependencies are installed, let's clone the Bitcoin Core repository to a directory.
+Now that all the required dependencies are installed, let.s clone the Satoxcoin Core repository to a directory.
 All build scripts and commands will run from this directory.
 
 ``` bash
@@ -80,7 +80,7 @@ git clone https://github.com/satoverse/satoxcoin.git
 
 ###### Qt
 
-Bitcoin Core includes a GUI built with the cross-platform Qt Framework. To compile the GUI, we need to install
+Satoxcoin Core includes a GUI built with the cross-platform Qt Framework. To compile the GUI, we need to install
 Qt, libqrencode and pass `-DBUILD_GUI=ON`. Skip if you don't intend to use the GUI.
 
 ``` bash
@@ -130,14 +130,14 @@ brew install python
 
 #### Deploy Dependencies
 
-You can [deploy](#3-deploy-optional) a `.zip` containing the Bitcoin Core application.
+You can [deploy](#3-deploy-optional) a `.zip` containing the Satoxcoin Core application.
 It is required that you have `python` and `zip` installed.
 
-## Building Bitcoin Core
+## Building Satoxcoin Core
 
 ### 1. Configuration
 
-There are many ways to configure Bitcoin Core, here are a few common examples:
+There are many ways to configure Satoxcoin Core, here are a few common examples:
 
 ##### Wallet (only SQlite) and GUI Support:
 
@@ -166,7 +166,7 @@ cmake -B build -LH
 ### 2. Compile
 
 After configuration, you are ready to compile.
-Run the following in your terminal to compile Bitcoin Core:
+Run the following in your terminal to compile Satoxcoin Core:
 
 ``` bash
 cmake --build build     # Append "-j N" here for N parallel jobs.
@@ -181,10 +181,10 @@ You can also create a  `.zip` containing the `.app` bundle by running the follow
 cmake --build build --target deploy
 ```
 
-## Running Bitcoin Core
+## Running Satoxcoin Core
 
 Satoxcoin Core should now be available at `./build/bin/satoxcoind`.
-If you compiled support for the GUI, it should be available at `./build/bin/bitcoin-qt`.
+If you compiled support for the GUI, it should be available at `./build/bin/satoxcoin-qt`.
 
 There is also a multifunction command line interface at `./build/bin/bitcoin`
 supporting subcommands like `satoxcoin node`, `satoxcoin gui`, `satoxcoin rpc`, and
@@ -202,7 +202,7 @@ By default, blockchain and wallet data files will be stored in:
 Before running, you may create an empty configuration file:
 
 ```shell
-mkdir -p "/Users/${USER}/Library/Application Support/Bitcoin"
+mkdir -p "/Users/${USER}/Library/Application Support/Satoxcoin"
 
 touch "/Users/${USER}/Library/Application Support/Satoxcoin/satoxcoin.conf"
 
@@ -212,14 +212,14 @@ chmod 600 "/Users/${USER}/Library/Application Support/Satoxcoin/satoxcoin.conf"
 You can monitor the download process by looking at the debug.log file:
 
 ```shell
-tail -f $HOME/Library/Application\ Support/Bitcoin/debug.log
+tail -f $HOME/Library/Application\ Support/Satoxcoin/debug.log
 ```
 
 ## Other commands:
 
 ```shell
-./build/bin/satoxcoind -daemon      # Starts the bitcoin daemon.
+./build/bin/satoxcoind -daemon      # Starts the satoxcoin daemon.
 ./build/bin/satoxcoin-cli --help    # Outputs a list of command-line options.
 ./build/bin/satoxcoin-cli help      # Outputs a list of RPC commands when the daemon is running.
-./build/bin/satoxcoin-qt -server # Starts the bitcoin-qt server mode, allows satoxcoin-cli control
+./build/bin/satoxcoin-qt -server # Starts the satoxcoin-qt server mode, allows satoxcoin-cli control
 ```

@@ -33,7 +33,7 @@ Wallet encryption may prevent unauthorized access. However, this significantly i
 
 Wallet encryption may also not protect against more sophisticated attacks. An attacker can, for example, obtain the password by installing a keylogger on the user's machine.
 
-After encrypting the wallet or changing the passphrase, a new backup needs to be created immediately. The reason is that the keypool is flushed and a new HD seed is generated after encryption. Any bitcoins received by the new seed cannot be recovered from the previous backups.
+After encrypting the wallet or changing the passphrase, a new backup needs to be created immediately. The reason is that the keypool is flushed and a new HD seed is generated after encryption. Any satoxcoins received by the new seed cannot be recovered from the previous backups.
 
 The wallet's private key may be encrypted with the following command:
 
@@ -96,7 +96,7 @@ This backup file can be stored on one or multiple offline devices, which must be
 
 If the computer has malware, it can compromise the wallet when recovering the backup file. One way to minimize this is to not connect the backup to an online device.
 
-If both the wallet and all backups are lost for any reason, the bitcoins related to this wallet will become permanently inaccessible.
+If both the wallet and all backups are lost for any reason, the satoxcoins related to this wallet will become permanently inaccessible.
 
 ### 1.5 Backup Frequency
 
