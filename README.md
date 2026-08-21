@@ -95,14 +95,17 @@ Satoxcoin Core 4.0 is a major rebase from the last public release **2.1.0** (Bit
 
 ### Prerequisites
 
-| Dependency | Minimum Version |
-|:-----------|:----------------|
-| C++ compiler | GCC 10+ / Clang 12+ (C++17) |
-| CMake | 3.20+ |
-| Ninja | recommended |
-| Boost | 1.74+ |
-| libevent | — |
-| SQLite | bundled |
+| Dependency | Minimum Version | Notes |
+|:-----------|:----------------|:------|
+| C++ compiler | **GCC 12.1+ / Clang 17.0+** (C++17) | per `doc/dependencies.md` |
+| CMake | **3.22+** | |
+| Boost | **1.74+** | header-only + `boost::thread` via `libboost-dev` |
+| libevent | **2.1.8+** | `libevent-dev` |
+| SQLite | **3.7.17+** | `libsqlite3-dev` (wallet) — **replaces BerkeleyDB** from 2.1.0 |
+
+> **No auto-install:** `cmake` will error if deps are missing — it does not `sudo apt install` for you.
+> Install manually per [`doc/build-unix.md`](doc/build-unix.md) (`sudo apt install build-essential cmake libboost-dev libevent-dev libsqlite3-dev` etc.)
+> or self-compile everything via the [`depends` system](depends/README.md) (`make -C depends -j$(nproc)`), which needs no `sudo`.
 
 ### Build
 
@@ -129,10 +132,10 @@ See [`doc/build-*.md`](doc/build-*.md) for platform-specific instructions.
 
 ```
 Bitcoin Core (0.15 → 0.21)
-  └── Ravencoin (v4.6.1 / develop)
-        └── Satoxcoin 2.1.0 (last public, autotools/BDB)
-              └── Satoxcoin 4.0 (main → Bitcoin Core 31.1 rebase)
-                    └── patch/frozen: asset-overflow soft-fork (BIP9 bit 11) + remaining hardening — on top of 4.0
+  └── Ravencoin (v4.6.1 / develop, autotools + BerkeleyDB)
+        └── Satoxcoin 2.1.0 (last public, autotools + BerkeleyDB)
+              └── Satoxcoin 4.0 (main → Bitcoin Core 31.1, CMake + SQLite)
+                    └── patch/frozen: asset-overflow soft-fork (BIP9 bit 11) — on top of 4.0
                         branch `consensus/asset-overflow` (tag `asset-overflow-frozen`)
 ```
 
