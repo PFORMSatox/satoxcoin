@@ -3,7 +3,7 @@
 
 <br>
 
-**Satoxcoin ($SATOX)** — A PoW blockchain with native asset support, designed for Play2Earn gaming.
+**Satoxcoin Core**
 
 <br>
 
