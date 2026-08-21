@@ -24,7 +24,7 @@
 
 ---
 
-> **Note:** This repo contains **Satoxcoin Core** (the wallet & node) only. The Play2Earn system is a separate component.
+> **Note:** This repo contains **Satoxcoin Core** (the wallet & node) only. The Play2Earn system is not included.
 
 ## Table of Contents
 
