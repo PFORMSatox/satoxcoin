@@ -48,20 +48,20 @@
 
 ## What is Satoxcoin Core 4.0?
 
-Satoxcoin Core 4.0 is a major rebase from Bitcoin Core 0.21 (Ravencoin 4.6.1 base) to **Bitcoin Core 31.1**, bringing all BTC security fixes while preserving the complete Satoxcoin asset system, KAWPOW consensus, and community fund.
+Satoxcoin Core 4.0 is a major rebase from the last public release **2.1.0** (Bitcoin 0.21 / Ravencoin 4.6.1 base, autotools + BerkeleyDB) to **Bitcoin Core 31.1**, bringing all BTC security fixes while preserving the complete Satoxcoin asset system, KAWPOW consensus, and community fund. The intermediate `3.0.x` line was internal/private and never publicly released.
 
-### Key Improvements
+### Key Improvements over 2.1.0
 
-| Feature | Details |
-|:--------|:--------|
-| BTC 31.1 security base | 16 CVEs fixed (CVE-2024-52911 through CVE-2025-54605) |
-| C++17 / CMake | Modern build system, faster compilation |
-| 55 mainnet checkpoints | Full chain hardening (height 0 → 1,865,353) |
-| HIP2 8MB blocks | Satoxcoin-specific block size limit |
-| KAWPOW security hardening | mix\_hash forgery, nHeight forgery, epoch-DoS fixes |
-| Asset system hardening | 6 critical/high security fixes in ConnectBlock/DisconnectBlock |
-| Full asset index system | Address, spent, and timestamp indexes with 7 RPCs |
-| Asset overflow BIP9 | Soft-fork prepared (activation deferred per policy) |
+| Area | 2.1.0 (last public) | 4.0.x (this release) |
+|:-----|:--------------------|:---------------------|
+| Bitcoin base | 0.21 (Ravencoin 4.6.1) | **31.1** — 16 CVEs fixed (CVE-2024-52911 → CVE-2025-54605) |
+| Build / language | autotools, **C++11**, BerkeleyDB (BDB) wallets | **CMake**, **C++17**, **SQLite** + descriptor wallets |
+| KAWPOW | unhardened (mix\_hash/nHeight/epoch-DoS open) | **hardened** — 3 fixes from `security/kawpow-hardening` |
+| Asset system | height-activated (`nAssetActivationHeight=1`), no overflow check | **BIP9** bits 6–10, **6 hardening fixes** (ConnectBlock/DisconnectBlock, reissue overflow, flush corruption). Overflow soft-fork (bit 11) is on frozen branch `security/kawpow-hardening` — **not in this release**, activation is slow/per-policy |
+| Block size | 4 MB serial / 8 MB HIP2 already present | **retained 8 MB HIP2** |
+| Checkpoints | 1 (genesis only) | **55** (height 0 → 1,865,353) |
+| Indexes / RPCs | none (no address/spent/timestamp) | **full index system** — `addressindex`, `spentindex`, `timestampindex` + 7 RPCs, `getaddressdeltas` etc. |
+| AssumeUTXO | absent | present (header sync + snapshot load) |
 
 ---
 
@@ -138,8 +138,8 @@ Bitcoin Core (0.15)
 |:-----|:--------|:---------------|
 | **Bitcoin Core** | 31.1 | Consensus kernel, C++17, CMake build, security base, UTXO model, script engine, mempool |
 | **Ravencoin** | 4.6.1 | Asset system, KAWPOW/X16RV2 PoW, restricted assets, qualifiers, messaging, HIP2 8MB blocks |
-| **Satoxcoin 3.0.0** | 3.0.0-rebase | KAWPOW security fixes, asset-overflow BIP9, community autonomous fund (10% P2E), branding, 55 checkpoints |
-| **Satoxcoin 4.0** | 4.0 | All above + BTC 31.1 security (16 CVEs), C++17, CMake, modernized asset DB, SQLite wallet, indexes |
+| **Satoxcoin 3.0.0** | 3.0.0-rebase *(internal, frozen)* | KAWPOW security fixes, asset-overflow soft-fork (BIP9 bit 11, frozen), community fund (10% P2E), branding, 55 checkpoints — **not merged into 4.0** |
+| **Satoxcoin 4.0** | 4.0 | KAWPOW fixes (cherry-picked) + BTC 31.1 security (16 CVEs), C++17, CMake, modernized asset DB, SQLite wallet, indexes — **overflow fork stays on its branch per release policy** |
 
 ---
 
