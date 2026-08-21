@@ -10,9 +10,6 @@
 #include <key_io.h>
 #include "base58.h"
 
-#include <boost/algorithm/string.hpp>
-#include <boost/thread.hpp>
-
 static const uint8_t SNAPSHOTCHECK_FLAG = 'C'; // Snapshot Check
 
 CAssetSnapshotDBEntry::CAssetSnapshotDBEntry()
