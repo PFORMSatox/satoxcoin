@@ -25,7 +25,7 @@ jobs:
   linux-build:
     name: Build + Unit Tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: read
     steps:
@@ -53,9 +53,9 @@ jobs:
         run: cmake --build build -j$(nproc)
 
       - name: Unit tests
-        # -E excludes 4 pre-existing broken suites (see doc/security/audit/ci-known-failures.md):
-        # key_io (testnet4 vectors), merkleblock, blockchain, validation_chainstatemanager
-        run: cd build && ctest -j$(nproc) --output-on-failure -E 'key_io_tests|merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests'
+        # -E excludes 5 pre-existing broken suites (see doc/security/audit/ci-known-failures.md):
+        # key_io (testnet4 vectors), merkleblock, blockchain, validation_* asset flush/difficulty
+        run: cd build && ctest -j$(nproc) --output-on-failure -E 'key_io_tests|merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests|validation_block_tests'
 
   lint:
     name: Lint

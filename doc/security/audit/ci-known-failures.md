@@ -44,7 +44,16 @@ differences vs upstream assumptions. Needs debugging.
 ## 4. validation_chainstatemanager_tests
 
 Abort in `chainstatemanager_snapshot_init`. Additionally `chainstatemanager_activate_snapshot`
-takes ~25 min in Debug — a job-timeout risk (90m limit) even when passing.
+takes ~25 min in Debug — a job-timeout risk (90-120m limit) even when passing.
+
+## 5. validation_block_tests
+
+```
+test_satoxcoin: ./test/validation_block_tests.cpp:210: Assertion `processed' failed
+```
+Coupled with repeated `assets/assets.cpp:2950 Flush: Couldn't find passets pointer`
+and `DisconnectBlock: Failed to flush asset cache` (loop → hangs until timeout).
+Suspect: asset DB initialization regression on the 4.0 line; needs debugging.
 
 ---
 
