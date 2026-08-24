@@ -72,7 +72,7 @@ jobs:
 
       - name: Shellcheck
         run: |
-          find test/lint/test_scripts -name '*.sh' -print0 | xargs -0 shellcheck --severity=error
+          find test/lint -name '*.sh' -print0 | xargs -0 -r shellcheck --severity=error
 
   quick-build:
     name: Build Check
