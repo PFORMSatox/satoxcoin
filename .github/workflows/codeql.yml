@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   analyze:
-    name: Analyze (cpp)
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [cpp]
+        language: [cpp, actions]
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -44,7 +44,9 @@ jobs:
           # queries: security-extended — uncomment for extended coverage (slower)
           # queries: security-extended
 
+      # cpp needs a build for extraction; actions is config-only (skips build)
       - name: Install dependencies
+        if: matrix.language == 'cpp'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
@@ -52,6 +54,7 @@ jobs:
             libboost-dev libevent-dev libsqlite3-dev
 
       - name: Build (for CodeQL extraction)
+        if: matrix.language == 'cpp'
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
