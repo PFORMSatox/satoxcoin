@@ -5,7 +5,8 @@
 # ──────────────────────────────────────────────────────────────────────────────
 
 # ── Build stage ──────────────────────────────────────────────────────────────
-FROM ubuntu:24.04 AS builder
+# Pinned to ubuntu:24.04 digest 2026-08-24 (noble). Update with: docker images --digests
+FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake g++ make python3 pkg-config \
@@ -26,7 +27,7 @@ RUN cmake -B build \
  && cmake --build build -j$(nproc)
 
 # ── Runtime stage ────────────────────────────────────────────────────────────
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
 
 LABEL org.opencontainers.image.title="Satoxcoin Core" \
       org.opencontainers.image.description="Satoxcoin Core daemon (satoxcoind)" \

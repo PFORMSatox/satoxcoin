@@ -128,6 +128,20 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 ```
 
+### Install
+
+Binaries land in `build/bin/`. To install them system-wide (`/usr/local/bin`, on `PATH`):
+
+```bash
+sudo cmake --install build
+```
+
+Or use a custom prefix (no `sudo` needed, e.g. `~/.local/bin`):
+
+```bash
+cmake --install build --prefix ~/.local
+```
+
 ### Test
 
 ```bash
