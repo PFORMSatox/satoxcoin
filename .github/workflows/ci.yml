@@ -53,9 +53,10 @@ jobs:
         run: cmake --build build -j$(nproc)
 
       - name: Unit tests
-        # -E excludes 5 pre-existing broken suites (see doc/security/audit/ci-known-failures.md):
-        # merkleblock, blockchain, validation_* asset flush/difficulty (key_io fixed: testnet4 vectors filtered)
-        run: cd build && ctest -j$(nproc) --output-on-failure -E 'merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests|validation_block_tests'
+        # -E excludes 4 pre-existing broken suites (see doc/security/audit/ci-known-failures.md):
+        # merkleblock, blockchain, validation_* asset flush/difficulty (key_io fixed 2026-08-26)
+        # Timeout fix: ctest --timeout 300 per test + timeout 900 wrapper + -j4 to avoid -j$(nproc) deadlock on 6-core runners
+        run: cd build && timeout 900 ctest -j4 --output-on-failure --timeout 300 -E 'merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests|validation_block_tests'
 
   lint:
     name: Lint
