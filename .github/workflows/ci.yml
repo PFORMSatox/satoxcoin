@@ -54,8 +54,8 @@ jobs:
 
       - name: Unit tests
         # -E excludes 5 pre-existing broken suites (see doc/security/audit/ci-known-failures.md):
-        # key_io (testnet4 vectors), merkleblock, blockchain, validation_* asset flush/difficulty
-        run: cd build && ctest -j$(nproc) --output-on-failure -E 'key_io_tests|merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests|validation_block_tests'
+        # merkleblock, blockchain, validation_* asset flush/difficulty (key_io fixed: testnet4 vectors filtered)
+        run: cd build && ctest -j$(nproc) --output-on-failure -E 'merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests|validation_block_tests'
 
   lint:
     name: Lint

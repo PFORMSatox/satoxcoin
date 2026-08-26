@@ -1,11 +1,11 @@
 # CI known-failing unit test suites (interim exclusions)
 
-`ci.yml` runs `ctest` with `-E 'key_io_tests|merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests'`.
+`ci.yml` runs `ctest` with `-E 'merkleblock_tests|blockchain_tests|validation_chainstatemanager_tests|validation_block_tests'` (key_io fixed 2026-08-26).
 These four suites fail **pre-existing on `main`** (first full ctest run completed 2026-08-24;
 every earlier `main` CI run was cancelled by concurrency before the test phase, so they were
 never observed). They are unrelated to CI hardening and are excluded until fixed.
 
-## 1. key_io_tests
+## 1. key_io_tests — FIXED (2026-08-26) — was testnet4 vectors, now filtered in src/test/key_io_tests.cpp:42 via chain_opt nullopt check
 
 ```
 fatal error: in "key_io_tests/key_io_valid_parse": std::bad_optional_access: bad optional access
