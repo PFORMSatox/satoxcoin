@@ -2,7 +2,7 @@
 # CodeQL SAST — C/C++ analysis for supply-chain / vuln scanning
 # Runs on push/PR to main + weekly schedule. Findings -> Security tab.
 
-name: CodeQL
+name: CodeQL Advanced
 
 on:
   push:
