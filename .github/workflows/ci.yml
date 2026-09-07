@@ -25,7 +25,10 @@ jobs:
   linux-build:
     name: Build + Unit Tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 120
+    # Full Debug build + ctest exceeds 2h on hosted runners (verified 2026-09-07:
+    # check-run annotation "exceeded the maximum execution time of 2h0m0s").
+    # 360 is the max for GitHub-hosted runners.
+    timeout-minutes: 360
     permissions:
       contents: read
     steps:
